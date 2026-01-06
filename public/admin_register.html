@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เพิ่มบุคลากร - Admin Control</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        body { background-color: #212529; font-family: 'Kanit', sans-serif; color: white; }
+        .form-container { 
+            max-width: 500px; margin: 50px auto; 
+            background: #2c3034; padding: 40px; 
+            border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); 
+            border: 1px solid #444;
+        }
+        .form-control, .form-select {
+            background-color: #3d4246; border: 1px solid #555; color: white;
+        }
+        .form-control:focus, .form-select:focus {
+            background-color: #495057; border-color: #dc3545; color: white; box-shadow: none;
+        }
+        .btn-register { width: 100%; padding: 12px; font-size: 1.1rem; border-radius: 50px; }
+        .section-icon { font-size: 3rem; color: #dc3545; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark bg-dark border-bottom border-secondary mb-4">
+        <div class="container">
+            <span class="navbar-brand text-danger fw-bold"><i class="fa-solid fa-user-shield me-2"></i>Admin Center</span>
+            <a href="dashboard.html" class="btn btn-sm btn-outline-light rounded-pill">🔙 กลับ Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="form-container text-center">
+            <div class="section-icon"><i class="fa-solid fa-user-plus"></i></div>
+            <h3 class="mb-4">เพิ่มสมาชิกใหม่</h3>
+            
+            <form id="registerForm" class="text-start">
+                
+                <div class="mb-3">
+                    <label class="form-label">อีเมล (Email)</label>
+                    <input type="email" id="email" class="form-control" placeholder="user@school.com" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">รหัสผ่าน (Password)</label>
+                    <div class="input-group">
+                        <input type="text" id="password" class="form-control" placeholder="ตั้งรหัสผ่านอย่างน้อย 6 ตัว" required>
+                        <button class="btn btn-outline-secondary" type="button" onclick="generatePass()">สุ่ม</button>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">ชื่อ-สกุล (ภาษาไทย)</label>
+                    <input type="text" id="firstName" class="form-control" placeholder="เช่น นายสมชาย ใจดี" required>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label">ตำแหน่ง/สิทธิ์ (Role)</label>
+                    <select id="role" class="form-select" required>
+                        <option value="" selected disabled>-- เลือกตำแหน่ง --</option>
+                        <option value="teacher">👨‍🏫 ครู / อาจารย์ (Teacher)</option>
+                        <option value="personnel">📋 ฝ่ายบุคคล / ธุรการ (Personnel)</option>
+                        <option value="technician">🛠️ ช่าง / อาคารสถานที่ (Technician)</option>
+                        <option value="transport">🚐 ยานพาหนะ (Transport)</option>
+                        <option value="admin">👮 ผู้ดูแลระบบ (Admin)</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-danger btn-register shadow fw-bold">
+                    <i class="fa-solid fa-check-circle"></i> สร้างบัญชี
+                </button>
+
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // ⚠️⚠️⚠️ ใส่ Config ของอาร์มตรงนี้ ⚠️⚠️⚠️
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
+            authDomain: "school-management-system-10cbb.firebaseapp.com",
+            projectId: "school-management-system-10cbb",
+            storageBucket: "school-management-system-10cbb.firebasestorage.app",
+            messagingSenderId: "674779385916",
+            appId: "1:674779385916:web:9a26e4d25282dc23a6f339"
+        };
+
+        // 1. App หลัก (สำหรับเช็คว่า Admin ล็อกอินอยู่ไหม)
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // เช็คก่อนว่าคนเข้าหน้านี้ใช่ Admin ไหม?
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists() && userDoc.data().role === 'admin') {
+                    // อนุญาตให้เข้า
+                } else {
+                    alert("หน้านี้สำหรับ Admin เท่านั้น!");
+                    window.location.href = "dashboard.html";
+                }
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        // 2. ฟังก์ชันสุ่มรหัสผ่าน (เพื่อความสะดวก)
+        window.generatePass = () => {
+            const chars = "0123456789abcdefghijklmnopqrstuvwxyz";
+            let pass = "";
+            for (let i = 0; i < 6; i++) {
+                pass += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            document.getElementById('password').value = pass;
+        }
+
+        // 3. ฟังก์ชันสร้าง User (หัวใจสำคัญ!)
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const firstName = document.getElementById('firstName').value;
+            const role = document.getElementById('role').value;
+
+            if(password.length < 6) { Swal.fire('รหัสสั้นไป', 'ต้องมีอย่างน้อย 6 ตัวอักษร', 'warning'); return; }
+
+            Swal.fire({ title: 'กำลังสร้างบัญชี...', didOpen: () => Swal.showLoading() });
+
+            try {
+                // 🔥 เทคนิคพิเศษ: สร้าง App รอง (Secondary App) เพื่อสร้าง User ใหม่โดยไม่เตะ Admin ออก
+                const secondaryApp = initializeApp(firebaseConfig, "Secondary");
+                const secondaryAuth = getAuth(secondaryApp);
+
+                // สร้าง User ใน Authentication (ใช้ App รอง)
+                const userCredential = await createUserWithEmailAndPassword(secondaryAuth, email, password);
+                const newUser = userCredential.user;
+
+                // บันทึกข้อมูลลง Firestore (ใช้ App หลักของ Admin เขียน)
+                // เราใช้ uid ของ user ใหม่ เป็นชื่อเอกสารเลย จะได้หาง่าย
+                await setDoc(doc(db, "users", newUser.uid), {
+                    email: email,
+                    firstName: firstName,
+                    role: role,
+                    created_at: serverTimestamp()
+                });
+
+                // ลบ App รองทิ้งเมื่อเสร็จงาน (คืนหน่วยความจำ)
+                // (ใน JS เวอร์ชั่น module มันจัดการให้อัตโนมัติในระดับนึง แต่ถ้าจะ clean จริงๆ ต้อง deleteApp)
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'สร้างเรียบร้อย!',
+                    html: `User: <b>${email}</b><br>Pass: <b>${password}</b><br>Role: <b>${role.toUpperCase()}</b>`,
+                    confirmButtonText: 'ตกลง'
+                });
+
+                // เคลียร์ฟอร์ม
+                document.getElementById('registerForm').reset();
+
+            } catch (error) {
+                console.error("Error:", error);
+                let msg = error.message;
+                if(error.code === 'auth/email-already-in-use') msg = "อีเมลนี้มีคนใช้แล้ว";
+                Swal.fire('เกิดข้อผิดพลาด', msg, 'error');
+            }
+        });
+    </script>
+</body>
+</html>

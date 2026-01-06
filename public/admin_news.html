@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin - ลงประกาศข่าว</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        body { background-color: #f0f2f5; font-family: 'Sarabun', sans-serif; }
+        .card-header { background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%); }
+    </style>
+</head>
+<body>
+
+    <div class="container mt-5">
+        <div class="card shadow border-0 mx-auto" style="max-width: 600px; border-radius: 15px;">
+            <div class="card-header text-white d-flex justify-content-between align-items-center py-3" style="border-radius: 15px 15px 0 0;">
+                <h5 class="m-0 fw-bold"><i class="fa-solid fa-bullhorn me-2"></i> ลงประกาศข่าวใหม่</h5>
+                <a href="dashboard.html" class="btn btn-sm btn-light text-primary fw-bold rounded-pill px-3">
+                    <i class="fa-solid fa-arrow-left"></i> กลับ
+                </a>
+            </div>
+            <div class="card-body p-4">
+                <form id="newsForm">
+                    
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">ต้องการประกาศถึงใคร? <span class="text-danger">*</span></label>
+                        <select id="targetAudience" class="form-select bg-light" required>
+                            <option value="" selected disabled>-- กรุณาเลือกกลุ่มเป้าหมาย --</option>
+                            <option value="all">📢 ทุกคน (All Users)</option>
+                            <option value="teacher_all">👨‍🏫 ครูอาจารย์ทั้งหมด (พื้นฐาน + อนุบาล)</option>
+                            
+                            <optgroup label="เจาะจงกลุ่มครู">
+                                <option value="teacher_basic">🏫 ครูระดับชั้นพื้นฐาน</option>
+                                <option value="teacher_kindergarten">🧸 ครูระดับชั้นอนุบาล</option>
+                            </optgroup>
+                            
+                            <optgroup label="สายสนับสนุน">
+                                <option value="personnel">💼 ฝ่ายบุคคล/การเงิน</option>
+                                <option value="technician">🛠️ ช่างอาคารสถานที่</option>
+                                <option value="transport">🚐 งานยานพาหนะ</option>
+                                <option value="security_guard">👮 รปภ.</option>
+                            </optgroup>
+                        </select>
+                        <div class="form-text text-muted">
+                            <i class="fa-solid fa-circle-info"></i> เฉพาะกลุ่มที่เลือกเท่านั้นที่จะเห็นประกาศนี้
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary">หัวข้อประกาศ <span class="text-danger">*</span></label>
+                        <input type="text" id="topic" class="form-control" required placeholder="เช่น แจ้งหยุดเรียนกรณีพิเศษ, กำหนดการประชุม">
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-secondary">รายละเอียด <span class="text-danger">*</span></label>
+                        <textarea id="detail" class="form-control" rows="5" required placeholder="พิมพ์เนื้อหาข่าวที่นี่..."></textarea>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold shadow-sm">
+                        <i class="fa-solid fa-paper-plane me-2"></i> โพสต์ประกาศ
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // ⚠️ Config ของอาร์ม
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
+            authDomain: "school-management-system-10cbb.firebaseapp.com",
+            projectId: "school-management-system-10cbb",
+            storageBucket: "school-management-system-10cbb.firebasestorage.app",
+            messagingSenderId: "674779385916",
+            appId: "1:674779385916:web:9a26e4d25282dc23a6f339",
+            measurementId: "G-MELYCLE3XW"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // 1. เช็คสิทธิ์ Admin
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    // ถ้าไม่ใช่ Admin ให้ดีดออก
+                    if (!userDoc.exists() || userDoc.data().role !== 'admin') {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'ไม่มีสิทธิ์เข้าถึง',
+                            text: 'หน้านี้สำหรับ Admin เท่านั้น'
+                        }).then(() => {
+                            window.location.href = "dashboard.html";
+                        });
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        // 2. กดโพสต์ประกาศ
+        document.getElementById('newsForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // ดึงค่า
+            const target = document.getElementById('targetAudience').value;
+            const topic = document.getElementById('topic').value;
+            const detail = document.getElementById('detail').value;
+
+            // ถามยืนยัน
+            const result = await Swal.fire({
+                title: 'ยืนยันการลงประกาศ?',
+                html: `คุณกำลังจะประกาศข่าวไปยังกลุ่ม: <b>${getTargetName(target)}</b>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#0d6efd',
+                confirmButtonText: 'ยืนยัน, โพสต์เลย!',
+                cancelButtonText: 'ยกเลิก'
+            });
+
+            if (result.isConfirmed) {
+                Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+
+                try {
+                    await addDoc(collection(db, "news"), {
+                        target: target,  // 🔥 บันทึกกลุ่มเป้าหมายลงไปด้วย
+                        topic: topic,
+                        detail: detail,
+                        author: auth.currentUser.email,
+                        created_at: serverTimestamp()
+                    });
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'เรียบร้อย!',
+                        text: 'ลงประกาศข่าวเข้าสู่ระบบแล้ว',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        document.getElementById('newsForm').reset();
+                    });
+
+                } catch (error) {
+                    console.error(error);
+                    Swal.fire('Error', error.message, 'error');
+                }
+            }
+        });
+
+        // ฟังก์ชันแปลงรหัสเป็นชื่อไทย (เอาไว้โชว์ตอน confirm)
+        function getTargetName(val) {
+            const names = {
+                'all': 'ทุกคน',
+                'teacher_all': 'ครูอาจารย์ทั้งหมด',
+                'teacher_basic': 'ครูระดับพื้นฐาน',
+                'teacher_kindergarten': 'ครูระดับอนุบาล',
+                'personnel': 'ฝ่ายบุคคล',
+                'technician': 'ช่างอาคาร',
+                'transport': 'ยานพาหนะ',
+                'security_guard': 'รปภ.'
+            };
+            return names[val] || val;
+        }
+    </script>
+</body>
+</html>

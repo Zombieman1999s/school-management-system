@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ขอกำลังพล - School System</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        body { background-color: #f0f2f5; font-family: 'Sarabun', sans-serif; }
+        
+        /* ธีมสีแดง */
+        .main-header {
+            background-color: #dc3545; 
+            color: white;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .btn-back {
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            color: white;
+            border-radius: 50px;
+            padding: 6px 16px;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.3s;
+        }
+        .btn-back:hover {
+            background-color: white;
+            color: #dc3545;
+        }
+
+        .form-container { 
+            max-width: 700px; margin: 30px auto; 
+            background: white; padding: 40px; 
+            border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+        }
+
+        .form-title {
+            color: #b02a37;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .section-header { 
+            background-color: #f8d7da; padding: 10px 15px; 
+            border-radius: 8px; margin-bottom: 20px; color: #842029; 
+            font-weight: bold; border: 1px solid #f5c2c7;
+            display: flex; align-items: center;
+        }
+        .section-header i { margin-right: 10px; }
+
+        .btn-submit { 
+            width: 100%; padding: 12px; font-size: 1.1rem; border-radius: 50px; 
+            background-color: #dc3545; color: white; border: none;
+            transition: 0.3s; margin-top: 20px; font-weight: 600;
+        }
+        .btn-submit:hover {
+            background-color: #bb2d3b; transform: translateY(-2px);
+        }
+
+        .readonly-field { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #6c757d; }
+    </style>
+</head>
+<body>
+
+    <div class="main-header">
+        <div class="fw-bold fs-5"><i class="fa-solid fa-users"></i> ระบบขอกำลังพล</div>
+        <a href="dashboard.html" class="btn-back">
+            <i class="fa-solid fa-house"></i> กลับหน้าหลัก
+        </a>
+    </div>
+
+    <div class="container mb-5">
+        <div class="form-container">
+            <h3 class="form-title">💪 แบบฟอร์มขอกำลังสนับสนุน</h3>
+            
+            <form id="manpowerForm">
+                
+                <div class="section-header"><i class="fa-solid fa-user"></i> ข้อมูลผู้ขอ</div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">ชื่อ-สกุล</label>
+                        <input type="text" id="requesterName" class="form-control readonly-field" readonly value="กำลังโหลด...">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">ตำแหน่ง</label>
+                        <input type="text" id="requesterRole" class="form-control readonly-field" readonly value="...">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">ฝ่าย/งาน/กลุ่มสาระ <span class="text-danger">*</span></label>
+                    <select id="department" class="form-select" required>
+                        <option value="" selected disabled>-- กรุณาเลือก --</option>
+                        <option value="บริหารทั่วไป">บริหารทั่วไป</option>
+                        <option value="วิชาการ">วิชาการ</option>
+                        <option value="กิจการนักเรียน">กิจการนักเรียน</option>
+                        <option value="อำนวยการ">อำนวยการ</option>
+                        <option value="บุคคล">บุคคล</option>
+                        <option value="คณิตศาสตร์">กลุ่มสาระฯ คณิตศาสตร์</option>
+                        <option value="วิทยาศาสตร์">กลุ่มสาระฯ วิทยาศาสตร์</option>
+                        <option value="ภาษาต่างประเทศ">กลุ่มสาระฯ ภาษาต่างประเทศ</option>
+                        <option value="ภาษาไทย">กลุ่มสาระฯ ภาษาไทย</option>
+                        <option value="สังคมศึกษา">กลุ่มสาระฯ สังคมศึกษา</option>
+                        <option value="การงานอาชีพ">กลุ่มสาระฯ การงานอาชีพ</option>
+                        <option value="ศิลปะ/ดนตรี">กลุ่มสาระฯ ศิลปะ/ดนตรี</option>
+                        <option value="สุขศึกษา">กลุ่มสาระฯ สุขศึกษา</option>
+                        <option value="อื่นๆ">อื่นๆ</option>
+                    </select>
+                </div>
+
+                <div class="section-header mt-4"><i class="fa-solid fa-list-check"></i> รายละเอียดงาน</div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">ชื่องาน/กิจกรรม <span class="text-danger">*</span></label>
+                    <input type="text" id="activity" class="form-control" placeholder="เช่น ขนย้ายโต๊ะเก้าอี้กิจกรรมวันแม่" required>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">จำนวนคนที่ต้องการ (คน) <span class="text-danger">*</span></label>
+                        <input type="number" id="peopleCount" class="form-control" placeholder="เช่น 10" min="1" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">สถานที่ปฏิบัติงาน <span class="text-danger">*</span></label>
+                        <input type="text" id="location" class="form-control" placeholder="เช่น อาคารอเนกประสงค์" required>
+                    </div>
+                </div>
+
+                <div class="section-header mt-4"><i class="fa-solid fa-clock"></i> วันและเวลาที่ต้องการ</div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">วันที่ต้องการกำลังพล <span class="text-danger">*</span></label>
+                    <input type="date" id="useDate" class="form-control" required>
+                    <div class="mt-2 p-2 bg-light border border-danger rounded text-danger small">
+                        <i class="fa-solid fa-circle-exclamation me-1"></i> <strong>หมายเหตุ:</strong> กรุณาแจ้งล่วงหน้าอย่างน้อย 3 วันทำการ
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">เวลาเริ่มปฏิบัติงาน <span class="text-danger">*</span></label>
+                    <input type="time" id="useTime" class="form-control" required>
+                </div>
+
+                <hr class="my-4">
+                
+                <button type="submit" class="btn btn-submit shadow">
+                    <i class="fa-solid fa-bullhorn me-2"></i> ส่งคำขอกำลังพล
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // 🔥 Config ของอาร์ม (เช็คความถูกต้องอีกทีนะ)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
+            authDomain: "school-management-system-10cbb.firebaseapp.com",
+            projectId: "school-management-system-10cbb",
+            storageBucket: "school-management-system-10cbb.firebasestorage.app",
+            messagingSenderId: "674779385916",
+            appId: "1:674779385916:web:9a26e4d25282dc23a6f339",
+            measurementId: "G-MELYCLE3XW"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        let currentUser = null;
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const data = userDoc.data();
+                        document.getElementById('requesterName').value = data.firstName || user.email;
+                        document.getElementById('requesterRole').value = getRoleName(data.role);
+                    } else {
+                        document.getElementById('requesterName').value = user.displayName || user.email;
+                    }
+                } catch(err) { console.error(err); }
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        function getRoleName(role) {
+            const roles = { 'teacher': 'ครู อาจารย์', 'admin': 'ผู้ดูแลระบบ', 'personnel': 'ฝ่ายบุคคล', 'technician': 'ช่างเทคนิค', 'transport': 'ยานพาหนะ' };
+            return roles[role] || role;
+        }
+
+        document.getElementById('manpowerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!currentUser) { Swal.fire('Error', 'กรุณาล็อกอินใหม่', 'error'); return; }
+
+            // ดึงค่า
+            const department = document.getElementById('department').value;
+            const activity = document.getElementById('activity').value;
+            const peopleCount = document.getElementById('peopleCount').value;
+            const location = document.getElementById('location').value;
+            const useDate = document.getElementById('useDate').value;
+            const useTime = document.getElementById('useTime').value;
+            const requesterName = document.getElementById('requesterName').value;
+
+            Swal.fire({ 
+                title: 'กำลังส่งคำขอ...', 
+                text: 'ระบบกำลังแจ้งเตือนฝ่ายอาคารสถานที่',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading() 
+            });
+
+            try {
+                // 1. บันทึก Firebase (Collection: manpower_requests)
+                await addDoc(collection(db, "manpower_requests"), {
+                    department: department,
+                    activity: activity,
+                    people_count: peopleCount,
+                    location: location,
+                    use_date: useDate,
+                    use_time: useTime,
+                    requester_uid: currentUser.uid,
+                    requester_name: requesterName,
+                    requester_email: currentUser.email,
+                    requester_role: document.getElementById('requesterRole').value,
+                    status: "pending", 
+                    created_at: serverTimestamp()
+                });
+
+                // 2. 🔥 ส่งอีเมลแจ้ง Admin (อาร์ม)
+                // แทนที่ Telegram เดิม
+                await addDoc(collection(db, "mail"), {
+                    to: "armvbn.123my4@gmail.com", // เมลอาร์ม
+                    message: {
+                        subject: `💪 ขอกำลังพล: ${activity}`,
+                        html: `
+                            <div style="font-family: sans-serif; padding: 20px; border: 1px solid #dc3545; border-radius: 10px;">
+                                <h2 style="color: #b02a37;">📢 มีคำขอกำลังพลสนับสนุน</h2>
+                                <p><strong>ผู้ขอ:</strong> ${requesterName} (ฝ่าย ${department})</p>
+                                <hr>
+                                <p><strong>กิจกรรม:</strong> ${activity}</p>
+                                <p><strong>ต้องการคน:</strong> ${peopleCount} คน</p>
+                                <p><strong>สถานที่:</strong> ${location}</p>
+                                <p><strong>วันที่:</strong> ${useDate}</p>
+                                <p><strong>เวลา:</strong> ${useTime} น.</p>
+                                <br>
+                                <a href="#" style="background: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight:bold;">ตรวจสอบคำขอ</a>
+                            </div>
+                        `
+                    }
+                });
+
+                Swal.fire({
+                    icon: 'success', title: 'ส่งคำขอสำเร็จ!', text: 'แจ้งเรื่องไปยังฝ่ายอาคารสถานที่แล้ว',
+                    timer: 2000, showConfirmButton: false
+                }).then(() => window.location.href = "dashboard.html");
+
+            } catch (error) {
+                console.error("Error:", error);
+                Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ฝ่ายบุคคล - School System</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        body { background-color: #f3e5f5; font-family: 'Sarabun', sans-serif; }
+        .dashboard-header { background-color: #9c27b0; color: white; padding: 25px; border-radius: 0 0 20px 20px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(156, 39, 176, 0.3); }
+        .card-leave { border: none; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 15px; border-left: 5px solid #9c27b0; transition: transform 0.2s; }
+        .card-leave:hover { transform: translateY(-3px); }
+        
+        /* Custom Tab Styles */
+        .tab-btn { border-radius: 50px; padding: 10px 25px; border: 2px solid #9c27b0; color: #9c27b0; background: white; font-weight: bold; transition: all 0.3s; }
+        .tab-btn.active { background-color: #9c27b0; color: white; box-shadow: 0 4px 10px rgba(156, 39, 176, 0.3); }
+        .tab-btn:hover:not(.active) { background-color: #f3e5f5; }
+        
+        .table-substitute { font-size: 0.85rem; background-color: #f9f9f9; border-radius: 8px; overflow: hidden; }
+        .table-substitute th { background-color: #e1bee7; color: #4a148c; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container">
+            <span class="navbar-brand"><i class="fa-solid fa-user-tie me-2"></i>ฝ่ายบริหารงานบุคคล</span>
+            <a href="dashboard.html" class="btn btn-sm btn-outline-light rounded-pill">🔙 กลับหน้าหลัก</a>
+        </div>
+    </nav>
+
+    <div class="dashboard-header text-center">
+        <h2 class="fw-bold"><i class="fa-solid fa-clipboard-check"></i> พิจารณาใบลา</h2>
+        <p class="mb-0">ตรวจสอบและอนุมัติการลาของบุคลากร</p>
+    </div>
+
+    <div class="container mb-5">
+        
+        <div class="d-flex justify-content-center gap-3 mb-4">
+            <button class="tab-btn active" id="btn-pending" onclick="switchTab('pending')">
+                <i class="fa-solid fa-hourglass-half"></i> รออนุมัติ
+            </button>
+            <button class="tab-btn" id="btn-history" onclick="switchTab('history')">
+                <i class="fa-solid fa-clock-rotate-left"></i> ประวัติการลา
+            </button>
+        </div>
+
+        <div id="content-pending" style="display: block;">
+            <div id="pendingList">
+                <div class="text-center py-5 text-muted"><div class="spinner-border text-purple"></div><br>กำลังโหลด...</div>
+            </div>
+        </div>
+
+        <div id="content-history" style="display: none;">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>วันที่ส่ง</th>
+                                    <th>ผู้ลา</th>
+                                    <th>ประเภท</th>
+                                    <th>วันที่ลา</th>
+                                    <th>สถานะ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="historyTableBody">
+                                <tr><td colspan="5" class="text-center py-4 text-muted">กำลังโหลดข้อมูล...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, query, onSnapshot, doc, updateDoc, getDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // 🔥 Config ของอาร์ม
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
+            authDomain: "school-management-system-10cbb.firebaseapp.com",
+            projectId: "school-management-system-10cbb",
+            storageBucket: "school-management-system-10cbb.firebasestorage.app",
+            messagingSenderId: "674779385916",
+            appId: "1:674779385916:web:9a26e4d25282dc23a6f339"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // 🟢 ฟังก์ชันสลับแท็บ (เขียนเอง ไม่ง้อ Bootstrap)
+        window.switchTab = (tabName) => {
+            if (tabName === 'pending') {
+                document.getElementById('content-pending').style.display = 'block';
+                document.getElementById('content-history').style.display = 'none';
+                document.getElementById('btn-pending').classList.add('active');
+                document.getElementById('btn-history').classList.remove('active');
+            } else {
+                document.getElementById('content-pending').style.display = 'none';
+                document.getElementById('content-history').style.display = 'block';
+                document.getElementById('btn-pending').classList.remove('active');
+                document.getElementById('btn-history').classList.add('active');
+            }
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const role = userDoc.data().role;
+                        if (!['personnel', 'admin'].includes(role)) {
+                            Swal.fire('ไม่มีสิทธิ์', 'หน้านี้สำหรับฝ่ายบุคคลเท่านั้น', 'error').then(() => window.location.href = 'dashboard.html');
+                            return;
+                        }
+                        loadData();
+                    }
+                } catch(e) { console.error(e); }
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        function loadData() {
+            // 🔥 ดึงทั้งหมดทีเดียว (แก้ปัญหา Index และโหลดข้อมูลไม่ขึ้น)
+            const q = collection(db, "leave_requests");
+            
+            onSnapshot(q, (snapshot) => {
+                const pendingList = document.getElementById('pendingList');
+                const historyBody = document.getElementById('historyTableBody');
+                
+                pendingList.innerHTML = "";
+                historyBody.innerHTML = "";
+
+                let items = [];
+                snapshot.forEach(doc => {
+                    let d = doc.data();
+                    d.id = doc.id;
+                    items.push(d);
+                });
+
+                // เรียงวันที่ (ใหม่ -> เก่า)
+                items.sort((a, b) => (b.created_at?.seconds || 0) - (a.created_at?.seconds || 0));
+
+                let hasPending = false;
+                let hasHistory = false;
+
+                items.forEach(data => {
+                    const dateTxt = data.created_at ? new Date(data.created_at.seconds*1000).toLocaleDateString('th-TH') : "-";
+
+                    // === แยกกองตามสถานะ ===
+                    if (data.status === 'pending') {
+                        // 🟠 กองรออนุมัติ
+                        hasPending = true;
+                        
+                        // ตารางสอนแทน
+                        let subTable = "";
+                        if (data.substitute_schedule && data.substitute_schedule.length > 0) {
+                            let rows = data.substitute_schedule.map(s => 
+                                `<tr><td class="text-center">${s.period}</td><td>${s.subject}</td><td>${s.substitute}</td></tr>`
+                            ).join("");
+                            subTable = `
+                                <div class="mt-2 p-2 bg-light rounded border">
+                                    <small class="fw-bold text-secondary"><i class="fa-solid fa-chalkboard-user"></i> ตารางสอนแทน:</small>
+                                    <table class="table table-sm table-bordered table-substitute mt-1 mb-0">
+                                        <thead><tr><th>คาบ</th><th>วิชา/ห้อง</th><th>ผู้สอนแทน</th></tr></thead>
+                                        <tbody>${rows}</tbody>
+                                    </table>
+                                </div>`;
+                        }
+
+                        pendingList.innerHTML += `
+                            <div class="card card-leave p-3">
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <div class="d-flex align-items-center mb-2">
+                                            <h5 class="fw-bold text-purple mb-0 me-2">${data.leave_type}</h5>
+                                            <span class="badge bg-secondary">${data.staff_type || '-'}</span>
+                                        </div>
+                                        <p class="mb-1"><strong>ผู้ลา:</strong> ${data.requester_name || 'ไม่ระบุ'} (${data.requester_role || '-'})</p>
+                                        <p class="mb-1"><i class="fa-regular fa-calendar"></i> <strong>วันที่ลา:</strong> ${formatDate(data.start_date)} ถึง ${formatDate(data.end_date)} (รวม ${data.total_days} วัน)</p>
+                                        <p class="text-muted fst-italic mb-2">"เหตุผล: ${data.reason}"</p>
+                                        <p class="mb-0 small"><i class="fa-solid fa-phone"></i> ติดต่อ: ${data.contact_phone || '-'}</p>
+                                        ${subTable}
+                                    </div>
+                                    <div class="col-md-4 text-center text-md-end mt-3 mt-md-0">
+                                        <button class="btn btn-success rounded-pill px-4 mb-2 w-100" onclick="approveLeave('${data.id}', '${data.leave_type}', '${data.requester_email || ''}')">
+                                            <i class="fa-solid fa-check"></i> อนุมัติ
+                                        </button>
+                                        <button class="btn btn-outline-danger rounded-pill px-4 w-100" onclick="rejectLeave('${data.id}', '${data.leave_type}', '${data.requester_email || ''}')">
+                                            <i class="fa-solid fa-xmark"></i> ไม่อนุมัติ
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="text-end mt-2 border-top pt-2">
+                                    <small class="text-muted">ส่งเมื่อ: ${dateTxt}</small>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // 🟢/🔴 กองประวัติ (Approved / Rejected)
+                        hasHistory = true;
+                        historyBody.innerHTML += `
+                            <tr>
+                                <td>${dateTxt}</td>
+                                <td>${data.requester_name || '-'}</td>
+                                <td><span class="fw-bold text-secondary">${data.leave_type}</span></td>
+                                <td>${formatDate(data.start_date)} - ${formatDate(data.end_date)}</td>
+                                <td>${getStatusBadge(data.status)}</td>
+                            </tr>
+                        `;
+                    }
+                });
+
+                if (!hasPending) pendingList.innerHTML = `<div class="text-center py-5 text-muted opacity-50"><i class="fa-regular fa-folder-open display-1"></i><br>ไม่มีรายการรออนุมัติ</div>`;
+                if (!hasHistory) historyBody.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-muted">- ไม่มีประวัติ -</td></tr>`;
+            });
+        }
+
+        // --- Action Functions ---
+        window.approveLeave = async (id, type, email) => {
+            const result = await Swal.fire({
+                title: 'ยืนยันอนุมัติ?', icon: 'question',
+                showCancelButton: true, confirmButtonColor: '#198754', confirmButtonText: 'อนุมัติ'
+            });
+            if (result.isConfirmed) {
+                await updateDoc(doc(db, "leave_requests", id), { status: 'approved', approved_at: serverTimestamp() });
+                if(email) {
+                    await addDoc(collection(db, "mail"), {
+                        to: email,
+                        message: { subject: `✅ อนุมัติการลา: ${type}`, html: `<p>คำขอลาของคุณได้รับอนุมัติแล้ว</p>` }
+                    });
+                }
+                Swal.fire('สำเร็จ', 'อนุมัติเรียบร้อย', 'success');
+            }
+        };
+
+        window.rejectLeave = async (id, type, email) => {
+            const { value: reason } = await Swal.fire({
+                title: 'ไม่อนุมัติ?', input: 'text', inputPlaceholder: 'ระบุเหตุผล...',
+                showCancelButton: true, confirmButtonColor: '#dc3545', confirmButtonText: 'ไม่อนุมัติ'
+            });
+            if (reason) {
+                await updateDoc(doc(db, "leave_requests", id), { status: 'rejected', reject_reason: reason });
+                if(email) {
+                    await addDoc(collection(db, "mail"), {
+                        to: email,
+                        message: { subject: `❌ ไม่อนุมัติการลา: ${type}`, html: `<p>เหตุผล: ${reason}</p>` }
+                    });
+                }
+                Swal.fire('เรียบร้อย', 'ปฏิเสธคำขอแล้ว', 'success');
+            }
+        };
+
+        function formatDate(dateStr) {
+            if(!dateStr) return "-";
+            return new Date(dateStr).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' });
+        }
+
+        function getStatusBadge(status) {
+            const map = {
+                'approved': '<span class="badge bg-success rounded-pill">อนุมัติแล้ว</span>',
+                'rejected': '<span class="badge bg-danger rounded-pill">ไม่อนุมัติ</span>'
+            };
+            return map[status] || status;
+        }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

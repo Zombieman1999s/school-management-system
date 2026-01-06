@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ขอออกนอกสถานที่ - School System</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        body { background-color: #f0f2f5; font-family: 'Sarabun', sans-serif; }
+        
+        /* ธีมสีฟ้าสดใส */
+        .main-header {
+            background-color: #0dcaf0; 
+            color: #212529;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .btn-back {
+            background-color: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            color: #212529;
+            border-radius: 50px;
+            padding: 6px 16px;
+            font-size: 0.9rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.3s;
+        }
+        .btn-back:hover {
+            background-color: white;
+        }
+
+        .form-container { 
+            max-width: 700px; margin: 30px auto; 
+            background: white; padding: 40px; 
+            border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
+        }
+
+        .form-title {
+            color: #0aa2c0;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .section-header { 
+            background-color: #e0f7fa; padding: 10px 15px; 
+            border-radius: 8px; margin-bottom: 20px; color: #006064; 
+            font-weight: bold; border: 1px solid #b2ebf2;
+            display: flex; align-items: center;
+        }
+        .section-header i { margin-right: 10px; }
+
+        .btn-submit { 
+            width: 100%; padding: 12px; font-size: 1.1rem; border-radius: 50px; 
+            background-color: #0dcaf0; color: #212529; border: none;
+            transition: 0.3s; margin-top: 20px; font-weight: 600;
+        }
+        .btn-submit:hover {
+            background-color: #0aa2c0; transform: translateY(-2px); color: white;
+        }
+
+        .readonly-field { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #6c757d; }
+    </style>
+</head>
+<body>
+
+    <div class="main-header">
+        <div class="fw-bold fs-5"><i class="fa-solid fa-person-walking-luggage"></i> ระบบขอออกนอกสถานที่</div>
+        <a href="dashboard.html" class="btn-back">
+            <i class="fa-solid fa-house"></i> กลับหน้าหลัก
+        </a>
+    </div>
+
+    <div class="container mb-5">
+        <div class="form-container">
+            <h3 class="form-title">🏃 แบบฟอร์มขอออกนอกสถานที่</h3>
+            
+            <form id="outsideForm">
+                
+                <div class="section-header"><i class="fa-solid fa-user"></i> ข้อมูลผู้ขออนุญาต</div>
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">ชื่อ-สกุล</label>
+                        <input type="text" id="requesterName" class="form-control readonly-field" readonly value="กำลังโหลด...">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">ตำแหน่ง</label>
+                        <input type="text" id="requesterRole" class="form-control readonly-field" readonly value="...">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">ฝ่าย/งาน/กลุ่มสาระ <span class="text-danger">*</span></label>
+                    <select id="department" class="form-select" required>
+                        <option value="" selected disabled>-- กรุณาเลือก --</option>
+                        <option value="บริหารทั่วไป">บริหารทั่วไป</option>
+                        <option value="วิชาการ">วิชาการ</option>
+                        <option value="กิจการนักเรียน">กิจการนักเรียน</option>
+                        <option value="อำนวยการ">อำนวยการ</option>
+                        <option value="บุคคล">บุคคล</option>
+                        <option value="คณิตศาสตร์">กลุ่มสาระฯ คณิตศาสตร์</option>
+                        <option value="วิทยาศาสตร์">กลุ่มสาระฯ วิทยาศาสตร์</option>
+                        <option value="ภาษาต่างประเทศ">กลุ่มสาระฯ ภาษาต่างประเทศ</option>
+                        <option value="ภาษาไทย">กลุ่มสาระฯ ภาษาไทย</option>
+                        <option value="สังคมศึกษา">กลุ่มสาระฯ สังคมศึกษา</option>
+                        <option value="การงานอาชีพ">กลุ่มสาระฯ การงานอาชีพ</option>
+                        <option value="ศิลปะ/ดนตรี">กลุ่มสาระฯ ศิลปะ/ดนตรี</option>
+                        <option value="สุขศึกษา">กลุ่มสาระฯ สุขศึกษา</option>
+                        <option value="อื่นๆ">อื่นๆ</option>
+                    </select>
+                </div>
+
+                <div class="section-header mt-4"><i class="fa-solid fa-file-pen"></i> รายละเอียดการขออนุญาต</div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">มีความประสงค์ขออนุญาตเนื่องจาก <span class="text-danger">*</span></label>
+                    <textarea id="reason" class="form-control" rows="3" placeholder="ระบุสาเหตุ..." required></textarea>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">ได้แจ้งผู้บังคับบัญชาชั้นต้นทราบเมื่อ <span class="text-danger">*</span></label>
+                    <input type="datetime-local" id="informTime" class="form-control" required>
+                </div>
+
+                <div class="section-header mt-4"><i class="fa-solid fa-clock"></i> วันและเวลาเดินทาง</div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold">วันที่ออกนอกสถานที่ <span class="text-danger">*</span></label>
+                    <input type="date" id="outDate" class="form-control" required>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">เวลาออก (Departure) <span class="text-danger">*</span></label>
+                        <input type="time" id="startTime" class="form-control" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">เวลากลับ (Return) <span class="text-danger">*</span></label>
+                        <input type="time" id="endTime" class="form-control" required>
+                    </div>
+                </div>
+
+                <hr class="my-4">
+                
+                <button type="submit" class="btn btn-submit shadow">
+                    <i class="fa-solid fa-paper-plane me-2"></i> ส่งใบขออนุญาต
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // 🔥 Config ของอาร์ม (เช็คความถูกต้องอีกทีนะ)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
+            authDomain: "school-management-system-10cbb.firebaseapp.com",
+            projectId: "school-management-system-10cbb",
+            storageBucket: "school-management-system-10cbb.firebasestorage.app",
+            messagingSenderId: "674779385916",
+            appId: "1:674779385916:web:9a26e4d25282dc23a6f339",
+            measurementId: "G-MELYCLE3XW"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        let currentUser = null;
+
+        // ดึงข้อมูล User
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                try {
+                    const userDoc = await getDoc(doc(db, "users", user.uid));
+                    if (userDoc.exists()) {
+                        const data = userDoc.data();
+                        document.getElementById('requesterName').value = data.firstName || user.email;
+                        document.getElementById('requesterRole').value = getRoleName(data.role);
+                    } else {
+                        document.getElementById('requesterName').value = user.displayName || user.email;
+                    }
+                } catch(err) { console.error(err); }
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        function getRoleName(role) {
+            const roles = { 'teacher': 'ครู อาจารย์', 'admin': 'ผู้ดูแลระบบ', 'personnel': 'ฝ่ายบุคคล', 'technician': 'ช่างเทคนิค', 'transport': 'ยานพาหนะ' };
+            return roles[role] || role;
+        }
+
+        document.getElementById('outsideForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            if (!currentUser) { Swal.fire('Error', 'กรุณาล็อกอินใหม่', 'error'); return; }
+
+            // ดึงค่า
+            const department = document.getElementById('department').value;
+            const reason = document.getElementById('reason').value;
+            const informTime = document.getElementById('informTime').value;
+            const outDate = document.getElementById('outDate').value;
+            const startTime = document.getElementById('startTime').value;
+            const endTime = document.getElementById('endTime').value;
+            const requesterName = document.getElementById('requesterName').value;
+
+            // แปลงวันเวลาแจ้งให้สวยงาม
+            const informDateObj = new Date(informTime);
+            const informFormatted = informDateObj.toLocaleString('th-TH');
+
+            Swal.fire({ 
+                title: 'กำลังส่งคำขอ...', 
+                text: 'ระบบกำลังแจ้งเตือนฝ่ายบุคคล',
+                allowOutsideClick: false,
+                didOpen: () => Swal.showLoading() 
+            });
+
+            try {
+                // 1. บันทึก Firebase (Collection: outside_requests)
+                await addDoc(collection(db, "outside_requests"), {
+                    department: department,
+                    reason: reason,
+                    inform_supervisor_at: informTime,
+                    out_date: outDate,
+                    start_time: startTime,
+                    end_time: endTime,
+                    requester_uid: currentUser.uid,
+                    requester_name: requesterName,
+                    requester_email: currentUser.email,
+                    requester_role: document.getElementById('requesterRole').value,
+                    status: "pending", 
+                    created_at: serverTimestamp()
+                });
+
+                // 2. 🔥 ส่งอีเมลแจ้ง Admin (อาร์ม)
+                // แทนที่ Telegram เดิม
+                await addDoc(collection(db, "mail"), {
+                    to: "armvbn.123my4@gmail.com", // เมลอาร์ม
+                    message: {
+                        subject: `🏃 ขออนุญาตออกนอกสถานที่: ${requesterName}`,
+                        html: `
+                            <div style="font-family: sans-serif; padding: 20px; border: 1px solid #0dcaf0; border-radius: 10px;">
+                                <h2 style="color: #00838f;">📢 มีรายการขอออกนอกสถานที่</h2>
+                                <p><strong>ผู้ขอ:</strong> ${requesterName} (ฝ่าย ${department})</p>
+                                <hr>
+                                <p><strong>เหตุผล:</strong> ${reason}</p>
+                                <p><strong>วันที่:</strong> ${outDate}</p>
+                                <p><strong>เวลา:</strong> ${startTime} - ${endTime} น.</p>
+                                <p style="color: gray;">(แจ้งหัวหน้าแล้วเมื่อ: ${informFormatted})</p>
+                                <br>
+                                <a href="#" style="background: #0dcaf0; color: #212529; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight:bold;">รับทราบ/ตรวจสอบ</a>
+                            </div>
+                        `
+                    }
+                });
+
+                Swal.fire({
+                    icon: 'success', title: 'ส่งใบขออนุญาตสำเร็จ!', text: 'แจ้งเรื่องเรียบร้อยครับ',
+                    timer: 2000, showConfirmButton: false
+                }).then(() => window.location.href = "dashboard.html");
+
+            } catch (error) {
+                console.error("Error:", error);
+                Swal.fire('เกิดข้อผิดพลาด', error.message, 'error');
+            }
+        });
+    </script>
+</body>
+</html>

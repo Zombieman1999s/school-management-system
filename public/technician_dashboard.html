@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ห้องทำงานช่าง - School System</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        body { background-color: #f0f2f5; font-family: 'Sarabun', sans-serif; }
+        .dashboard-header { background-color: #ffc107; color: #333; padding: 25px; border-radius: 0 0 20px 20px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3); }
+        .card-job { border: none; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 20px; transition: transform 0.2s; border-left: 5px solid #ffc107; }
+        .card-job:hover { transform: translateY(-3px); }
+        .btn-action { border-radius: 50px; padding: 8px 20px; font-weight: bold; }
+        
+        /* Custom Tab Styles */
+        .tab-btn { 
+            border-radius: 50px; padding: 8px 20px; border: 2px solid #ffc107; color: #856404; 
+            background: white; font-weight: bold; transition: all 0.3s; white-space: nowrap;
+        }
+        .tab-btn.active { background-color: #ffc107; color: black; box-shadow: 0 4px 10px rgba(255, 193, 7, 0.4); }
+        .tab-btn:hover:not(.active) { background-color: #fff3cd; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark bg-dark">
+        <div class="container">
+            <span class="navbar-brand"><i class="fa-solid fa-helmet-safety me-2"></i>ห้องทำงานช่าง</span>
+            <a href="dashboard.html" class="btn btn-sm btn-outline-light rounded-pill">🔙 กลับหน้าหลัก</a>
+        </div>
+    </nav>
+
+    <div class="dashboard-header text-center">
+        <h2 class="fw-bold"><i class="fa-solid fa-tools"></i> รายการแจ้งซ่อม</h2>
+        <p class="mb-0">จัดการงานซ่อมบำรุงและอัปเดตสถานะ</p>
+    </div>
+
+    <div class="container mb-5">
+        
+        <div class="d-flex justify-content-center gap-2 mb-4 overflow-auto pb-2">
+            <button class="tab-btn active" id="btn-pending" onclick="switchTab('pending')">
+                ⏳ งานใหม่ (รอรับ)
+            </button>
+            <button class="tab-btn" id="btn-progress" onclick="switchTab('progress')">
+                🔧 กำลังซ่อม
+            </button>
+            <button class="tab-btn" id="btn-history" onclick="switchTab('history')">
+                ✅ ประวัติงาน
+            </button>
+        </div>
+
+        <div id="content-pending" style="display: block;">
+            <div id="pendingList" class="row">
+                <div class="col-12 text-center text-muted py-5"><div class="spinner-border text-warning"></div><br>กำลังโหลด...</div>
+            </div>
+        </div>
+
+        <div id="content-progress" style="display: none;">
+            <div id="progressList" class="row">
+                <div class="col-12 text-center text-muted py-5">- ไม่มีงานที่กำลังซ่อม -</div>
+            </div>
+        </div>
+
+        <div id="content-history" style="display: none;">
+            <div class="table-responsive bg-white p-3 rounded shadow-sm">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>วันที่แจ้ง</th>
+                            <th>รายการ</th>
+                            <th>สถานที่</th>
+                            <th>ผู้แจ้ง</th>
+                            <th>สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTable">
+                        <tr><td colspan="5" class="text-center py-4">กำลังโหลด...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, query, onSnapshot, doc, updateDoc, getDoc, serverTimestamp, addDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // 🔥 Config ของอาร์ม
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
+            authDomain: "school-management-system-10cbb.firebaseapp.com",
+            projectId: "school-management-system-10cbb",
+            storageBucket: "school-management-system-10cbb.firebasestorage.app",
+            messagingSenderId: "674779385916",
+            appId: "1:674779385916:web:9a26e4d25282dc23a6f339"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        let currentUser = null;
+
+        // 🟢 ฟังก์ชันสลับแท็บ
+        window.switchTab = (tabName) => {
+            // ปิดทั้งหมดก่อน
+            document.getElementById('content-pending').style.display = 'none';
+            document.getElementById('content-progress').style.display = 'none';
+            document.getElementById('content-history').style.display = 'none';
+            
+            document.getElementById('btn-pending').classList.remove('active');
+            document.getElementById('btn-progress').classList.remove('active');
+            document.getElementById('btn-history').classList.remove('active');
+
+            // เปิดตัวที่เลือก
+            document.getElementById('content-' + tabName).style.display = 'block';
+            document.getElementById('btn-' + tabName).classList.add('active');
+        };
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                currentUser = user;
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if(userDoc.exists()) {
+                    const role = userDoc.data().role;
+                    if(!['technician', 'admin'].includes(role)) {
+                        Swal.fire('Error', 'ไม่มีสิทธิ์เข้าถึง', 'error').then(()=>window.location.href='dashboard.html');
+                    } else {
+                        loadJobs(); 
+                    }
+                }
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        function loadJobs() {
+            // 🔥 ดึงทั้งหมดทีเดียว (แก้ปัญหา Index)
+            const q = collection(db, "repair_requests");
+            
+            onSnapshot(q, (snapshot) => {
+                const pendingList = document.getElementById('pendingList');
+                const progressList = document.getElementById('progressList');
+                const historyTable = document.getElementById('historyTable');
+
+                pendingList.innerHTML = "";
+                progressList.innerHTML = "";
+                historyTable.innerHTML = "";
+
+                let items = [];
+                snapshot.forEach(doc => {
+                    let d = doc.data();
+                    d.id = doc.id;
+                    items.push(d);
+                });
+
+                // เรียงวันที่ (ใหม่ -> เก่า)
+                items.sort((a, b) => (b.created_at?.seconds || 0) - (a.created_at?.seconds || 0));
+
+                let hasPending = false, hasProgress = false, hasHistory = false;
+
+                items.forEach(data => {
+                    const dateTxt = data.created_at ? new Date(data.created_at.seconds*1000).toLocaleDateString('th-TH') : "-";
+                    const topic = data.equipment || data.topic || "แจ้งซ่อมทั่วไป";
+                    const reporter = data.reporterName || data.requester_name || "ไม่ระบุ";
+                    
+                    let urgencyIcon = (data.priority === 'ด่วนมาก' || data.priority === 'ด่วนที่สุด') 
+                        ? `<span class="badge bg-danger ms-2">🔥 ${data.priority}</span>` : "";
+
+                    const cardHtml = `
+                        <div class="col-md-6">
+                            <div class="card card-job p-3">
+                                <div class="d-flex justify-content-between">
+                                    <h5 class="fw-bold">${topic} ${urgencyIcon}</h5>
+                                    <span class="badge bg-light text-dark border">${data.location}</span>
+                                </div>
+                                <p class="text-muted mb-1"><small>อาการ:</small> ${data.detail || data.description || '-'}</p>
+                                <p class="mb-2"><small><i class="fa-solid fa-user"></i> ${reporter} (${data.department || '-'})</small></p>
+                                <div class="text-end mt-2">
+                                    ${getActionButtons(data.id, data.status, topic, data)}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    // แยกกอง
+                    if (data.status === 'pending') {
+                        pendingList.innerHTML += cardHtml;
+                        hasPending = true;
+                    } else if (data.status === 'in_progress') {
+                        progressList.innerHTML += cardHtml;
+                        hasProgress = true;
+                    } else {
+                        historyTable.innerHTML += `
+                            <tr>
+                                <td>${dateTxt}</td>
+                                <td>${topic}</td>
+                                <td>${data.location}</td>
+                                <td>${reporter}</td>
+                                <td>${getStatusBadge(data.status)}</td>
+                            </tr>`;
+                        hasHistory = true;
+                    }
+                });
+
+                if (!hasPending) pendingList.innerHTML = `<div class="col-12 text-center text-muted py-5">- ไม่มีงานใหม่ -</div>`;
+                if (!hasProgress) progressList.innerHTML = `<div class="col-12 text-center text-muted py-5">- ไม่มีงานที่กำลังทำ -</div>`;
+                if (!hasHistory) historyTable.innerHTML = `<tr><td colspan="5" class="text-center py-4">- ไม่มีประวัติ -</td></tr>`;
+            });
+        }
+
+        function getActionButtons(id, status, topic, fullData) {
+            const safeTopic = topic.replace(/'/g, "\\'"); 
+            const safeEmail = (fullData.reporterEmail || fullData.email || '').replace(/'/g, "\\'");
+
+            if (status === 'pending') {
+                return `<button class="btn btn-warning btn-action shadow-sm" onclick="acceptJob('${id}', '${safeTopic}', '${safeEmail}')"><i class="fa-solid fa-hand-holding-hand"></i> รับงานนี้</button>`;
+            } else if (status === 'in_progress') {
+                return `<button class="btn btn-success btn-action shadow-sm" onclick="finishJob('${id}', '${safeTopic}', '${safeEmail}')"><i class="fa-solid fa-check-circle"></i> ปิดงาน (ซ่อมเสร็จ)</button>`;
+            }
+            return '';
+        }
+
+        function getStatusBadge(status) {
+            const map = { 
+                'completed': '<span class="badge bg-success">เสร็จสิ้น</span>', 
+                'cancelled': '<span class="badge bg-secondary">ยกเลิก</span>',
+                'pending': '<span class="badge bg-warning text-dark">รอรับงาน</span>'
+            };
+            return map[status] || status;
+        }
+
+        // Global Functions
+        window.acceptJob = async (id, topic, email) => {
+            const result = await Swal.fire({
+                title: 'ยืนยันรับงาน?', text: "คุณกำลังจะเริ่มดำเนินการซ่อม", icon: 'question',
+                showCancelButton: true, confirmButtonText: 'ลุยเลย!', confirmButtonColor: '#ffc107'
+            });
+            if (result.isConfirmed) {
+                await updateDoc(doc(db, "repair_requests", id), { 
+                    status: 'in_progress', technician_name: currentUser.email 
+                });
+                if(email) {
+                    await addDoc(collection(db, "mail"), {
+                        to: email,
+                        message: { subject: `🔧 ช่างรับงานแล้ว: ${topic}`, html: `<p>เจ้าหน้าที่กำลังดำเนินการซ่อมครับ</p>` }
+                    });
+                }
+                Swal.fire('สำเร็จ', 'รับงานแล้ว', 'success');
+            }
+        }
+
+        window.finishJob = async (id, topic, email) => {
+            const { value: note } = await Swal.fire({
+                title: 'ปิดงานซ่อม', input: 'text', inputPlaceholder: 'บันทึกการซ่อม (เช่น เปลี่ยนอะไหล่)',
+                showCancelButton: true, confirmButtonText: 'ยืนยันปิดงาน', confirmButtonColor: '#198754'
+            });
+            if (note) {
+                await updateDoc(doc(db, "repair_requests", id), { 
+                    status: 'completed', repair_note: note, completed_at: serverTimestamp() 
+                });
+                if(email) {
+                    await addDoc(collection(db, "mail"), {
+                        to: email,
+                        message: { subject: `✅ ซ่อมเสร็จสิ้น: ${topic}`, html: `<p>การดำเนินการเสร็จสิ้น<br><b>บันทึก:</b> ${note}</p>` }
+                    });
+                }
+                Swal.fire('สำเร็จ', 'ปิดงานเรียบร้อย', 'success');
+            }
+        }
+    </script>
+</body>
+</html>

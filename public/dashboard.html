@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Dashboard - School Hub</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-bg: #f8f9fa;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --card-hover-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; color: #374151; }
+
+        /* Loading Screen */
+        #loadingScreen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.95); z-index: 9999;
+            display: flex; justify-content: center; align-items: center; flex-direction: column;
+            transition: opacity 0.3s ease-out; backdrop-filter: blur(5px);
+        }
+
+        /* Navbar */
+        .navbar { background-color: #ffffff !important; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); padding: 0.75rem 0; }
+        .navbar-brand { color: var(--primary-color) !important; font-weight: 700; font-size: 1.25rem; }
+        .user-info { font-size: 0.9rem; color: #4b5563; }
+
+        /* Cards & Menus */
+        .card { border: none; border-radius: 12px; box-shadow: var(--card-shadow); background-color: #ffffff; transition: all 0.3s ease; }
+        .card-menu {
+            cursor: pointer; height: 100%; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 1.5rem;
+            border: 1px solid rgba(0,0,0,0.05);
+        }
+        .card-menu:hover { transform: translateY(-5px); box-shadow: var(--card-hover-shadow); border-color: transparent; }
+        .card-menu i { font-size: 2.5rem; margin-bottom: 1rem; transition: transform 0.3s ease; }
+        .card-menu:hover i { transform: scale(1.1); }
+        .card-menu h6 { font-weight: 600; margin: 0; color: #1f2937; }
+
+        /* Section Titles */
+        .section-title { display: flex; align-items: center; font-weight: 700; color: #111827; margin: 2rem 0 1.5rem 0; font-size: 1.1rem; }
+        .section-title::before { content: ''; display: block; width: 4px; height: 24px; background: var(--primary-color); margin-right: 12px; border-radius: 2px; }
+
+        /* Calendar Styles */
+        .calendar-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.85rem; font-weight: bold; color: #6b7280; margin-bottom: 5px; }
+        .calendar-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; } /* เพิ่ม gap ให้เห็นขอบชัดขึ้น */
+        .calendar-day { 
+            height: 45px; display: flex; align-items: center; justify-content: center; flex-direction: column;
+            border-radius: 8px; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;
+            border: 1px solid transparent; /* เตรียมเส้นขอบไว้ */
+            position: relative;
+        }
+        .calendar-day:hover:not(.empty) { background-color: #f3f4f6; transform: scale(1.05); z-index: 10; }
+        .calendar-day.today { background-color: var(--primary-color); color: white; font-weight: bold; box-shadow: 0 4px 6px rgba(13, 110, 253, 0.3); }
+        .calendar-day.empty { cursor: default; }
+        
+        /* Event Marker Styles */
+        .calendar-day.has-event {
+            font-weight: 700;
+        }
+        .event-dot {
+            width: 6px; height: 6px; border-radius: 50%; 
+            position: absolute; bottom: 4px;
+        }
+
+        /* News Section */
+        #newsList .list-group-item { border: none; border-bottom: 1px solid #f3f4f6; padding: 1rem; }
+        #newsList .list-group-item:last-child { border-bottom: none; }
+
+        /* Helpers */
+        .btn-action { width: 32px; height: 32px; padding: 0; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; }
+        .target-badge { font-size: 0.7rem; padding: 4px 8px; border-radius: 6px; background: #eef2ff; color: #4f46e5; font-weight: 600; margin-left: 8px; }
+        
+        /* Menu Icons */
+        .menu-icon-primary { color: #3b82f6; background: #eff6ff; padding: 12px; border-radius: 12px; }
+        .menu-icon-warning { color: #f59e0b; background: #fffbeb; padding: 12px; border-radius: 12px; }
+        .menu-icon-success { color: #10b981; background: #ecfdf5; padding: 12px; border-radius: 12px; }
+        .menu-icon-purple { color: #8b5cf6; background: #f5f3ff; padding: 12px; border-radius: 12px; }
+        .menu-icon-info { color: #06b6d4; background: #ecfeff; padding: 12px; border-radius: 12px; }
+        .menu-icon-danger { color: #ef4444; background: #fef2f2; padding: 12px; border-radius: 12px; }
+        .menu-icon-dark { color: #374151; background: #f3f4f6; padding: 12px; border-radius: 12px; }
+        .menu-icon-ai { color: #ec4899; background: #fdf2f8; padding: 12px; border-radius: 12px; }
+
+        /* Visibility */
+        #teacherSection, #technicianSection, #transportSection, #personnelSection, #adminSection, #newsSection { display: none; }
+        .admin-only { display: none; }
+    </style>
+</head>
+<body>
+
+    <div id="loadingScreen">
+        <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;"></div>
+        <h6 class="text-muted fw-bold">กำลังโหลดข้อมูล...</h6>
+    </div>
+
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <i class="fa-solid fa-school-flag me-2 text-primary"></i>
+                School Hub
+            </a>
+            <div class="d-flex align-items-center gap-3">
+                <div class="user-info d-none d-md-flex align-items-center bg-light px-3 py-2 rounded-pill">
+                    <i class="fa-regular fa-circle-user me-2 fs-5"></i>
+                    <div>
+                        <span id="userEmail" class="fw-bold d-block lh-1">...</span>
+                        <small id="userRoleBadge" class="text-muted" style="font-size: 0.75rem;">...</small>
+                    </div>
+                </div>
+                <button id="btnLogout" class="btn btn-outline-danger btn-sm rounded-circle" style="width: 36px; height: 36px;" title="ออกจากระบบ">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4 mb-5">
+        
+        <div id="newsSection" class="mb-5">
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <div class="card h-100">
+                        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 border-0">
+                            <h5 class="m-0 fw-bold text-dark"><i class="fa-solid fa-bullhorn text-primary me-2"></i> ประชาสัมพันธ์</h5>
+                            <span class="badge bg-primary rounded-pill">ล่าสุด</span>
+                        </div>
+                        <div class="card-body p-0">
+                            <ul id="newsList" class="list-group list-group-flush">
+                                <li class="list-group-item text-center py-5 text-muted">
+                                    <div class="spinner-border spinner-border-sm text-secondary mb-2"></div>
+                                    <div>กำลังโหลดประกาศ...</div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-5">
+                    <div class="card h-100">
+                        <div class="card-header bg-white border-0 py-3">
+                            <div class="calendar-header">
+                                <h6 class="m-0 fw-bold text-dark d-flex align-items-center">
+                                    <i class="fa-regular fa-calendar-days text-success me-2"></i> ปฏิทิน
+                                </h6>
+                                <div class="d-flex align-items-center">
+                                    <button class="btn btn-sm btn-light rounded-circle me-2" onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                                    <span id="calendarMonthYear" class="fw-bold text-primary small" style="min-width: 100px; text-align: center;">...</span>
+                                    <button class="btn btn-sm btn-light rounded-circle ms-2" onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                                    <button id="btnAddEvent" class="btn btn-sm btn-primary ms-3 rounded-circle d-none" onclick="openAddEventModal()"><i class="fa-solid fa-plus"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-body pt-0">
+                            <div class="calendar-weekdays">
+                                <div>อา</div><div>จ</div><div>อ</div><div>พ</div><div>พฤ</div><div>ศ</div><div>ส</div>
+                            </div>
+                            <div id="calendarDays" class="calendar-days"></div>
+                            <div class="text-center mt-3 small text-muted">
+                                <i class="fa-solid fa-circle-info me-1"></i> คลิกที่วันที่เพื่อดูกิจกรรม หรือ เพิ่มกิจกรรม
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="teacherSection">
+            <div class="section-title">เมนูบุคลากร</div>
+            <div class="row g-3">
+                <div class="col-md-3 col-6"><div class="card card-menu" onclick="window.location.href='my_history.html'"><i class="fa-solid fa-clock-rotate-left menu-icon-primary"></i><h6>ติดตามสถานะ</h6></div></div>
+                <div class="col-md-3 col-6"><div class="card card-menu" onclick="window.location.href='repair_form.html'"><i class="fa-solid fa-screwdriver-wrench menu-icon-warning"></i><h6>แจ้งซ่อม</h6></div></div>
+                <div class="col-md-3 col-6"><div class="card card-menu" onclick="window.location.href='vehicle_form.html'"><i class="fa-solid fa-car-side menu-icon-success"></i><h6>เบิกรถ</h6></div></div>
+                <div class="col-md-3 col-6"><div class="card card-menu" onclick="window.location.href='leave_form.html'"><i class="fa-solid fa-file-medical menu-icon-purple"></i><h6>ลากิจ/ลาป่วย</h6></div></div>
+                <div class="col-md-3 col-6"><div class="card card-menu" onclick="window.location.href='outside_form.html'"><i class="fa-solid fa-person-walking-luggage menu-icon-info"></i><h6>ออกนอกสถานที่</h6></div></div>
+                <div class="col-md-3 col-6"><div class="card card-menu" onclick="window.location.href='manpower_form.html'"><i class="fa-solid fa-users menu-icon-danger"></i><h6>ขอกำลังพล</h6></div></div>
+                
+                <div class="col-md-3 col-6">
+                    <div class="card card-menu" onclick="Swal.fire('แจ้งเตือน', 'ระบบบันทึกการเรียนการสอน กำลังอยู่ในระหว่างการพัฒนา', 'info')">
+                        <i class="fa-solid fa-chalkboard-user menu-icon-dark"></i>
+                        <h6>บันทึกการสอน</h6>
+                    </div>
+                </div>
+                <div class="col-md-3 col-6">
+                    <div class="card card-menu" onclick="Swal.fire('แจ้งเตือน', 'ระบบสรุปการประชุม AI กำลังอยู่ในระหว่างการพัฒนา', 'info')">
+                        <i class="fa-solid fa-robot menu-icon-ai"></i>
+                        <h6>สรุปประชุม AI</h6>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="technicianSection">
+            <div class="section-title text-warning">ส่วนงานช่างอาคาร</div>
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-menu flex-row align-items-center justify-content-start p-4 bg-white border-warning" onclick="window.location.href='technician_dashboard.html'" style="border-left: 5px solid #f59e0b;">
+                        <i class="fa-solid fa-helmet-safety menu-icon-warning me-4 mb-0"></i>
+                        <div><h5 class="fw-bold mb-1">ห้องทำงานช่าง</h5><p class="text-muted m-0 small">จัดการรายการแจ้งซ่อม</p></div>
+                        <i class="fa-solid fa-chevron-right ms-auto text-muted"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header bg-white py-3"><h6 class="m-0 fw-bold text-dark">รายการแจ้งซ่อมล่าสุด</h6></div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0"><thead><tr><th>รายการ</th><th>สถานที่</th><th>สถานะ</th><th class="admin-only text-end">จัดการ</th></tr></thead><tbody id="quickRepairTable"></tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <div id="transportSection">
+            <div class="section-title text-success">ส่วนงานยานพาหนะ</div>
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-menu flex-row align-items-center justify-content-start p-4 bg-white border-success" onclick="window.location.href='transport_dashboard.html'" style="border-left: 5px solid #10b981;">
+                        <i class="fa-solid fa-van-shuttle menu-icon-success me-4 mb-0"></i>
+                        <div><h5 class="fw-bold mb-1">จัดการการจองรถ</h5><p class="text-muted m-0 small">ตรวจสอบตารางและอนุมัติ</p></div>
+                        <i class="fa-solid fa-chevron-right ms-auto text-muted"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header bg-white py-3"><h6 class="m-0 fw-bold text-dark">คิวรถล่าสุด</h6></div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0"><thead><tr><th>วันที่</th><th>สถานที่</th><th>สถานะ</th><th class="admin-only text-end">จัดการ</th></tr></thead><tbody id="quickTransportTable"></tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <div id="personnelSection">
+            <div class="section-title" style="color: #8b5cf6;">ส่วนงานบุคคล</div>
+            <div class="row mb-4">
+                <div class="col-12">
+                    <div class="card card-menu flex-row align-items-center justify-content-start p-4 bg-white" onclick="window.location.href='personnel_dashboard.html'" style="border-left: 5px solid #8b5cf6;">
+                        <i class="fa-solid fa-clipboard-user menu-icon-purple me-4 mb-0"></i>
+                        <div><h5 class="fw-bold mb-1">พิจารณาคำขอ</h5><p class="text-muted m-0 small">ตรวจสอบการลา/ออกนอกสถานที่</p></div>
+                        <i class="fa-solid fa-chevron-right ms-auto text-muted"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header bg-white py-3"><h6 class="m-0 fw-bold text-dark">รายการลาล่าสุด</h6></div>
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0"><thead><tr><th>ประเภท</th><th>ผู้ลา</th><th>สถานะ</th><th class="admin-only text-end">จัดการ</th></tr></thead><tbody id="quickLeaveTable"></tbody></table>
+                </div>
+            </div>
+        </div>
+
+        <div id="adminSection">
+            <div class="section-title text-danger">ผู้ดูแลระบบ</div>
+            <div class="row g-3">
+                <div class="col-md-3 col-6"><div class="card card-menu" onclick="window.location.href='admin_register.html'"><i class="fa-solid fa-user-plus menu-icon-danger"></i><h6>เพิ่มบุคลากร</h6></div></div>
+                <div class="col-md-3 col-6"><div class="card card-menu" onclick="window.location.href='admin_news.html'"><i class="fa-solid fa-bullhorn menu-icon-primary"></i><h6>ลงประกาศ</h6></div></div>
+                <div class="col-md-3 col-6"><div class="card card-menu" onclick="window.location.href='admin_report.html'"><i class="fa-solid fa-chart-pie menu-icon-dark"></i><h6>รายงานสรุป</h6></div></div>
+                <div class="col-md-3 col-6"><div class="card card-menu" onclick="openUserManagement()"><i class="fa-solid fa-users-gear menu-icon-info"></i><h6>จัดการผู้ใช้</h6></div></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="userManageModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-white border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-users-gear text-primary me-2"></i> จัดการผู้ใช้งาน</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="input-group mb-4 shadow-sm rounded-pill overflow-hidden">
+                        <span class="input-group-text bg-white border-0 ps-3"><i class="fa-solid fa-search text-muted"></i></span>
+                        <input type="text" id="searchUser" class="form-control border-0 py-2" placeholder="ค้นหาชื่อ หรือ อีเมล...">
+                    </div>
+                    <div class="table-responsive rounded-3 border">
+                        <table class="table table-hover mb-0 align-middle"><thead class="bg-light"><tr><th class="py-3 ps-4">ชื่อ-สกุล</th><th class="py-3">อีเมล</th><th class="py-3">ตำแหน่ง</th><th class="py-3 text-end pe-4">จัดการ</th></tr></thead><tbody id="userTableBody"><tr><td colspan="4" class="text-center py-4 text-muted">กำลังโหลดข้อมูล...</td></tr></tbody></table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, collection, query, orderBy, limit, onSnapshot, where, deleteDoc, updateDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
+            authDomain: "school-management-system-10cbb.firebaseapp.com",
+            projectId: "school-management-system-10cbb",
+            storageBucket: "school-management-system-10cbb.firebasestorage.app",
+            messagingSenderId: "674779385916",
+            appId: "1:674779385916:web:9a26e4d25282dc23a6f339"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let currentUserRole = "";
+        let currentDate = new Date();
+        let currentEvents = []; // เก็บ Event ของเดือนปัจจุบัน
+
+        // --- Calendar Logic ---
+        window.changeMonth = (step) => {
+            currentDate.setMonth(currentDate.getMonth() + step);
+            loadEventsAndRender(); // โหลดข้อมูลใหม่เมื่อเปลี่ยนเดือน
+        };
+
+        // ฟังก์ชันโหลด Event จาก Firebase
+        function loadEventsAndRender() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const firstDayStr = new Date(year, month, 1).toISOString().split('T')[0];
+            const lastDayStr = new Date(year, month + 1, 0).toISOString().split('T')[0];
+
+            // Query events เฉพาะเดือนที่เลือก
+            const q = query(collection(db, "events"), 
+                           where("date", ">=", firstDayStr), 
+                           where("date", "<=", lastDayStr));
+
+            onSnapshot(q, (snapshot) => {
+                currentEvents = [];
+                snapshot.forEach(doc => {
+                    currentEvents.push({ id: doc.id, ...doc.data() });
+                });
+                renderCalendar();
+            });
+        }
+
+        function renderCalendar() {
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            const thaiMonths = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+            document.getElementById('calendarMonthYear').innerText = `${thaiMonths[month]} ${year + 543}`;
+
+            const firstDay = new Date(year, month, 1).getDay();
+            const lastDate = new Date(year, month + 1, 0).getDate();
+            const today = new Date();
+
+            const daysContainer = document.getElementById('calendarDays');
+            daysContainer.innerHTML = "";
+
+            // ช่องว่างก่อนวันที่ 1
+            for (let i = 0; i < firstDay; i++) daysContainer.innerHTML += `<div class="calendar-day empty"></div>`;
+            
+            // วนลูปสร้างวันที่
+            for (let i = 1; i <= lastDate; i++) {
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                
+                // หา Event ของวันนี้
+                const event = currentEvents.find(e => e.date === dateStr);
+                
+                let className = "calendar-day";
+                let style = "";
+                let dotHtml = "";
+                let clickAction = `onclick="viewEvent('${dateStr}')"`;
+
+                if (i === today.getDate() && month === today.getMonth() && year === today.getFullYear()) className += " today";
+                
+                // --- จุดสำคัญ: ตกแต่งวันที่มี Event ---
+                if (event) {
+                    className += " has-event";
+                    // ใช้สีจาก Database หรือ default เป็นสีเขียว
+                    const color = event.color || '#10b981'; 
+                    // ใส่ border และ background จางๆ
+                    style = `border: 2px solid ${color}; background-color: ${color}1a; color: ${color};`; 
+                    // ใส่จุดสีเพิ่มความชัด
+                    // dotHtml = `<div class="event-dot" style="background-color: ${color}"></div>`;
+                } else if (currentUserRole === 'admin') {
+                    // ถ้าไม่มี event และเป็น admin ให้คลิกเพื่อเพิ่มได้
+                    clickAction = `onclick="openAddEventModal('${dateStr}')"`;
+                } else {
+                    clickAction = ""; // User ธรรมดาคลิกวันว่างไม่ได้
+                }
+
+                daysContainer.innerHTML += `
+                    <div class="${className}" style="${style}" ${clickAction}>
+                        ${i}
+                        ${dotHtml}
+                    </div>`;
+            }
+        }
+
+        // --- Event Functions ---
+
+        // เปิด Modal เพิ่มกิจกรรม
+        window.openAddEventModal = async (preSelectedDate = '') => {
+            if(currentUserRole !== 'admin') return;
+
+            const { value: formValues } = await Swal.fire({
+                title: 'เพิ่มกิจกรรมใหม่',
+                html:
+                    `<label class="form-label text-start w-100">วันที่</label>` +
+                    `<input id="swal-date" type="date" class="form-control mb-3" value="${preSelectedDate}">` +
+                    `<label class="form-label text-start w-100">ชื่อกิจกรรม</label>` +
+                    `<input id="swal-title" class="form-control mb-3" placeholder="เช่น วันหยุดพิเศษ">` +
+                    `<label class="form-label text-start w-100">เลือกสีธีม</label>` +
+                    `<input id="swal-color" type="color" class="form-control form-control-color w-100" value="#10b981" title="Choose your color">`,
+                focusConfirm: false,
+                showCancelButton: true,
+                confirmButtonText: 'บันทึก',
+                confirmButtonColor: '#0d6efd',
+                preConfirm: () => {
+                    return {
+                        date: document.getElementById('swal-date').value,
+                        title: document.getElementById('swal-title').value,
+                        color: document.getElementById('swal-color').value
+                    }
+                }
+            });
+
+            if (formValues && formValues.date && formValues.title) {
+                try {
+                    await addDoc(collection(db, "events"), {
+                        date: formValues.date,
+                        title: formValues.title,
+                        color: formValues.color,
+                        created_by: auth.currentUser.uid,
+                        created_at: serverTimestamp()
+                    });
+                    Swal.fire('สำเร็จ', 'เพิ่มกิจกรรมเรียบร้อย', 'success');
+                } catch (error) {
+                    Swal.fire('Error', error.message, 'error');
+                }
+            }
+        };
+
+        // ดูรายละเอียดกิจกรรม (และลบได้ถ้าเป็น Admin)
+        window.viewEvent = (dateStr) => {
+            const event = currentEvents.find(e => e.date === dateStr);
+            if (!event) return;
+
+            let htmlContent = `<h5 style="color:${event.color}">${event.title}</h5>`;
+            
+            // ถ้าเป็น Admin ให้ปุ่มลบ
+            if (currentUserRole === 'admin') {
+                Swal.fire({
+                    title: `กิจกรรมวันที่ ${dateStr}`,
+                    html: htmlContent,
+                    showDenyButton: true,
+                    showCancelButton: true,
+                    confirmButtonText: 'ตกลง',
+                    denyButtonText: 'ลบกิจกรรม',
+                    denyButtonColor: '#dc3545'
+                }).then(async (result) => {
+                    if (result.isDenied) {
+                        // ลบกิจกรรม
+                        try {
+                            await deleteDoc(doc(db, "events", event.id));
+                            Swal.fire('ลบแล้ว', '', 'success');
+                        } catch (e) {
+                            Swal.fire('Error', e.message, 'error');
+                        }
+                    }
+                });
+            } else {
+                // User ทั่วไปดูได้อย่างเดียว
+                Swal.fire({
+                    title: `กิจกรรมวันที่ ${dateStr}`,
+                    html: htmlContent,
+                    confirmButtonText: 'ปิด'
+                });
+            }
+        };
+
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                document.getElementById('userEmail').innerText = user.email.split('@')[0];
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    currentUserRole = userDoc.data().role;
+                    document.getElementById('userRoleBadge').innerText = getThaiRoleName(currentUserRole);
+                    
+                    hideAllSections();
+                    if (isTeacher(currentUserRole)) showSec(['news', 'teacher']);
+                    else if (currentUserRole === 'personnel') { showSec(['news', 'teacher', 'personnel']); loadQuickLeaves(); }
+                    else if (currentUserRole === 'technician') { showSec(['news', 'technician']); loadQuickRepairs(); }
+                    else if (currentUserRole === 'transport') { showSec(['news', 'transport']); loadQuickTransport(); }
+                    else if (currentUserRole === 'admin') { 
+                        showSec(['admin', 'teacher', 'news', 'personnel', 'technician', 'transport']); 
+                        loadQuickRepairs(); loadQuickLeaves(); loadQuickTransport();
+                        document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'table-cell');
+                        
+                        // แสดงปุ่มเพิ่มกิจกรรมสำหรับ Admin
+                        document.getElementById('btnAddEvent').classList.remove('d-none');
+                    } else showSec(['news']);
+                    
+                    loadNews();
+                    loadEventsAndRender(); // เรียกโหลดปฏิทิน
+                }
+                document.getElementById('loadingScreen').style.display = 'none';
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        function isTeacher(role) { return role === 'teacher' || role === 'teacher_basic' || role === 'teacher_kindergarten'; }
+        function getThaiRoleName(role) {
+            const map = { 'admin': 'ผู้ดูแลระบบ', 'teacher_basic': 'ครู (พื้นฐาน)', 'teacher_kindergarten': 'ครู (อนุบาล)', 'teacher': 'ครู/อาจารย์', 'personnel': 'ฝ่ายบุคคล', 'technician': 'ช่างอาคาร', 'transport': 'งานรถ', 'security_guard': 'รปภ.' };
+            return map[role] || role.toUpperCase();
+        }
+
+        function loadNews() {
+            const newsList = document.getElementById('newsList');
+            onSnapshot(query(collection(db, "news"), orderBy("created_at", "desc"), limit(5)), (snap) => {
+                newsList.innerHTML = "";
+                let hasNews = false;
+                snap.forEach(d => {
+                    const data = d.data();
+                    const target = data.target || 'all';
+                    let isVisible = false;
+                    if (currentUserRole === 'admin') isVisible = true;
+                    else if (target === 'all') isVisible = true;
+                    else if (target === currentUserRole) isVisible = true;
+                    else if (target === 'teacher_all' && isTeacher(currentUserRole)) isVisible = true;
+
+                    if (isVisible) {
+                        hasNews = true;
+                        let adminBtn = currentUserRole === 'admin' ? 
+                            `<button class="btn btn-action btn-light text-danger ms-2" onclick="deleteItem('news', '${d.id}')"><i class="fa-solid fa-trash"></i></button>` : "";
+                        let targetBadge = currentUserRole === 'admin' ? `<span class="target-badge">${target}</span>` : "";
+
+                        newsList.innerHTML += `
+                            <li class="list-group-item py-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="fw-bold text-dark mb-1">${data.topic} ${targetBadge}</div>
+                                        <p class="text-muted small mb-0" style="white-space: pre-line; line-height: 1.5;">${data.detail}</p>
+                                    </div>
+                                    <div class="d-flex align-items-center ms-3">
+                                        <small class="text-muted me-2" style="font-size: 0.75rem;">${new Date(data.created_at?.seconds*1000).toLocaleDateString('th-TH')}</small>
+                                        ${adminBtn}
+                                    </div>
+                                </div>
+                            </li>`;
+                    }
+                });
+                if (!hasNews) newsList.innerHTML = "<li class='list-group-item text-center py-5 text-muted'>- ไม่มีข่าวประชาสัมพันธ์ -</li>";
+            });
+        }
+
+        window.updateStatus = async (collectionName, docId, currentStatus) => {
+            let options = {};
+            if(collectionName === 'repair_requests') options = { 'pending': 'รอรับงาน', 'in_progress': 'กำลังซ่อม', 'completed': 'ซ่อมเสร็จสิ้น', 'cancelled': 'ยกเลิก' };
+            else if (collectionName === 'vehicle_requests') options = { 'pending': 'รออนุมัติ', 'approved': 'อนุมัติ (รถว่าง)', 'rejected': 'ไม่อนุมัติ', 'completed': 'จบงาน' };
+            else options = { 'pending': 'รออนุมัติ', 'approved': 'อนุมัติ', 'rejected': 'ไม่อนุมัติ' };
+
+            const { value: newStatus } = await Swal.fire({
+                title: 'แก้ไขสถานะ', input: 'select', inputOptions: options, inputValue: currentStatus,
+                showCancelButton: true, confirmButtonText: 'บันทึก', confirmButtonColor: '#0d6efd'
+            });
+
+            if (newStatus && newStatus !== currentStatus) {
+                Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+                try {
+                    const docRef = doc(db, collectionName, docId);
+                    const docSnap = await getDoc(docRef);
+                    if (!docSnap.exists()) throw new Error("ไม่พบเอกสาร");
+                    const data = docSnap.data();
+                    await updateDoc(docRef, { status: newStatus });
+
+                    let userEmail = data.reporterEmail || data.email || data.requester_email;
+                    if (!userEmail && (data.uid || data.requester_uid)) {
+                        const uidTarget = data.uid || data.requester_uid;
+                        const userProfile = await getDoc(doc(db, "users", uidTarget));
+                        if(userProfile.exists()) userEmail = userProfile.data().email;
+                    }
+
+                    if (userEmail) {
+                        const statusThai = options[newStatus] || newStatus;
+                        let topic = "รายการคำขอ", detail = "";
+                        if (collectionName === 'repair_requests') { topic = `แจ้งซ่อม: ${data.equipment || data.topic}`; detail = `สถานที่: ${data.location}`; }
+                        else if (collectionName === 'leave_requests') { topic = `ลา: ${data.leave_type}`; detail = `วันที่: ${data.start_date} - ${data.end_date}`; }
+                        else if (collectionName === 'vehicle_requests') { topic = `ขอใช้รถ: ${data.destination}`; detail = `วันที่: ${data.use_date}`; }
+                        
+                        await addDoc(collection(db, "mail"), {
+                            to: userEmail,
+                            message: {
+                                subject: `🔔 อัปเดตสถานะ: ${topic} (${statusThai})`,
+                                html: `<p>เรียนคุณ <strong>${data.reporterName || 'ผู้ใช้งาน'}</strong></p><p>เรื่อง: ${topic}</p><p>สถานะ: <b>${statusThai}</b></p>`
+                            }
+                        });
+                    }
+                    Swal.fire({ icon: 'success', title: 'เรียบร้อย', text: 'อัปเดตสถานะแล้ว', confirmButtonColor: '#0d6efd' });
+                } catch (e) { console.error(e); Swal.fire('Error', e.message, 'error'); }
+            }
+        };
+
+        window.openUserManagement = () => { let userModal = new bootstrap.Modal(document.getElementById('userManageModal')); userModal.show(); loadUsers(); };
+        function loadUsers() {
+            const tbody = document.getElementById('userTableBody');
+            onSnapshot(query(collection(db, "users"), orderBy("email")), (snapshot) => {
+                tbody.innerHTML = "";
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    tbody.innerHTML += `
+                        <tr class="user-row">
+                            <td class="ps-4 fw-medium">${data.firstName || '-'}</td><td class="text-muted">${data.email}</td>
+                            <td><span class="badge bg-light text-dark border">${getThaiRoleName(data.role)}</span></td>
+                            <td class="text-end pe-4">
+                                <button class="btn btn-action btn-light text-primary me-1" onclick="editUserRole('${doc.id}', '${data.role}', '${data.email}')"><i class="fa-solid fa-pen"></i></button>
+                                <button class="btn btn-action btn-light text-danger" onclick="deleteUser('${doc.id}', '${data.email}')"><i class="fa-solid fa-trash"></i></button>
+                            </td>
+                        </tr>`;
+                });
+            });
+        }
+        window.editUserRole = async (uid, currentRole, email) => {
+            const { value: newRole } = await Swal.fire({
+                title: `แก้ไขตำแหน่ง`, html: `<p class="text-muted mb-3">สำหรับ: ${email}</p>`, input: 'select',
+                inputOptions: { 'teacher_basic': 'ครู (พื้นฐาน)', 'teacher_kindergarten': 'ครู (อนุบาล)', 'technician': 'ช่างเทคนิค', 'transport': 'ฝ่ายยานพาหนะ', 'personnel': 'ฝ่ายบุคคล', 'security_guard': 'รปภ.', 'admin': 'Admin' },
+                inputValue: currentRole, showCancelButton: true
+            });
+            if (newRole && newRole !== currentRole) { await updateDoc(doc(db, "users", uid), { role: newRole }); Swal.fire('สำเร็จ', 'อัปเดตเรียบร้อย', 'success'); }
+        };
+        window.deleteUser = async (uid, email) => {
+            if(confirm(`ลบผู้ใช้ ${email}?`)) { await deleteDoc(doc(db, "users", uid)); Swal.fire('ลบแล้ว', '', 'success'); }
+        };
+        window.deleteItem = async (col, id) => { if(confirm("ลบรายการนี้?")) await deleteDoc(doc(db, col, id)); };
+        
+        function showSec(list) { list.forEach(id => document.getElementById(id + 'Section').style.display = 'block'); }
+        function hideAllSections() { ['news', 'teacher', 'technician', 'transport', 'personnel', 'admin'].forEach(s => document.getElementById(s + 'Section').style.display = 'none'); }
+
+        function loadQuickRepairs() { loadGenericTable('repair_requests', 'quickRepairTable', d => `<td class="fw-medium">${d.equipment||'-'}</td><td class="small text-muted">${d.location||'-'}</td><td><span class="badge ${getStatusClass(d.status)} rounded-pill">${getStatusLabel(d.status)}</span></td>`); }
+        function loadQuickLeaves() { loadGenericTable('leave_requests', 'quickLeaveTable', d => `<td class="fw-medium">${d.leave_type||'-'}</td><td class="small text-muted">${d.requester_name||'-'}</td><td><span class="badge ${getStatusClass(d.status)} rounded-pill">${getStatusLabel(d.status)}</span></td>`); }
+        function loadQuickTransport() { loadGenericTable('vehicle_requests', 'quickTransportTable', d => `<td class="fw-medium">${d.use_date||'-'}</td><td class="small text-muted">${d.destination||'-'}</td><td><span class="badge ${getStatusClass(d.status)} rounded-pill">${getStatusLabel(d.status)}</span></td>`); }
+
+        function loadGenericTable(col, elemId, rowHtml) {
+            const tbody = document.getElementById(elemId);
+            let q = currentUserRole === 'admin' ? query(collection(db, col), orderBy("created_at", "desc"), limit(5)) : query(collection(db, col), where("status", "==", "pending"), limit(5));
+            onSnapshot(q, (snap) => {
+                tbody.innerHTML = snap.empty ? "<tr><td colspan='4' class='text-center py-4 text-muted small'>- ไม่มีรายการ -</td></tr>" : "";
+                snap.forEach(d => {
+                    const data = d.data();
+                    let actionHtml = currentUserRole === 'admin' ? `<td class="text-end"><button class="btn btn-action btn-light text-primary" onclick="updateStatus('${col}', '${d.id}', '${data.status}')"><i class="fa-solid fa-pen"></i></button></td>` : "";
+                    tbody.innerHTML += `<tr>${rowHtml(data)}${actionHtml}</tr>`;
+                });
+            });
+        }
+        function getStatusClass(status) { return { 'pending': 'bg-warning text-dark', 'approved': 'bg-success', 'in_progress': 'bg-info text-dark', 'completed': 'bg-primary', 'rejected': 'bg-danger' }[status] || 'bg-secondary'; }
+        function getStatusLabel(status) { return { 'pending': 'รอตรวจสอบ', 'approved': 'อนุมัติ', 'in_progress': 'กำลังดำเนินการ', 'completed': 'เสร็จสิ้น', 'rejected': 'ไม่อนุมัติ' }[status] || status; }
+
+        document.getElementById('btnLogout').addEventListener('click', () => signOut(auth).then(() => window.location.href = "index.html"));
+        document.getElementById('searchUser').addEventListener('keyup', function() {
+            const value = this.value.toLowerCase();
+            document.querySelectorAll('.user-row').forEach(row => { row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none'; });
+        });
+    </script>
+</body>
+</html>

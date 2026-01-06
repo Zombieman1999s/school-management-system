@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>รายงานสรุปผล - Admin Dashboard</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        body { background-color: #f0f2f5; font-family: 'Sarabun', sans-serif; }
+        .card-stat { transition: transform 0.2s; border: none; border-radius: 15px; }
+        .card-stat:hover { transform: translateY(-5px); }
+        .btn-export { border-radius: 50px; font-weight: 600; padding: 8px 20px; transition: all 0.3s; }
+        .btn-export:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-dark bg-dark mb-4 shadow-sm">
+        <div class="container">
+            <span class="navbar-brand"><i class="fa-solid fa-chart-pie me-2"></i>รายงานสรุปผู้บริหาร</span>
+            <a href="dashboard.html" class="btn btn-sm btn-outline-light rounded-pill px-3">
+                <i class="fa-solid fa-arrow-left"></i> กลับหน้าหลัก
+            </a>
+        </div>
+    </nav>
+
+    <div class="container mb-5">
+        
+        <div class="card shadow-sm border-0 mb-4" style="border-radius: 15px;">
+            <div class="card-body p-4">
+                <h5 class="fw-bold mb-3"><i class="fa-solid fa-file-excel text-success"></i> ส่งออกรายงาน (Excel)</h5>
+                <div class="row g-3">
+                    <div class="col-md-3 col-6">
+                        <button id="btnExportRepair" class="btn btn-outline-primary w-100 btn-export">
+                            <i class="fa-solid fa-tools"></i> ประวัติแจ้งซ่อม
+                        </button>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <button id="btnExportCar" class="btn btn-outline-success w-100 btn-export">
+                            <i class="fa-solid fa-car"></i> ประวัติใช้รถ
+                        </button>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <button id="btnExportLeave" class="btn btn-outline-warning text-dark w-100 btn-export">
+                            <i class="fa-solid fa-person-walking-arrow-right"></i> ประวัติการลา
+                        </button>
+                    </div>
+                    <div class="col-md-3 col-6">
+                        <button id="btnExportMan" class="btn btn-outline-danger w-100 btn-export">
+                            <i class="fa-solid fa-users"></i> ขอกำลังพล
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4 mb-5">
+            <div class="col-md-3">
+                <div class="card card-stat text-white bg-primary h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <h3><i class="fa-solid fa-screwdriver-wrench"></i></h3>
+                        <h6 class="mt-2">แจ้งซ่อมทั้งหมด</h6>
+                        <h2 id="countRepair" class="fw-bold my-2">...</h2>
+                        <small>รายการ</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-stat text-white bg-success h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <h3><i class="fa-solid fa-car-side"></i></h3>
+                        <h6 class="mt-2">การใช้รถราชการ</h6>
+                        <h2 id="countCar" class="fw-bold my-2">...</h2>
+                        <small>เที่ยว</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-stat text-white bg-warning text-dark h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <h3><i class="fa-solid fa-person-walking-arrow-right"></i></h3>
+                        <h6 class="mt-2">ลา/ออกนอกสถานที่</h6>
+                        <h2 id="countLeave" class="fw-bold my-2">...</h2>
+                        <small>ครั้ง</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card card-stat text-white bg-danger h-100 shadow-sm">
+                    <div class="card-body text-center p-4">
+                        <h3><i class="fa-solid fa-users"></i></h3>
+                        <h6 class="mt-2">ขอกำลังพล</h6>
+                        <h2 id="countMan" class="fw-bold my-2">...</h2>
+                        <small>ครั้ง</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm h-100 border-0" style="border-radius: 15px;">
+                    <div class="card-header bg-white py-3 border-0">
+                        <h5 class="m-0 fw-bold text-primary"><i class="fa-solid fa-chart-pie"></i> สัดส่วนสถานะงานซ่อม</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="repairChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 mb-4">
+                <div class="card shadow-sm h-100 border-0" style="border-radius: 15px;">
+                    <div class="card-header bg-white py-3 border-0">
+                        <h5 class="m-0 fw-bold text-success"><i class="fa-solid fa-chart-bar"></i> สถิติการใช้บริการรวม</h5>
+                    </div>
+                    <div class="card-body">
+                        <canvas id="serviceChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, getDoc, orderBy, query } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // 🔥 Config ของอาร์ม
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
+            authDomain: "school-management-system-10cbb.firebaseapp.com",
+            projectId: "school-management-system-10cbb",
+            storageBucket: "school-management-system-10cbb.firebasestorage.app",
+            messagingSenderId: "674779385916",
+            appId: "1:674779385916:web:9a26e4d25282dc23a6f339"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // ตรวจสอบสิทธิ์ Admin
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists() && userDoc.data().role === 'admin') {
+                    loadDashboardData();
+                } else {
+                    Swal.fire('Error', 'หน้านี้สำหรับผู้ดูแลระบบเท่านั้น', 'error').then(() => window.location.href = 'dashboard.html');
+                }
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        // ----------------------------------------------------
+        // 📊 ส่วนโหลดข้อมูลกราฟและตัวเลข
+        // ----------------------------------------------------
+        async function loadDashboardData() {
+            try {
+                const repairSnap = await getDocs(collection(db, "repair_requests"));
+                const repairs = repairSnap.docs.map(doc => doc.data());
+                
+                let pending = 0, inProgress = 0, completed = 0, cancelled = 0;
+                repairs.forEach(r => {
+                    if(r.status === 'pending') pending++;
+                    else if(r.status === 'in_progress') inProgress++;
+                    else if(r.status === 'completed') completed++;
+                    else if(r.status === 'cancelled') cancelled++;
+                });
+
+                const carSnap = await getDocs(collection(db, "vehicle_requests"));
+                const leaveSnap = await getDocs(collection(db, "leave_requests"));
+                const outsideSnap = await getDocs(collection(db, "outside_requests"));
+                const manSnap = await getDocs(collection(db, "manpower_requests"));
+
+                document.getElementById('countRepair').innerText = repairs.length;
+                document.getElementById('countCar').innerText = carSnap.size;
+                document.getElementById('countLeave').innerText = leaveSnap.size + outsideSnap.size;
+                document.getElementById('countMan').innerText = manSnap.size;
+
+                // กราฟ 1: โดนัท
+                const ctx1 = document.getElementById('repairChart').getContext('2d');
+                new Chart(ctx1, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['รอรับเรื่อง', 'กำลังซ่อม', 'เสร็จสิ้น', 'ยกเลิก'],
+                        datasets: [{
+                            data: [pending, inProgress, completed, cancelled],
+                            backgroundColor: ['#ffc107', '#0dcaf0', '#198754', '#6c757d'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: { cutout: '70%', plugins: { legend: { position: 'bottom' } } }
+                });
+
+                // กราฟ 2: แท่ง
+                const ctx2 = document.getElementById('serviceChart').getContext('2d');
+                new Chart(ctx2, {
+                    type: 'bar',
+                    data: {
+                        labels: ['แจ้งซ่อม', 'จองรถ', 'ลา/ออกนอก', 'ขอกำลังพล'],
+                        datasets: [{
+                            label: 'จำนวนรายการ (ครั้ง)',
+                            data: [repairSnap.size, carSnap.size, leaveSnap.size + outsideSnap.size, manSnap.size],
+                            backgroundColor: ['rgba(13, 110, 253, 0.7)', 'rgba(25, 135, 84, 0.7)', 'rgba(255, 193, 7, 0.7)', 'rgba(220, 53, 69, 0.7)'],
+                            borderColor: ['#0d6efd', '#198754', '#ffc107', '#dc3545'],
+                            borderWidth: 1, borderRadius: 5
+                        }]
+                    },
+                    options: { scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }, plugins: { legend: { display: false } } }
+                });
+
+            } catch (error) { console.error("Error loading dashboard:", error); }
+        }
+
+        // ----------------------------------------------------
+        // 📥 ส่วนฟังก์ชัน Export Excel
+        // ----------------------------------------------------
+
+        // 1. Export แจ้งซ่อม
+        document.getElementById('btnExportRepair').addEventListener('click', async () => {
+            await exportToExcel("repair_requests", "รายงานการแจ้งซ่อม", (d) => ({
+                "วันที่แจ้ง": formatDate(d.created_at),
+                "ผู้แจ้ง": d.reporterName || d.requester_name || '-',
+                "อุปกรณ์/เรื่อง": d.equipment || d.topic || '-',
+                "สถานที่": d.location || '-',
+                "รายละเอียด": d.detail || d.description || '-',
+                "สถานะ": getStatusThai(d.status),
+                "ช่างผู้รับผิดชอบ": d.technician_name || '-',
+                "บันทึกการซ่อม": d.repair_note || '-'
+            }));
+        });
+
+        // 2. Export จองรถ
+        document.getElementById('btnExportCar').addEventListener('click', async () => {
+            await exportToExcel("vehicle_requests", "รายงานการใช้รถราชการ", (d) => ({
+                "วันที่เดินทาง": d.use_date,
+                "เวลา": `${d.start_time} - ${d.end_time}`,
+                "สถานที่ไป": d.destination,
+                "ผู้ขอใช้": d.reporterName || d.requester_name,
+                "จำนวนคน": d.passenger_count,
+                "หมายเหตุ": d.reason || '-',
+                "สถานะ": getStatusThai(d.status),
+                "รถ/คนขับ": d.car_plate || '-'
+            }));
+        });
+
+        // 3. Export การลา
+        document.getElementById('btnExportLeave').addEventListener('click', async () => {
+            await exportToExcel("leave_requests", "รายงานประวัติการลา", (d) => ({
+                "วันที่ทำรายการ": formatDate(d.created_at),
+                "ชื่อ-สกุล": d.requester_name,
+                "ประเภทการลา": d.leave_type,
+                "ตั้งแต่วันที่": d.start_date,
+                "ถึงวันที่": d.end_date,
+                "รวม(วัน)": d.total_days,
+                "เหตุผล": d.reason,
+                "เบอร์ติดต่อ": d.contact_phone || '-',
+                "สถานะ": getStatusThai(d.status)
+            }));
+        });
+
+        // 4. Export กำลังพล
+        document.getElementById('btnExportMan').addEventListener('click', async () => {
+            await exportToExcel("manpower_requests", "รายงานขอกำลังพล", (d) => ({
+                "วันที่ใช้": d.use_date,
+                "เวลา": d.use_time,
+                "กิจกรรม": d.activity,
+                "สถานที่": d.location,
+                "จำนวน(คน)": d.people_count,
+                "ผู้ขอ": d.requester_name,
+                "สถานะ": getStatusThai(d.status)
+            }));
+        });
+
+        // ฟังก์ชันกลางสำหรับ Export
+        async function exportToExcel(collectionName, fileName, mapFunction) {
+            Swal.fire({ title: 'กำลังสร้างไฟล์ Excel...', didOpen: () => Swal.showLoading() });
+            try {
+                const q = query(collection(db, collectionName), orderBy("created_at", "desc"));
+                const querySnapshot = await getDocs(q);
+                
+                if (querySnapshot.empty) {
+                    Swal.fire('ไม่มีข้อมูล', 'ไม่พบรายการในช่วงเวลานี้', 'info');
+                    return;
+                }
+
+                // แปลงข้อมูลตาม mapFunction ที่ส่งมา
+                const data = querySnapshot.docs.map(doc => mapFunction(doc.data()));
+
+                // สร้าง Excel
+                const ws = XLSX.utils.json_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
+                
+                // ดาวน์โหลด
+                XLSX.writeFile(wb, `${fileName}_${new Date().toISOString().slice(0,10)}.xlsx`);
+                
+                Swal.close();
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Error', 'เกิดข้อผิดพลาด: ' + error.message, 'error');
+            }
+        }
+
+        // Helper แปลงวันที่ Timestamp -> ไทย
+        function formatDate(timestamp) {
+            if (!timestamp) return "-";
+            const date = new Date(timestamp.seconds * 1000);
+            return date.toLocaleDateString('th-TH', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+
+        // Helper แปลงสถานะเป็นไทย
+        function getStatusThai(status) {
+            const map = {
+                'pending': 'รออนุมัติ/รอรับเรื่อง',
+                'in_progress': 'กำลังดำเนินการ',
+                'approved': 'อนุมัติแล้ว',
+                'rejected': 'ไม่อนุมัติ',
+                'completed': 'เสร็จสิ้น',
+                'cancelled': 'ยกเลิก'
+            };
+            return map[status] || status;
+        }
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เข้าสู่ระบบ - HQU2 System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background: linear-gradient(135deg, #0d6efd 0%, #0dcaf0 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .login-card {
+            background: white;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 420px;
+        }
+
+        .btn-custom {
+            border-radius: 50px;
+            padding: 10px 20px;
+            font-weight: 600;
+        }
+        
+        .form-control:focus {
+            box-shadow: none;
+            border-color: #0d6efd;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <div class="login-card mx-auto">
+            <div class="text-center mb-4">
+                <h2 class="fw-bold text-primary"><i class="fa-solid fa-school-flag"></i> HQU2 System</h2>
+                <p class="text-muted">ระบบบริหารจัดการงานโรงเรียน</p>
+            </div>
+
+            <form id="loginForm">
+                <div class="mb-3">
+                    <label class="form-label">อีเมล</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="fa-solid fa-envelope text-primary"></i></span>
+                        <input type="email" class="form-control" id="loginEmail" required placeholder="name@example.com">
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">รหัสผ่าน</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light"><i class="fa-solid fa-lock text-primary"></i></span>
+                        <input type="password" class="form-control" id="loginPassword" required placeholder="********">
+                    </div>
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="checkbox" id="rememberMe" checked>
+                    <label class="form-check-label text-muted" for="rememberMe">
+                        จำการเข้าสู่ระบบไว้ (Remember me)
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 btn-custom mb-3 shadow-sm">
+                    เข้าสู่ระบบ
+                </button>
+                
+                <div class="d-flex align-items-center mb-3">
+                    <hr class="flex-grow-1">
+                    <span class="mx-2 text-muted small">หรือ</span>
+                    <hr class="flex-grow-1">
+                </div>
+
+                <button type="button" id="googleLoginBtn" class="btn btn-light w-100 border btn-custom d-flex align-items-center justify-content-center shadow-sm">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" class="me-2">
+                    เข้าสู่ระบบด้วย Google
+                </button>
+
+                <div class="text-center mt-4">
+                    <span class="text-muted">ยังไม่มีบัญชี?</span>
+                    <a href="#" class="text-decoration-none fw-bold" data-bs-toggle="modal" data-bs-target="#registerModal">ลงทะเบียนใหม่</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="modal fade" id="registerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title"><i class="fa-solid fa-user-plus"></i> ลงทะเบียนสมาชิกใหม่</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="registerForm">
+                        <div class="mb-3">
+                            <label class="form-label">อีเมล (ใช้อีเมลจริงเท่านั้น)</label>
+                            <input type="email" class="form-control" id="regEmail" required placeholder="name@example.com">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">รหัสผ่าน (ขั้นต่ำ 6 ตัวอักษร)</label>
+                            <input type="password" class="form-control" id="regPassword" required minlength="6">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">ชื่อ-นามสกุล</label>
+                            <input type="text" class="form-control" id="regName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">ตำแหน่ง/ฝ่าย <span class="text-danger">*</span></label>
+                            <select class="form-select" id="regRole" required>
+                                <option value="" selected disabled>-- กรุณาเลือก --</option>
+                                <optgroup label="สายการสอน">
+                                    <option value="teacher_basic">ครูระดับชั้นพื้นฐาน (ประถม/มัธยม)</option>
+                                    <option value="teacher_kindergarten">ครูระดับชั้นอนุบาล</option>
+                                </optgroup>
+                                <optgroup label="สายสนับสนุน">
+                                    <option value="personnel">บัญชี/บุคคล/การเงิน/พัสดุ</option>
+                                    <option value="technician">ช่างอาคารสถานที่</option>
+                                    <option value="transport">เจ้าหน้าที่ขับรถ</option>
+                                    <option value="security_guard">เจ้าหน้าที่รักษาความปลอดภัย</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <div class="alert alert-warning small">
+                            <i class="fa-solid fa-triangle-exclamation"></i> ระบบจะส่งลิงก์ยืนยันไปที่อีเมล<br>กรุณาตรวจสอบทั้ง <b>Inbox</b> และ <b>Junk/Spam</b>
+                        </div>
+                        <button type="submit" class="btn btn-success w-100 btn-custom">ยืนยันการสมัคร</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="googleRegisterModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title"><i class="fa-brands fa-google"></i> ยืนยันข้อมูลสมาชิก (Google)</h5>
+                </div>
+                <div class="modal-body p-4">
+                    <p class="text-muted small">กรุณาตรวจสอบชื่อและเลือกตำแหน่งของท่านเพื่อเริ่มใช้งาน</p>
+                    <form id="googleRegisterForm">
+                        <div class="mb-3">
+                            <label class="form-label">อีเมล (จาก Google)</label>
+                            <input type="email" class="form-control bg-light" id="googleRegEmail" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">ชื่อ-นามสกุล</label>
+                            <input type="text" class="form-control" id="googleRegName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">ตำแหน่ง/ฝ่าย <span class="text-danger">*</span></label>
+                            <select class="form-select" id="googleRegRole" required>
+                                <option value="" selected disabled>-- กรุณาเลือก --</option>
+                                <optgroup label="สายการสอน">
+                                    <option value="teacher_basic">ครูระดับชั้นพื้นฐาน (ประถม/มัธยม)</option>
+                                    <option value="teacher_kindergarten">ครูระดับชั้นอนุบาล</option>
+                                </optgroup>
+                                <optgroup label="สายสนับสนุน">
+                                    <option value="personnel">บัญชี/บุคคล/การเงิน/พัสดุ</option>
+                                    <option value="technician">ช่างอาคารสถานที่</option>
+                                    <option value="transport">เจ้าหน้าที่ขับรถ</option>
+                                    <option value="security_guard">เจ้าหน้าที่รักษาความปลอดภัย</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 btn-custom">บันทึกและเข้าสู่ระบบ</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            createUserWithEmailAndPassword, 
+            onAuthStateChanged, 
+            GoogleAuthProvider, 
+            signInWithPopup, 
+            sendEmailVerification, 
+            signOut,
+            setPersistence,
+            browserLocalPersistence,
+            browserSessionPersistence
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getMessaging, getToken } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging.js";
+
+        // 🔥 Config ของอาร์ม
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
+            authDomain: "school-management-system-10cbb.firebaseapp.com",
+            projectId: "school-management-system-10cbb",
+            storageBucket: "school-management-system-10cbb.firebasestorage.app",
+            messagingSenderId: "674779385916",
+            appId: "1:674779385916:web:9a26e4d25282dc23a6f339",
+            measurementId: "G-MELYCLE3XW"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const messaging = getMessaging(app);
+
+        // 🚦 ฟังก์ชันแยกทางจราจร + อัปเดตชื่อ Role ตอนต้อนรับ
+        async function redirectUser(user) {
+            const userDoc = await getDoc(doc(db, "users", user.uid));
+            
+            if (userDoc.exists()) {
+                const role = userDoc.data().role;
+                let destination = "dashboard.html"; 
+                let roleName = "ผู้ใช้งานทั่วไป";
+
+                // Map Role เป็นชื่อภาษาไทยสวยๆ (อัปเดตใหม่)
+                switch(role) {
+                    case 'admin':
+                        destination = "dashboard.html";
+                        roleName = "ผู้ดูแลระบบ";
+                        break;
+                    case 'teacher_basic': roleName = "ครู (พื้นฐาน)"; break;
+                    case 'teacher_kindergarten': roleName = "ครู (อนุบาล)"; break;
+                    case 'teacher': roleName = "ครู/อาจารย์"; break; // เผื่อของเก่า
+                    
+                    case 'technician': roleName = "ช่างอาคาร"; break;
+                    case 'transport': roleName = "จนท. ขับรถ"; break;
+                    case 'security_guard': roleName = "รปภ."; break;
+                    case 'personnel': roleName = "ฝ่ายบุคคล/การเงิน"; break;
+                }
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'เข้าสู่ระบบสำเร็จ!',
+                    text: `ยินดีต้อนรับ ${roleName}`,
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location.href = destination;
+                });
+            } else {
+                Swal.fire('Error', 'ไม่พบข้อมูลผู้ใช้', 'error');
+            }
+        }
+
+        // 🔔 ขอ Token แจ้งเตือน
+        async function requestPermissionAndSaveToken(user) {
+            try {
+                const permission = await Notification.requestPermission();
+                if (permission === 'granted') {
+                    const registration = await navigator.serviceWorker.register('./firebase-messaging-sw.js');
+                    const token = await getToken(messaging, {
+                        vapidKey: 'BHaGiVUpCbm9EV5g4gV-gwlxfPClhOYOvwUnRR9qfD0y5gBx-VWBWXsO3Atn7-FmQzclFNDIKLHFv9vu7RXV2UQ',
+                        serviceWorkerRegistration: registration
+                    });
+                    if (token) {
+                        await setDoc(doc(db, "users", user.uid), { fcmToken: token, lastLogin: serverTimestamp() }, { merge: true });
+                    }
+                }
+            } catch (error) { console.error('Token Error:', error); }
+        }
+
+        // 🔐 Login ปกติ
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const pass = document.getElementById('loginPassword').value;
+            const isRemember = document.getElementById('rememberMe').checked;
+
+            Swal.fire({ title: 'กำลังตรวจสอบ...', didOpen: () => Swal.showLoading() });
+
+            try {
+                await setPersistence(auth, isRemember ? browserLocalPersistence : browserSessionPersistence);
+                const userCredential = await signInWithEmailAndPassword(auth, email, pass);
+                const user = userCredential.user;
+
+                if (!user.emailVerified) {
+                    await signOut(auth);
+                    Swal.fire({ icon: 'warning', title: 'ยังไม่ได้ยืนยันอีเมล', text: 'กรุณาเช็ค Inbox หรือ Spam' });
+                    return;
+                }
+
+                await requestPermissionAndSaveToken(user);
+                await redirectUser(user);
+            } catch (error) {
+                Swal.fire('Error', 'อีเมลหรือรหัสผ่านไม่ถูกต้อง', 'error');
+            }
+        });
+
+        // 🔵 Google Login Logic (พี่กู้คืนกลับมาให้แล้วครับ)
+        document.getElementById('googleLoginBtn').addEventListener('click', async () => {
+            const provider = new GoogleAuthProvider();
+            const isRemember = document.getElementById('rememberMe').checked;
+
+            try {
+                await setPersistence(auth, isRemember ? browserLocalPersistence : browserSessionPersistence);
+                const result = await signInWithPopup(auth, provider);
+                const user = result.user;
+                
+                const userRef = doc(db, "users", user.uid);
+                const userSnap = await getDoc(userRef);
+
+                if (!userSnap.exists()) {
+                    // 🔥 กรณี: คนใหม่เพิ่งเคยใช้ Google ล็อกอินครั้งแรก
+                    // ให้เปิด Modal เพื่อเลือกตำแหน่ง (มีครูอนุบาล/พื้นฐานให้เลือกแล้ว)
+                    document.getElementById('googleRegEmail').value = user.email;
+                    document.getElementById('googleRegName').value = user.displayName || "";
+                    document.getElementById('googleRegRole').value = ""; // บังคับเลือก
+
+                    const googleModal = new bootstrap.Modal(document.getElementById('googleRegisterModal'));
+                    googleModal.show();
+
+                } else {
+                    // 👤 กรณี: คนเก่าที่มีข้อมูลอยู่แล้ว
+                    await setDoc(userRef, { lastLogin: serverTimestamp() }, { merge: true });
+                    await requestPermissionAndSaveToken(user);
+                    await redirectUser(user);
+                }
+                    
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Error', 'Google Login ไม่สำเร็จ: ' + error.message, 'error');
+            }
+        });
+
+        // ✅ ปุ่มบันทึกข้อมูลใน Modal Google (สำหรับคนใหม่)
+        document.getElementById('googleRegisterForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const modalEl = document.getElementById('googleRegisterModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+
+            Swal.fire({ title: 'กำลังลงทะเบียน...', didOpen: () => Swal.showLoading() });
+
+            try {
+                const user = auth.currentUser;
+                const name = document.getElementById('googleRegName').value;
+                const role = document.getElementById('googleRegRole').value;
+
+                // สูตรโกง Admin (เผื่อเป็นอาร์ม)
+                let finalRole = role;
+                if(user.email === "armvbn.123my4@gmail.com") finalRole = "admin";
+
+                await setDoc(doc(db, "users", user.uid), {
+                    email: user.email,
+                    firstName: name,
+                    role: finalRole, // บันทึก Role ที่เลือกมา
+                    created_at: serverTimestamp(),
+                    lastLogin: serverTimestamp()
+                });
+
+                await requestPermissionAndSaveToken(user);
+                await redirectUser(user);
+
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Error', 'บันทึกข้อมูลไม่สำเร็จ: ' + error.message, 'error');
+            }
+        });
+
+        // 📝 ลงทะเบียน (Email/Pass)
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('regEmail').value;
+            const pass = document.getElementById('regPassword').value;
+            const name = document.getElementById('regName').value;
+            const role = document.getElementById('regRole').value;
+
+            Swal.fire({ title: 'กำลังสมัคร...', didOpen: () => Swal.showLoading() });
+
+            try {
+                const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+                const user = userCredential.user;
+                await sendEmailVerification(user);
+                await setDoc(doc(db, "users", user.uid), {
+                    email: email, firstName: name, role: role, created_at: serverTimestamp()
+                });
+                await signOut(auth);
+                
+                bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'สมัครสำเร็จ!',
+                    html: `ส่งลิงก์ยืนยันไปที่ <b>${email}</b> แล้ว<br><span style="color:red">อย่าลืมเช็ค Junk/Spam!</span>`
+                });
+            } catch (error) {
+                if (error.code === 'auth/email-already-in-use') Swal.fire('เตือน', 'อีเมลนี้ใช้ไปแล้ว', 'warning');
+                else Swal.fire('Error', error.message, 'error');
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
