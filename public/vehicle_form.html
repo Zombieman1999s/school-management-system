@@ -3,97 +3,36 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes"> 
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="icon" href="icon.png" type="image/png">
+    <link rel="shortcut icon" href="icon.png" type="image/png">
+    
     <title>ระบบจองรถ - School System</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
-        body { 
-            font-family: 'Sarabun', sans-serif; 
-            background-color: #f0f2f5; 
-        }
-        
-        /* Navbar สีเขียว */
-        .main-header {
-            background-color: #198754; 
-            color: white;
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .btn-back {
-            background-color: rgba(255, 255, 255, 0.2);
-            border: 1px solid rgba(255, 255, 255, 0.6);
-            color: white;
-            border-radius: 50px;
-            padding: 6px 16px;
-            font-size: 0.9rem;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: 0.3s;
-        }
-        .btn-back:hover {
-            background-color: white;
-            color: #198754;
-        }
-
-        .form-card {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            max-width: 800px;
-            margin: 30px auto;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-        }
-
-        .form-title {
-            color: #198754;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        /* หัวข้อ Section */
-        .section-header {
-            background-color: #e8f5e9;
-            color: #1b5e20;
-            padding: 10px 15px;
-            border-radius: 8px;
-            font-weight: 600;
-            margin-top: 25px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-        }
+        body { font-family: 'Sarabun', sans-serif; background-color: #f0f2f5; }
+        .main-header { background-color: #198754; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .btn-back { background-color: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.6); color: white; border-radius: 50px; padding: 6px 16px; font-size: 0.9rem; text-decoration: none; display: flex; align-items: center; gap: 6px; transition: 0.3s; }
+        .btn-back:hover { background-color: white; color: #198754; }
+        .form-card { background: white; border-radius: 15px; padding: 30px; max-width: 800px; margin: 30px auto; box-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        .form-title { color: #198754; font-weight: bold; text-align: center; margin-bottom: 25px; }
+        .section-header { background-color: #e8f5e9; color: #1b5e20; padding: 10px 15px; border-radius: 8px; font-weight: 600; margin-top: 25px; margin-bottom: 15px; display: flex; align-items: center; }
         .section-header i { margin-right: 10px; }
-
         .form-label { font-weight: 500; color: #333; }
         .required { color: red; }
-
-        .btn-submit {
-            background-color: #198754;
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 50px;
-            font-size: 1.1rem;
-            width: 100%;
-            margin-top: 30px;
-            box-shadow: 0 4px 10px rgba(25, 135, 84, 0.3);
-            transition: 0.3s;
-        }
-        .btn-submit:hover {
-            background-color: #146c43;
-            transform: translateY(-2px);
-        }
+        .btn-submit { background-color: #198754; color: white; border: none; padding: 12px; border-radius: 50px; font-size: 1.1rem; width: 100%; margin-top: 30px; box-shadow: 0 4px 10px rgba(25, 135, 84, 0.3); transition: 0.3s; }
+        .btn-submit:hover { background-color: #146c43; transform: translateY(-2px); }
+        .flatpickr-time input:hover, .flatpickr-time .flatpickr-am-pm:hover, .flatpickr-time input:focus, .flatpickr-time .flatpickr-am-pm:focus { background: #e8f5e9; }
     </style>
 </head>
 <body>
@@ -133,6 +72,7 @@
                         <option value="บริหารทั่วไป">บริหารทั่วไป</option>
                         <option value="กิจการนักเรียน">กิจการนักเรียน</option>
                         <option value="บุคคล">บุคคล</option>
+                        <option value="อาคารสถานที่">อาคารสถานที่</option>
                         <option value="อื่นๆ">อื่นๆ</option>
                     </select>
                 </div>
@@ -148,7 +88,7 @@
 
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <label class="form-label">จำนวนผู้เดินทาง (คน) <span class="required">*</span></label>
+                        <label class="form-label">จำนวนผู้เดินทาง (คน) *ไม่รวมคนขับ <span class="required">*</span></label>
                         <input type="number" id="passengerCount" class="form-control" min="1" required>
                     </div>
                     <div class="col-md-6">
@@ -157,8 +97,10 @@
                             <option value="ไม่ระบุ">ไม่ระบุ (ตามความเหมาะสม)</option>
                             <option value="รถตู้">รถตู้</option>
                             <option value="รถกระบะ">รถกระบะ</option>
-                            <option value="รถเก๋ง">รถเก๋ง</option>
                         </select>
+                        <div id="selfDriveBadge" class="mt-2" style="display:none;">
+                            <span class="badge bg-info text-dark"><i class="fa-solid fa-id-card me-1"></i> ขับเอง (Self-Drive)</span>
+                        </div>
                     </div>
                 </div>
 
@@ -179,11 +121,11 @@
                 <div class="row mb-3">
                     <div class="col-md-6">
                         <label class="form-label">เวลาล้อหมุน (Start Time) <span class="required">*</span></label>
-                        <input type="time" id="startTime" class="form-control" required>
+                        <input type="text" id="startTime" class="form-control bg-white" placeholder="เลือกเวลา (24 ชม.)" required>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">เวลาเดินทางกลับ (Return Time) <span class="required">*</span></label>
-                        <input type="time" id="endTime" class="form-control" required>
+                        <input type="text" id="endTime" class="form-control bg-white" placeholder="เลือกเวลา (24 ชม.)" required>
                     </div>
                 </div>
 
@@ -197,9 +139,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 🔥 Config ของอาร์ม (เช็คความถูกต้องอีกทีนะ)
+        // 🔥 Config ของอาร์ม
         const firebaseConfig = {
             apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
             authDomain: "school-management-system-10cbb.firebaseapp.com",
@@ -214,68 +156,100 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        // 1. ตรวจสอบ Login และดึงข้อมูล User
+        let currentUserRole = ""; 
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const timeConfig = { enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, disableMobile: "true" };
+            flatpickr("#startTime", timeConfig);
+            flatpickr("#endTime", timeConfig);
+        });
+
+        async function getEmailsByMultipleRoles(rolesArray) {
+            console.log("🔍 หาอีเมล Role:", rolesArray);
+            const emails = new Set();
+            try {
+                const q = query(collection(db, "users"), where("role", "in", rolesArray));
+                const querySnapshot = await getDocs(q);
+                querySnapshot.forEach((doc) => {
+                    const userData = doc.data();
+                    if (userData.email) emails.add(userData.email);
+                });
+            } catch (error) { console.error("❌ Error fetching emails:", error); }
+            return Array.from(emails);
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 try {
                     const userDoc = await getDoc(doc(db, "users", user.uid));
                     if (userDoc.exists()) {
                         const data = userDoc.data();
+                        currentUserRole = data.role;
+                        
                         document.getElementById('reporterName').value = data.firstName || user.displayName;
                         document.getElementById('reporterRole').value = getRoleName(data.role);
+
+                        // 🔥 Logic: ถ้าเป็นช่าง -> ล็อกรถกระบะ + ขับเอง
+                        if (currentUserRole === 'technician' || currentUserRole === 'technician_building') {
+                            const vehicleSelect = document.getElementById('vehicleType');
+                            vehicleSelect.value = 'รถกระบะ';
+                            vehicleSelect.disabled = true; // ห้ามเปลี่ยนรถ
+                            document.getElementById('department').value = 'อาคารสถานที่'; // แถมให้: เลือกสังกัดให้อัตโนมัติ
+                            document.getElementById('selfDriveBadge').style.display = 'block'; // โชว์ป้ายขับเอง
+                        }
                     } else {
                         document.getElementById('reporterName').value = user.displayName || user.email;
                         document.getElementById('reporterRole').value = 'General';
+                        currentUserRole = 'general';
                     }
                 } catch(err) { console.error(err); }
             } else {
-                // ถ้ายังไม่ล็อกอิน ดีดกลับหน้าแรก
                 Swal.fire({ icon: 'warning', title: 'กรุณาเข้าสู่ระบบ', timer: 1500, showConfirmButton: false })
                     .then(() => window.location.href = "index.html");
             }
         });
 
         function getRoleName(role) {
-            const roles = { 
-                'teacher': 'ครู/อาจารย์', 'admin': 'ผู้ดูแลระบบ', 
-                'personnel': 'ฝ่ายบุคคล', 'technician': 'ช่างเทคนิค', 
-                'transport': 'ยานพาหนะ', 'security_guard': 'รปภ.' 
-            };
+            const roles = { 'teacher': 'ครู/อาจารย์', 'admin': 'ผู้ดูแลระบบ', 'personnel': 'ฝ่ายบุคคล', 'technician': 'ช่างเทคนิค/อาคาร', 'transport': 'ยานพาหนะ', 'security_guard': 'รปภ.' };
             return roles[role] || role;
         }
 
-        // 2. กดปุ่มส่งข้อมูล
         document.getElementById('vehicleForm').addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            Swal.fire({ 
-                title: 'กำลังบันทึกข้อมูล...', 
-                text: 'กรุณารอสักครู่ ระบบกำลังแจ้งเตือน Admin',
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading() 
-            });
+            Swal.fire({ title: 'กำลังบันทึก...', text: 'ระบบกำลังแจ้งเตือน Admin', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
             try {
                 const user = auth.currentUser;
                 if (!user) throw new Error("ไม่พบข้อมูลผู้ใช้งาน");
 
-                // ดึงค่าจากฟอร์ม
                 const reporterName = document.getElementById('reporterName').value;
                 const department = document.getElementById('department').value;
                 const destination = document.getElementById('destination').value;
                 const passengerCount = document.getElementById('passengerCount').value;
-                const vehicleType = document.getElementById('vehicleType').value;
                 const reason = document.getElementById('reason').value;
                 const useDate = document.getElementById('useDate').value;
                 const startTime = document.getElementById('startTime').value;
                 const endTime = document.getElementById('endTime').value;
+                const reporterRoleText = document.getElementById('reporterRole').value;
+                
+                // ดึงค่ารถ (ต้องใช้ .value แม้จะ disabled ก็ค่ามา)
+                let vehicleType = document.getElementById('vehicleType').value;
 
-                // 2.1 บันทึกลง Collection 'vehicle_requests'
+                // 🔥 Logic คนขับ
+                let assignedDriver = "-"; // Default: รอจัดสรร
+                
+                // ถ้าเป็นช่าง -> คนขับคือตัวเอง (reporterName)
+                if (currentUserRole === 'technician' || currentUserRole === 'technician_building') {
+                    assignedDriver = reporterName;
+                    vehicleType = 'รถกระบะ'; // ย้ำค่าอีกทีกันพลาด
+                }
+
                 await addDoc(collection(db, "vehicle_requests"), {
                     uid: user.uid,
                     reporterName: reporterName,
-                    reporterRole: document.getElementById('reporterRole').value,
-                    reporterEmail: user.email, // *สำคัญ* เอาไว้ตอบกลับ
+                    reporterRole: reporterRoleText,
+                    reporterEmail: user.email,
                     department: department,
                     destination: destination,
                     passenger_count: passengerCount,
@@ -284,49 +258,41 @@
                     use_date: useDate,
                     start_time: startTime,
                     end_time: endTime,
+                    driver_name: assignedDriver, // ✅ บันทึกชื่อคนขับลงไปเลย (ถ้าเป็นช่าง)
                     status: "pending", 
                     created_at: serverTimestamp()
                 });
 
-                // 2.2 🔥 ส่งอีเมลแจ้งเตือน Admin (อาร์ม)
-                // แทนที่ Telegram เดิมด้วย Code นี้
+                let targetRoles = ["transport", "admin", "Admin"];
+                let emailTo = await getEmailsByMultipleRoles(targetRoles);
+                if (emailTo.length === 0) emailTo = ["armvbn.123my4@gmail.com"]; 
+                
                 await addDoc(collection(db, "mail"), {
-                    to: "armvbn.123my4@gmail.com", // เมลอาร์ม
+                    to: emailTo, 
                     message: {
-                        subject: `🚐 มีการจองรถใหม่: ${destination} (${useDate})`,
+                        subject: `🚐 ขอใช้รถ: ${destination} (${useDate})`,
                         html: `
                             <div style="font-family: sans-serif; padding: 20px; border: 1px solid #198754; border-radius: 10px;">
-                                <h2 style="color: #198754;">📢 มีรายการขอใช้รถราชการใหม่</h2>
-                                <p><strong>ผู้ขอ:</strong> ${reporterName} (ฝ่าย ${department})</p>
+                                <h2 style="color: #198754;">📢 รายการขอใช้รถใหม่ ${assignedDriver !== '-' ? '(ขับเอง)' : ''}</h2>
+                                <p><strong>ผู้ขอ:</strong> ${reporterName} (${department})</p>
                                 <hr>
                                 <p><strong>ไปที่:</strong> ${destination}</p>
-                                <p><strong>วันที่:</strong> ${useDate}</p>
-                                <p><strong>เวลา:</strong> ${startTime} - ${endTime}</p>
-                                <p><strong>จำนวนคน:</strong> ${passengerCount} คน (${vehicleType})</p>
-                                <p><strong>เหตุผล:</strong> ${reason}</p>
+                                <p><strong>วันเวลา:</strong> ${useDate} (${startTime} - ${endTime})</p>
+                                <p><strong>รถ:</strong> ${vehicleType}</p>
+                                ${assignedDriver !== '-' ? `<p style="color:blue;"><strong>*ผู้ขอขับรถเอง</strong></p>` : ''}
                                 <br>
-                                <a href="#" style="background: #198754; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">เข้าสู่ระบบเพื่ออนุมัติ</a>
+                                <a href="#" style="background: #198754; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">จัดการการจอง</a>
                             </div>
                         `
                     }
                 });
 
-                // สำเร็จ
-                Swal.fire({
-                    icon: 'success', 
-                    title: 'จองรถสำเร็จ!', 
-                    text: 'ระบบได้ส่งเรื่องแจ้งเตือนฝ่ายยานพาหนะแล้ว',
-                    timer: 2000, 
-                    showConfirmButton: false
-                }).then(() => window.location.href = "dashboard.html");
+                Swal.fire({ icon: 'success', title: 'จองรถสำเร็จ!', text: `แจ้งเตือนไปยังฝ่ายยานพาหนะแล้ว`, timer: 2000, showConfirmButton: false })
+                    .then(() => window.location.href = "dashboard.html");
 
             } catch (error) {
                 console.error("Error:", error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'เกิดข้อผิดพลาด',
-                    text: error.message
-                });
+                Swal.fire({ icon: 'error', title: 'เกิดข้อผิดพลาด', text: error.message });
             }
         });
     </script>

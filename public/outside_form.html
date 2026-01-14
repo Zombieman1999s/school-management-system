@@ -3,20 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="icon" href="icon.png" type="image/png">
+    <link rel="shortcut icon" href="icon.png" type="image/png">
+    
     <title>ขอออกนอกสถานที่ - School System</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
-        body { background-color: #f0f2f5; font-family: 'Sarabun', sans-serif; }
+        body { background-color: #e0f7fa; font-family: 'Sarabun', sans-serif; }
         
-        /* ธีมสีฟ้าสดใส */
+        /* ธีมสี Teal (สีเขียวน้ำทะเล) */
         .main-header {
-            background-color: #0dcaf0; 
-            color: #212529;
+            background-color: #00838f; 
+            color: white;
             padding: 12px 20px;
             display: flex;
             justify-content: space-between;
@@ -25,9 +34,9 @@
         }
 
         .btn-back {
-            background-color: rgba(255, 255, 255, 0.4);
-            border: 1px solid rgba(0, 0, 0, 0.1);
-            color: #212529;
+            background-color: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            color: white;
             border-radius: 50px;
             padding: 6px 16px;
             font-size: 0.9rem;
@@ -39,19 +48,13 @@
         }
         .btn-back:hover {
             background-color: white;
+            color: #00838f;
         }
 
         .form-container { 
-            max-width: 700px; margin: 30px auto; 
+            max-width: 800px; margin: 30px auto; 
             background: white; padding: 40px; 
             border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.08); 
-        }
-
-        .form-title {
-            color: #0aa2c0;
-            font-weight: bold;
-            text-align: center;
-            margin-bottom: 25px;
         }
 
         .section-header { 
@@ -64,14 +67,17 @@
 
         .btn-submit { 
             width: 100%; padding: 12px; font-size: 1.1rem; border-radius: 50px; 
-            background-color: #0dcaf0; color: #212529; border: none;
-            transition: 0.3s; margin-top: 20px; font-weight: 600;
+            background-color: #00838f; color: white; border: none;
+            transition: 0.3s; margin-top: 20px;
         }
         .btn-submit:hover {
-            background-color: #0aa2c0; transform: translateY(-2px); color: white;
+            background-color: #006064; transform: translateY(-2px);
         }
 
         .readonly-field { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #6c757d; }
+        
+        /* ปรับสี Flatpickr */
+        .flatpickr-time input:hover, .flatpickr-time .flatpickr-am-pm:hover, .flatpickr-time input:focus { background: #e0f7fa; }
     </style>
 </head>
 <body>
@@ -85,7 +91,7 @@
 
     <div class="container mb-5">
         <div class="form-container">
-            <h3 class="form-title">🏃 แบบฟอร์มขอออกนอกสถานที่</h3>
+            <h3 class="text-center mb-4" style="color: #006064; font-weight: bold;">🌍 แบบฟอร์มขออนุญาตออกนอกโรงเรียน</h3>
             
             <form id="outsideForm">
                 
@@ -126,12 +132,12 @@
                 
                 <div class="mb-3">
                     <label class="form-label fw-bold">มีความประสงค์ขออนุญาตเนื่องจาก <span class="text-danger">*</span></label>
-                    <textarea id="reason" class="form-control" rows="3" placeholder="ระบุสาเหตุ..." required></textarea>
+                    <textarea id="reason" class="form-control" rows="3" placeholder="ระบุภารกิจหรือเหตุผล..." required></textarea>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-bold">ได้แจ้งผู้บังคับบัญชาชั้นต้นทราบเมื่อ <span class="text-danger">*</span></label>
-                    <input type="datetime-local" id="informTime" class="form-control" required>
+                    <label class="form-label fw-bold">สถานที่ปลายทาง <span class="text-danger">*</span></label>
+                    <input type="text" id="destination" class="form-control" placeholder="ระบุสถานที่..." required>
                 </div>
 
                 <div class="section-header mt-4"><i class="fa-solid fa-clock"></i> วันและเวลาเดินทาง</div>
@@ -144,11 +150,27 @@
                 <div class="row mb-4">
                     <div class="col-md-6">
                         <label class="form-label fw-bold">เวลาออก (Departure) <span class="text-danger">*</span></label>
-                        <input type="time" id="startTime" class="form-control" required>
+                        <input type="text" id="startTime" class="form-control bg-white" placeholder="00:00" required>
                     </div>
                     <div class="col-md-6">
                         <label class="form-label fw-bold">เวลากลับ (Return) <span class="text-danger">*</span></label>
-                        <input type="time" id="endTime" class="form-control" required>
+                        <input type="text" id="endTime" class="form-control bg-white" placeholder="00:00" required>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">ยานพาหนะ</label>
+                        <select id="vehicleType" class="form-select">
+                            <option value="รถส่วนตัว">🚗 รถส่วนตัว</option>
+                            <option value="รถราชการ">🚐 รถราชการ</option>
+                            <option value="รถสาธารณะ">🚕 รถสาธารณะ</option>
+                            <option value="อื่นๆ">อื่นๆ</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-bold">ทะเบียนรถ (ถ้ามี)</label>
+                        <input type="text" id="licensePlate" class="form-control" placeholder="-">
                     </div>
                 </div>
 
@@ -164,9 +186,10 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // 🔥 เพิ่ม import query, where, getDocs
+        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 🔥 Config ของอาร์ม (เช็คความถูกต้องอีกทีนะ)
+        // 🔥 Config ของอาร์ม
         const firebaseConfig = {
             apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
             authDomain: "school-management-system-10cbb.firebaseapp.com",
@@ -182,7 +205,35 @@
         const db = getFirestore(app);
         let currentUser = null;
 
-        // ดึงข้อมูล User
+        // เริ่มต้น Flatpickr (เวลา 24 ชม.)
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('outDate').valueAsDate = new Date();
+            const timeConfig = { 
+                enableTime: true, 
+                noCalendar: true, 
+                dateFormat: "H:i", 
+                time_24hr: true, 
+                disableMobile: "true" 
+            };
+            flatpickr("#startTime", timeConfig);
+            flatpickr("#endTime", timeConfig);
+        });
+
+        // 🔥 ฟังก์ชันดึงอีเมล: ฝ่ายบุคคล + รปภ. + Admin
+        async function getEmailsByMultipleRoles(rolesArray) {
+            console.log("🔍 หาอีเมล Role:", rolesArray);
+            const emails = new Set();
+            try {
+                const q = query(collection(db, "users"), where("role", "in", rolesArray));
+                const querySnapshot = await getDocs(q);
+                querySnapshot.forEach((doc) => {
+                    const userData = doc.data();
+                    if (userData.email) emails.add(userData.email);
+                });
+            } catch (error) { console.error("❌ Error fetching emails:", error); }
+            return Array.from(emails);
+        }
+
         onAuthStateChanged(auth, async (user) => {
             if (user) {
                 currentUser = user;
@@ -202,7 +253,7 @@
         });
 
         function getRoleName(role) {
-            const roles = { 'teacher': 'ครู อาจารย์', 'admin': 'ผู้ดูแลระบบ', 'personnel': 'ฝ่ายบุคคล', 'technician': 'ช่างเทคนิค', 'transport': 'ยานพาหนะ' };
+            const roles = { 'teacher': 'ครู อาจารย์', 'admin': 'ผู้ดูแลระบบ', 'personnel': 'ฝ่ายบุคคล', 'technician': 'ช่างเทคนิค', 'transport': 'ยานพาหนะ', 'security_guard': 'รปภ.' };
             return roles[role] || role;
         }
 
@@ -214,64 +265,89 @@
             // ดึงค่า
             const department = document.getElementById('department').value;
             const reason = document.getElementById('reason').value;
-            const informTime = document.getElementById('informTime').value;
+            const destination = document.getElementById('destination').value;
             const outDate = document.getElementById('outDate').value;
             const startTime = document.getElementById('startTime').value;
             const endTime = document.getElementById('endTime').value;
+            const vehicleType = document.getElementById('vehicleType').value;
+            const licensePlate = document.getElementById('licensePlate').value;
             const requesterName = document.getElementById('requesterName').value;
-
-            // แปลงวันเวลาแจ้งให้สวยงาม
-            const informDateObj = new Date(informTime);
-            const informFormatted = informDateObj.toLocaleString('th-TH');
+            const requesterRole = document.getElementById('requesterRole').value;
 
             Swal.fire({ 
                 title: 'กำลังส่งคำขอ...', 
-                text: 'ระบบกำลังแจ้งเตือนฝ่ายบุคคล',
+                text: 'ระบบกำลังแจ้งเตือนฝ่ายบุคคลและป้อมยาม',
                 allowOutsideClick: false,
                 didOpen: () => Swal.showLoading() 
             });
 
             try {
-                // 1. บันทึก Firebase (Collection: outside_requests)
+                // 1. บันทึก
                 await addDoc(collection(db, "outside_requests"), {
                     department: department,
                     reason: reason,
-                    inform_supervisor_at: informTime,
+                    destination: destination,
                     out_date: outDate,
                     start_time: startTime,
                     end_time: endTime,
+                    vehicle_type: vehicleType,
+                    license_plate: licensePlate,
                     requester_uid: currentUser.uid,
                     requester_name: requesterName,
-                    requester_email: currentUser.email,
-                    requester_role: document.getElementById('requesterRole').value,
+                    requester_role: requesterRole,
+                    requester_email: currentUser.email, // 🔥 อีเมลผู้ขอ (ไว้ตอบกลับ)
                     status: "pending", 
                     created_at: serverTimestamp()
                 });
 
-                // 2. 🔥 ส่งอีเมลแจ้ง Admin (อาร์ม)
-                // แทนที่ Telegram เดิม
+                // 2. 🔥 หาอีเมล "Personnel" + "Security Guard" + "Admin"
+                let targetRoles = ["personnel", "security_guard", "admin", "Admin"];
+                let emailTo = await getEmailsByMultipleRoles(targetRoles);
+                
+                if (emailTo.length === 0) {
+                    emailTo = ["armvbn.123my4@gmail.com"]; 
+                }
+
+                // 3. ส่งเมลแจ้งเตือน (HTML สวยๆ)
                 await addDoc(collection(db, "mail"), {
-                    to: "armvbn.123my4@gmail.com", // เมลอาร์ม
+                    to: emailTo,
                     message: {
-                        subject: `🏃 ขออนุญาตออกนอกสถานที่: ${requesterName}`,
+                        subject: `🌍 ขอออกนอกสถานที่: ${requesterName}`,
                         html: `
-                            <div style="font-family: sans-serif; padding: 20px; border: 1px solid #0dcaf0; border-radius: 10px;">
-                                <h2 style="color: #00838f;">📢 มีรายการขอออกนอกสถานที่</h2>
-                                <p><strong>ผู้ขอ:</strong> ${requesterName} (ฝ่าย ${department})</p>
-                                <hr>
-                                <p><strong>เหตุผล:</strong> ${reason}</p>
-                                <p><strong>วันที่:</strong> ${outDate}</p>
-                                <p><strong>เวลา:</strong> ${startTime} - ${endTime} น.</p>
-                                <p style="color: gray;">(แจ้งหัวหน้าแล้วเมื่อ: ${informFormatted})</p>
-                                <br>
-                                <a href="#" style="background: #0dcaf0; color: #212529; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight:bold;">รับทราบ/ตรวจสอบ</a>
+                            <div style="font-family: 'Sarabun', sans-serif; max-width: 600px; margin: auto; border: 1px solid #b2ebf2; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                                <div style="background-color: #00838f; padding: 20px; text-align: center;">
+                                    <h2 style="color: #ffffff; margin: 0; font-size: 22px;">📢 รายการขอออกนอกสถานที่</h2>
+                                </div>
+                                
+                                <div style="padding: 30px; background-color: #ffffff;">
+                                    <div style="margin-bottom: 20px;">
+                                        <p style="margin: 5px 0; color: #555;"><strong>ผู้ขอ:</strong> <span style="font-size: 1.1em; color: #000;">${requesterName}</span></p>
+                                        <p style="margin: 5px 0; color: #555;"><strong>ตำแหน่ง:</strong> ${requesterRole} (${department})</p>
+                                    </div>
+
+                                    <div style="background-color: #e0f7fa; border-left: 5px solid #00838f; padding: 15px; border-radius: 4px;">
+                                        <h3 style="color: #006064; margin-top: 0; font-size: 18px;">📍 ปลายทาง: ${destination}</h3>
+                                        <p style="margin: 5px 0;"><strong>📅 วันที่:</strong> ${outDate}</p>
+                                        <p style="margin: 5px 0;"><strong>⏰ เวลา:</strong> ${startTime} - ${endTime}</p>
+                                        <p style="margin: 5px 0;"><strong>🚙 ยานพาหนะ:</strong> ${vehicleType} ${licensePlate ? '('+licensePlate+')' : ''}</p>
+                                        <p style="margin: 10px 0 0 0;"><strong>📝 ภารกิจ:</strong><br>${reason}</p>
+                                    </div>
+
+                                    <div style="text-align: center; margin-top: 30px;">
+                                        <a href="#" style="background-color: #00838f; color: white; padding: 12px 25px; text-decoration: none; border-radius: 50px; font-weight: bold; display: inline-block;">เข้าสู่ระบบเพื่อตรวจสอบ</a>
+                                    </div>
+                                </div>
+                                
+                                <div style="background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee;">
+                                    School Hub Management System
+                                </div>
                             </div>
                         `
                     }
                 });
 
                 Swal.fire({
-                    icon: 'success', title: 'ส่งใบขออนุญาตสำเร็จ!', text: 'แจ้งเรื่องเรียบร้อยครับ',
+                    icon: 'success', title: 'ส่งคำขอสำเร็จ!', text: 'แจ้งเรื่องไปยังฝ่ายบุคคลและป้อมยามแล้ว',
                     timer: 2000, showConfirmButton: false
                 }).then(() => window.location.href = "dashboard.html");
 

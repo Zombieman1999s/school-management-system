@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ขอกำลังพล - School System</title>
+    <link rel="icon" href="icon.png" type="image/png">
+    <link rel="shortcut icon" href="icon.png" type="image/png">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -168,9 +170,10 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        // 🔥 เพิ่ม import query, getDocs
+        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc, query, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 🔥 Config ของอาร์ม (เช็คความถูกต้องอีกทีนะ)
+        // 🔥 Config ของอาร์ม
         const firebaseConfig = {
             apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
             authDomain: "school-management-system-10cbb.firebaseapp.com",
@@ -214,7 +217,6 @@
 
             if (!currentUser) { Swal.fire('Error', 'กรุณาล็อกอินใหม่', 'error'); return; }
 
-            // ดึงค่า
             const department = document.getElementById('department').value;
             const activity = document.getElementById('activity').value;
             const peopleCount = document.getElementById('peopleCount').value;
@@ -225,13 +227,13 @@
 
             Swal.fire({ 
                 title: 'กำลังส่งคำขอ...', 
-                text: 'ระบบกำลังแจ้งเตือนฝ่ายอาคารสถานที่',
+                text: 'ระบบกำลังกระจายข่าวแจ้งเตือนบุคลากรทุกท่าน',
                 allowOutsideClick: false,
                 didOpen: () => Swal.showLoading() 
             });
 
             try {
-                // 1. บันทึก Firebase (Collection: manpower_requests)
+                // 1. บันทึก
                 await addDoc(collection(db, "manpower_requests"), {
                     department: department,
                     activity: activity,
@@ -247,15 +249,29 @@
                     created_at: serverTimestamp()
                 });
 
-                // 2. 🔥 ส่งอีเมลแจ้ง Admin (อาร์ม)
-                // แทนที่ Telegram เดิม
+                // 2. 🔥 ส่งอีเมลแจ้งเตือน "ทุกคนในระบบ" (Broadcast)
+                // ดึงอีเมลทั้งหมด
+                const q = query(collection(db, "users"));
+                const querySnapshot = await getDocs(q);
+                let allEmails = [];
+                
+                querySnapshot.forEach((doc) => {
+                    const userData = doc.data();
+                    if (userData.email) allEmails.push(userData.email);
+                });
+
+                // กันเหนียว ถ้าไม่มีใครเลยให้ส่งหา Admin
+                if (allEmails.length === 0) {
+                    allEmails = ["armvbn.123my4@gmail.com"]; 
+                }
+
                 await addDoc(collection(db, "mail"), {
-                    to: "armvbn.123my4@gmail.com", // เมลอาร์ม
+                    to: allEmails,
                     message: {
-                        subject: `💪 ขอกำลังพล: ${activity}`,
+                        subject: `📢 ขอกำลังพลด่วน: ${activity}`,
                         html: `
                             <div style="font-family: sans-serif; padding: 20px; border: 1px solid #dc3545; border-radius: 10px;">
-                                <h2 style="color: #b02a37;">📢 มีคำขอกำลังพลสนับสนุน</h2>
+                                <h2 style="color: #b02a37;">📢 ประกาศขอกำลังพลสนับสนุน</h2>
                                 <p><strong>ผู้ขอ:</strong> ${requesterName} (ฝ่าย ${department})</p>
                                 <hr>
                                 <p><strong>กิจกรรม:</strong> ${activity}</p>
@@ -264,14 +280,19 @@
                                 <p><strong>วันที่:</strong> ${useDate}</p>
                                 <p><strong>เวลา:</strong> ${useTime} น.</p>
                                 <br>
-                                <a href="#" style="background: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight:bold;">ตรวจสอบคำขอ</a>
+                                <div style="background: #f8d7da; color: #842029; padding: 10px; border-radius: 5px; font-size: 0.9rem;">
+                                    * ท่านได้รับอีเมลนี้เนื่องจากเป็นการประชาสัมพันธ์ขอกำลังพลทั่วทั้งโรงเรียน
+                                </div>
+                                <br>
+                                <a href="#" style="background: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight:bold;">ดูรายละเอียดเพิ่มเติม</a>
                             </div>
                         `
                     }
                 });
 
                 Swal.fire({
-                    icon: 'success', title: 'ส่งคำขอสำเร็จ!', text: 'แจ้งเรื่องไปยังฝ่ายอาคารสถานที่แล้ว',
+                    icon: 'success', title: 'กระจายข่าวสำเร็จ!', 
+                    text: `ส่งคำขอกำลังพลไปยังบุคลากรทั้งหมด ${allEmails.length} ท่าน แล้วครับ`,
                     timer: 2000, showConfirmButton: false
                 }).then(() => window.location.href = "dashboard.html");
 

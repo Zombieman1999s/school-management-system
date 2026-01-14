@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ศูนย์ รปภ. - School Hub</title>
+    <link rel="icon" href="icon.png" type="image/png">
+    <link rel="shortcut icon" href="icon.png" type="image/png">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <style>
+        :root { --primary-bg: #374151; --secondary-bg: #f3f4f6; }
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--secondary-bg); color: #374151; padding-bottom: 80px; }
+        
+        .navbar { background-color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .navbar-brand { font-weight: 700; color: var(--primary-bg) !important; }
+        
+        .stat-card { border: none; border-radius: 12px; transition: transform 0.2s; color: white; overflow: hidden; position: relative; }
+        .stat-card:hover { transform: translateY(-3px); }
+        .stat-icon { position: absolute; right: 10px; bottom: 10px; font-size: 3rem; opacity: 0.2; }
+        
+        .request-card { border: none; border-radius: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); margin-bottom: 1rem; transition: all 0.2s; border-left: 5px solid transparent; }
+        .request-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        
+        /* Status Colors */
+        .status-pending { border-left-color: #ffc107 !important; }
+        .status-approved { border-left-color: #198754 !important; } 
+        .status-ongoing { border-left-color: #0dcaf0 !important; }
+        .status-completed { border-left-color: #6c757d !important; } 
+        .status-rejected { border-left-color: #dc3545 !important; }
+
+        .badge-status { font-weight: 500; padding: 0.5em 0.8em; border-radius: 50px; font-size: 0.8rem; }
+        
+        .badge-security { background-color: #374151; color: white; }
+        .badge-outside { background-color: #8b5cf6; color: white; }
+
+        #loadingScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.95); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; transition: opacity 0.3s; }
+        #loadingScreen.hidden { opacity: 0; visibility: hidden; }
+
+        .fab-btn {
+            position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px;
+            border-radius: 50%; background: var(--primary-bg); color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); z-index: 1000;
+            border: none; transition: transform 0.2s;
+        }
+        .fab-btn:hover { transform: scale(1.1); background: #1f2937; }
+
+        @media (max-width: 768px) {
+            .container { padding-left: 15px; padding-right: 15px; }
+            .stat-card { margin-bottom: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="loadingScreen"><div class="spinner-border text-dark mb-3"></div><h6>กำลังโหลดข้อมูลศูนย์ รปภ...</h6></div>
+
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="dashboard.html"><i class="fa-solid fa-chevron-left me-2"></i> ศูนย์ รปภ. (Security Hub)</a>
+            <div class="d-flex align-items-center">
+                <span id="userRoleBadge" class="badge bg-dark me-2">...</span>
+                <button class="btn btn-sm btn-outline-danger rounded-circle" id="btnLogout"><i class="fa-solid fa-power-off"></i></button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card stat-card bg-warning text-dark h-100 p-3">
+                    <h3 class="fw-bold" id="countPending">0</h3>
+                    <small>รอตรวจสอบ</small>
+                    <i class="fa-solid fa-bell stat-icon"></i>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card stat-card bg-info text-dark h-100 p-3">
+                    <h3 class="fw-bold" id="countOngoing">0</h3>
+                    <small>กำลังออกข้างนอก</small>
+                    <i class="fa-solid fa-person-walking-arrow-right stat-icon"></i>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card stat-card bg-success text-white h-100 p-3">
+                    <h3 class="fw-bold" id="countCompleted">0</h3>
+                    <small>กลับมาแล้ว/เสร็จสิ้น</small>
+                    <i class="fa-solid fa-check-circle stat-icon"></i>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card stat-card bg-secondary h-100 p-3">
+                    <h3 class="fw-bold" id="countTotal">0</h3>
+                    <small>ทั้งหมด</small>
+                    <i class="fa-solid fa-list stat-icon"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+            <h5 class="fw-bold m-0"><i class="fa-solid fa-tower-observation me-2"></i> รายการปฏิบัติงาน</h5>
+            <div class="d-flex gap-2">
+                <select id="filterType" class="form-select form-select-sm w-auto" onchange="loadRequests()">
+                    <option value="all">ทั้งหมด</option>
+                    <option value="security">🛡️ แจ้งเหตุ รปภ.</option>
+                    <option value="outside">🚗 ขอออกนอกสถานที่</option>
+                </select>
+                <select id="filterStatus" class="form-select form-select-sm w-auto" onchange="loadRequests()">
+                    <option value="all" selected>สถานะ: ทั้งหมด</option>
+                    <option value="pending">รอตรวจสอบ</option>
+                    <option value="active">กำลังดำเนินการ (Approved/Ongoing)</option>
+                    <option value="completed">เสร็จสิ้น</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="requestList"></div>
+
+    </div>
+
+    <button class="fab-btn" onclick="openReportModal()" title="แจ้งเหตุใหม่"><i class="fa-solid fa-plus"></i></button>
+
+    <div class="modal fade" id="detailModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="modalTitle">รายละเอียด</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="modalContent"></div>
+                </div>
+                <div class="modal-footer bg-light d-block" id="modalFooter"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, query, orderBy, onSnapshot, doc, updateDoc, getDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
+            authDomain: "school-management-system-10cbb.firebaseapp.com",
+            projectId: "school-management-system-10cbb",
+            storageBucket: "school-management-system-10cbb.firebasestorage.app",
+            messagingSenderId: "674779385916",
+            appId: "1:674779385916:web:9a26e4d25282dc23a6f339"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        let currentUserRole = '';
+        let securityList = [];
+        let outsideList = [];
+        let mergedList = [];
+
+        onAuthStateChanged(auth, async (user) => {
+            const loader = document.getElementById('loadingScreen');
+            if (user) {
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    currentUserRole = userDoc.data().role;
+                    
+                    // 🔥 เพิ่มสิทธิ์ 'personnel' ให้เข้าใช้งานได้
+                    if (!['admin', 'security_guard', 'personnel'].includes(currentUserRole)) {
+                        Swal.fire({ icon: 'error', title: 'ไม่มีสิทธิ์เข้าถึง', text: 'สำหรับเจ้าหน้าที่เท่านั้น' })
+                            .then(() => window.location.href = 'dashboard.html');
+                        return;
+                    }
+                    
+                    // แสดงชื่อ Role ให้ชัดเจน
+                    let roleName = 'Security';
+                    if(currentUserRole === 'admin') roleName = 'Admin';
+                    if(currentUserRole === 'personnel') roleName = 'HR (บุคคล)';
+                    document.getElementById('userRoleBadge').innerText = roleName;
+                    
+                    listenToSecurity();
+                    listenToOutside();
+                }
+            } else {
+                window.location.href = 'index.html';
+            }
+            if(loader) loader.classList.add('hidden');
+        });
+
+        function listenToSecurity() {
+            const q = query(collection(db, "security_requests"), orderBy("created_at", "desc"));
+            onSnapshot(q, (snapshot) => {
+                securityList = [];
+                snapshot.forEach(doc => securityList.push({ id: doc.id, ...doc.data(), type: 'security' }));
+                mergeAndRender();
+            });
+        }
+
+        function listenToOutside() {
+            const q = query(collection(db, "outside_requests"), orderBy("created_at", "desc"));
+            onSnapshot(q, (snapshot) => {
+                outsideList = [];
+                snapshot.forEach(doc => outsideList.push({ id: doc.id, ...doc.data(), type: 'outside' }));
+                mergeAndRender();
+            });
+        }
+
+        function mergeAndRender() {
+            mergedList = [...securityList, ...outsideList];
+            mergedList.sort((a, b) => (b.created_at?.seconds || 0) - (a.created_at?.seconds || 0));
+            updateStats();
+            loadRequests();
+        }
+
+        function updateStats() {
+            let pending = 0, ongoing = 0, completed = 0;
+            const todayStr = new Date().toDateString();
+
+            mergedList.forEach(item => {
+                const itemDate = item.created_at?.seconds ? new Date(item.created_at.seconds * 1000).toDateString() : '';
+                
+                if(item.status === 'pending') pending++;
+                if(item.status === 'ongoing' || item.status === 'approved') ongoing++; 
+                if(item.status === 'completed' && itemDate === todayStr) completed++;
+            });
+
+            document.getElementById('countPending').innerText = pending;
+            document.getElementById('countOngoing').innerText = ongoing;
+            document.getElementById('countCompleted').innerText = completed;
+            document.getElementById('countTotal').innerText = mergedList.length;
+        }
+
+        window.loadRequests = () => {
+            const typeFilter = document.getElementById('filterType').value;
+            const statusFilter = document.getElementById('filterStatus').value;
+            const container = document.getElementById('requestList');
+            container.innerHTML = "";
+
+            const filtered = mergedList.filter(item => {
+                const matchType = typeFilter === 'all' ? true : item.type === typeFilter;
+                
+                let matchStatus = true;
+                if (statusFilter === 'all') matchStatus = true;
+                else if (statusFilter === 'active') matchStatus = ['approved', 'ongoing', 'in_progress'].includes(item.status);
+                else matchStatus = item.status === statusFilter;
+
+                return matchType && matchStatus;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="text-center py-5 text-muted bg-white rounded shadow-sm"><i class="fa-solid fa-check-double fs-1 mb-3"></i><br>ไม่มีรายการที่เลือก</div>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const dateStr = item.created_at?.seconds ? new Date(item.created_at.seconds * 1000).toLocaleString('th-TH', { hour:'2-digit', minute:'2-digit', day:'numeric', month:'short' }) : '-';
+                const statusObj = getStatusInfo(item.status, item.type);
+                
+                let iconHtml = '', titleHtml = '', detailHtml = '', badgeType = '';
+
+                if(item.type === 'security') {
+                    iconHtml = '<i class="fa-solid fa-shield-halved text-danger fs-4 me-3"></i>';
+                    titleHtml = item.topic || 'ไม่ระบุเหตุ';
+                    detailHtml = `<i class="fa-solid fa-location-dot text-danger me-1"></i> ${item.location || '-'}`;
+                    badgeType = '<span class="badge badge-security me-1">แจ้งเหตุ</span>';
+                } else {
+                    iconHtml = '<i class="fa-solid fa-car-side text-primary fs-4 me-3"></i>';
+                    titleHtml = `ขอออก: ${item.destination || '-'}`;
+                    detailHtml = `<i class="fa-regular fa-clock text-primary me-1"></i> เวลา: ${item.start_time || '-'} ถึง ${item.end_time || '-'}`;
+                    badgeType = '<span class="badge badge-outside me-1">ออกนอกสถานที่</span>';
+                }
+
+                const html = `
+                <div class="card request-card bg-white status-${item.status}">
+                    <div class="card-body">
+                        <div class="d-flex align-items-start">
+                            <div class="mt-1">${iconHtml}</div>
+                            <div class="flex-grow-1">
+                                <div class="d-flex justify-content-between align-items-start mb-1">
+                                    <h6 class="fw-bold mb-0 text-dark">${titleHtml}</h6>
+                                    <span class="badge ${statusObj.bgClass} badge-status ms-2">${statusObj.label}</span>
+                                </div>
+                                <div class="mb-2">${badgeType}</div>
+                                <p class="text-secondary small mb-2 bg-light p-2 rounded">${detailHtml}</p>
+                                
+                                <div class="d-flex justify-content-between align-items-center mt-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-secondary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width:28px; height:28px; font-size:10px;">
+                                            ${(item.reporterName || item.requester_name || 'U').substring(0,2).toUpperCase()}
+                                        </div>
+                                        <div class="lh-1">
+                                            <span class="d-block small fw-bold">${item.reporterName || item.requester_name || 'ไม่ระบุชื่อ'}</span>
+                                            <small class="text-muted" style="font-size: 0.7rem;">${dateStr}</small>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-dark" onclick="viewDetail('${item.id}', '${item.type}')">
+                                        ตรวจสอบ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+                container.innerHTML += html;
+            });
+        };
+
+        function getStatusInfo(status, type) {
+            if(type === 'outside') {
+                switch(status) {
+                    case 'pending': return { label: 'รออนุมัติ', bgClass: 'bg-warning text-dark' };
+                    case 'approved': return { label: 'อนุญาตแล้ว', bgClass: 'bg-success' }; 
+                    case 'ongoing': return { label: 'ออกไปข้างนอก', bgClass: 'bg-info text-dark' };
+                    case 'completed': return { label: 'กลับมาแล้ว', bgClass: 'bg-secondary' };
+                    case 'rejected': return { label: 'ไม่อนุญาต', bgClass: 'bg-danger' };
+                    default: return { label: status, bgClass: 'bg-secondary' };
+                }
+            } else {
+                switch(status) {
+                    case 'pending': return { label: 'แจ้งใหม่! รอตรวจสอบ', bgClass: 'bg-warning text-dark' };
+                    case 'approved': return { label: 'กำลังระงับเหตุ', bgClass: 'bg-info text-dark' };
+                    case 'completed': return { label: 'เหตุการณ์ปกติ', bgClass: 'bg-secondary' };
+                    case 'rejected': return { label: 'ยกเลิก', bgClass: 'bg-danger' };
+                    default: return { label: status, bgClass: 'bg-secondary' };
+                }
+            }
+        }
+
+        window.viewDetail = (id, type) => {
+            const item = mergedList.find(r => r.id === id);
+            if(!item) return;
+
+            const modalTitle = document.getElementById('modalTitle');
+            const modalContent = document.getElementById('modalContent');
+            const modalFooter = document.getElementById('modalFooter');
+            
+            modalTitle.innerHTML = type === 'security' ? '<i class="fa-solid fa-shield-halved"></i> รายละเอียดแจ้งเหตุ' : '<i class="fa-solid fa-car-side"></i> รายละเอียดการขอออก';
+
+            let contentHtml = '', buttonsHtml = '';
+
+            if (type === 'security') {
+                let imgHtml = item.evidence_url ? `<img src="${item.evidence_url}" class="img-fluid rounded mb-3 w-100 shadow-sm" style="max-height: 200px; object-fit: cover;">` : '';
+                contentHtml = `
+                    ${imgHtml}
+                    <h5 class="fw-bold">${item.topic}</h5>
+                    <p class="text-muted small"><i class="fa-solid fa-location-dot"></i> ${item.location}</p>
+                    <div class="alert alert-light border"><strong>รายละเอียด:</strong> ${item.detail || '-'}</div>
+                    <small>ผู้แจ้ง: ${item.reporterName}</small>
+                `;
+                
+                // ปุ่มจัดการแจ้งเหตุ (เฉพาะ Security/Admin)
+                if (item.status === 'pending') {
+                    buttonsHtml = `
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-info" onclick="updateStatus('security_requests', '${item.id}', 'approved')"><i class="fa-solid fa-person-running"></i> รับเรื่อง / เข้าตรวจสอบ</button>
+                            <button class="btn btn-outline-danger" onclick="updateStatus('security_requests', '${item.id}', 'rejected')">ยกเลิก / แจ้งเท็จ</button>
+                        </div>`;
+                } else if (item.status === 'approved') {
+                    buttonsHtml = `<button class="btn btn-success w-100" onclick="updateStatus('security_requests', '${item.id}', 'completed')"><i class="fa-solid fa-check-circle"></i> เคลียร์พื้นที่ / จบงาน</button>`;
+                }
+            } else {
+                // ขอออกนอกสถานที่
+                contentHtml = `
+                    <div class="text-center mb-3">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width:60px; height:60px; font-size:24px;">
+                            ${(item.requester_name||'U').substring(0,2)}
+                        </div>
+                        <h5 class="mt-2 fw-bold">${item.requester_name}</h5>
+                        <span class="badge bg-light text-dark border">${item.requester_position || 'บุคลากร'}</span>
+                    </div>
+                    <ul class="list-group mb-3">
+                        <li class="list-group-item"><strong>ไปที่:</strong> ${item.destination}</li>
+                        <li class="list-group-item"><strong>เหตุผล:</strong> ${item.reason}</li>
+                        <li class="list-group-item"><strong>เวลา:</strong> ${item.start_time} - ${item.end_time}</li>
+                        <li class="list-group-item"><strong>ยานพาหนะ:</strong> ${item.vehicle_type || '-'} (${item.license_plate || '-'})</li>
+                    </ul>
+                `;
+                
+                if (item.status === 'pending') {
+                    // 🔥🔥 เพิ่มสิทธิ์ให้ Admin และ Personnel กดอนุมัติได้
+                    if (currentUserRole === 'admin' || currentUserRole === 'personnel') {
+                        buttonsHtml = `
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-success" onclick="updateStatus('outside_requests', '${item.id}', 'approved')"><i class="fa-solid fa-check-circle"></i> อนุมัติ</button>
+                                <button class="btn btn-outline-danger" onclick="updateStatus('outside_requests', '${item.id}', 'rejected')"><i class="fa-solid fa-times-circle"></i> ไม่อนุมัติ</button>
+                            </div>`;
+                    } else {
+                        // รปภ. จะเห็นปุ่มนี้แทน (กดไม่ได้)
+                        buttonsHtml = `<div class="alert alert-warning text-center m-0 w-100"><i class="fa-solid fa-clock"></i> รอฝ่ายบุคคล/ผู้บริหารอนุมัติ</div>`;
+                    }
+                } else if (item.status === 'approved') {
+                    buttonsHtml = `<button class="btn btn-warning w-100" onclick="updateStatus('outside_requests', '${item.id}', 'ongoing')"><i class="fa-solid fa-person-walking-arrow-right"></i> ยืนยันขาออก (ออกจาก รร.)</button>`;
+                } else if (item.status === 'ongoing') {
+                    buttonsHtml = `<button class="btn btn-success w-100" onclick="updateStatus('outside_requests', '${item.id}', 'completed')"><i class="fa-solid fa-person-walking-arrow-loop-left"></i> ยืนยันขาเข้า (กลับมาแล้ว)</button>`;
+                } else if (item.status === 'completed') {
+                    buttonsHtml = `<div class="alert alert-success text-center m-0 w-100"><i class="fa-solid fa-check"></i> กลับมาแล้ว (จบงาน)</div>`;
+                }
+            }
+
+            modalContent.innerHTML = contentHtml;
+            modalFooter.innerHTML = buttonsHtml;
+            
+            const el = document.getElementById('detailModal');
+            const modal = new bootstrap.Modal(el);
+            modal.show();
+        };
+
+        window.updateStatus = async (collectionName, docId, newStatus) => {
+            try {
+                // ปิด Modal ก่อน
+                const el = document.getElementById('detailModal');
+                const modal = bootstrap.Modal.getInstance(el);
+                if(modal) modal.hide();
+
+                Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+
+                // 1. อัปเดตสถานะใน DB
+                await updateDoc(doc(db, collectionName, docId), { status: newStatus });
+
+                // 2. 🔥 ส่งเมลแจ้งเตือนกลับไปหาเจ้าของเรื่อง
+                const docSnap = await getDoc(doc(db, collectionName, docId));
+                if(docSnap.exists()){
+                    const data = docSnap.data();
+                    const targetEmail = data.requester_email || data.reporterEmail;
+                    if(targetEmail){
+                         let subj = 'อัปเดตสถานะคำขอ';
+                         let body = `สถานะของคุณเปลี่ยนเป็น: ${newStatus}`;
+                         
+                         // ข้อความภาษาไทยสวยๆ
+                         if(newStatus === 'approved') { 
+                             subj = '✅ คำขอได้รับการอนุมัติ'; 
+                             body = 'คำขอของคุณได้รับการอนุมัติแล้ว กรุณาติดต่อป้อมยามเพื่อยืนยันการออก'; 
+                         } else if(newStatus === 'rejected') { 
+                             subj = '❌ คำขอถูกปฏิเสธ'; 
+                             body = 'ขออภัย คำขอของคุณไม่ได้รับการอนุมัติ'; 
+                         } else if(newStatus === 'ongoing') { 
+                             subj = '🚗 ยืนยันการออกนอกสถานที่'; 
+                             body = 'คุณได้เดินทางออกจากโรงเรียนแล้ว'; 
+                         } else if(newStatus === 'completed') { 
+                             subj = '🏁 ยืนยันการกลับเข้าสู่โรงเรียน'; 
+                             body = 'คุณได้กลับเข้าสู่โรงเรียนเรียบร้อยแล้ว'; 
+                         }
+
+                         await addDoc(collection(db, "mail"), {
+                            to: targetEmail,
+                            message: { 
+                                subject: subj, 
+                                html: `<div style="font-family: sans-serif; padding: 20px; border: 1px solid #ccc; border-radius: 10px;">
+                                        <h3 style="color: #333;">${subj}</h3>
+                                        <p>${body}</p>
+                                        <hr><p style="color: gray; font-size: 0.9em;">School Hub System</p>
+                                       </div>` 
+                            }
+                         });
+                    }
+                }
+
+                Swal.fire({ icon: 'success', title: 'บันทึกสถานะเรียบร้อย', timer: 1500, showConfirmButton: false });
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Error', 'เกิดข้อผิดพลาดในการบันทึก', 'error');
+            }
+        };
+
+        window.openReportModal = () => {
+            Swal.fire({
+                title: 'แจ้งเหตุใหม่',
+                html: `<input id="swal-topic" class="form-control mb-2" placeholder="หัวข้อเหตุการณ์"><input id="swal-loc" class="form-control mb-2" placeholder="สถานที่"><textarea id="swal-detail" class="form-control mb-2" placeholder="รายละเอียด"></textarea>`,
+                showCancelButton: true, confirmButtonText: 'แจ้งเหตุ',
+                preConfirm: () => {
+                    const topic = document.getElementById('swal-topic').value;
+                    const loc = document.getElementById('swal-loc').value;
+                    const detail = document.getElementById('swal-detail').value;
+                    if(!topic) return Swal.showValidationMessage('กรุณาระบุหัวข้อ');
+                    return { topic, loc, detail };
+                }
+            }).then(async (result) => {
+                if(result.isConfirmed) {
+                    const { topic, loc, detail } = result.value;
+                    await addDoc(collection(db, 'security_requests'), {
+                        topic, location: loc, detail, status: 'pending', created_at: serverTimestamp(),
+                        reporterName: 'เจ้าหน้าที่ (' + (auth.currentUser.email.split('@')[0]) + ')',
+                        uid: auth.currentUser.uid, reporterEmail: auth.currentUser.email
+                    });
+                    Swal.fire('สำเร็จ', 'แจ้งเหตุเรียบร้อย', 'success');
+                }
+            });
+        };
+
+        document.getElementById('btnLogout').addEventListener('click', () => {
+             Swal.fire({ title: 'ออกจากระบบ?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Yes' })
+                 .then((res) => { if(res.isConfirmed) signOut(auth); });
+        });
+    </script>
+</body>
+</html>

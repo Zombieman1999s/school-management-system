@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Student Care - School Hub</title>
+    
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root { --primary-color: #4338ca; --secondary-color: #6366f1; }
+        body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; color: #1f2937; padding-bottom: 80px; }
+        
+        .main-header {
+            background: linear-gradient(135deg, #4338ca, #6366f1); color: white;
+            padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 15px rgba(67, 56, 202, 0.3);
+        }
+        .btn-back {
+            background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.5);
+            color: white; border-radius: 50px; padding: 5px 15px; font-size: 0.9rem;
+            text-decoration: none; transition: 0.3s; display: flex; align-items: center; gap: 5px;
+        }
+        .btn-back:hover { background: white; color: #4338ca; }
+
+        .stat-card {
+            background: white; border-radius: 12px; padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center;
+            border-bottom: 4px solid transparent;
+        }
+        .stat-present { border-bottom-color: #10b981; }
+        .stat-absent { border-bottom-color: #ef4444; }
+        .stat-late { border-bottom-color: #f59e0b; }
+
+        .student-list-item {
+            background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.03); border: 1px solid #e5e7eb;
+        }
+        
+        .avatar-circle {
+            width: 45px; height: 45px; background: #e0e7ff; color: #4338ca;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 1.2rem; margin-right: 15px;
+        }
+
+        .action-btn-group { display: flex; gap: 5px; }
+        .btn-status {
+            width: 35px; height: 35px; border-radius: 50%; border: 1px solid #ddd;
+            display: flex; align-items: center; justify-content: center; background: white; color: #ddd;
+            transition: 0.2s;
+        }
+        .btn-status.active-present { background: #10b981; color: white; border-color: #10b981; }
+        .btn-status.active-late { background: #f59e0b; color: white; border-color: #f59e0b; }
+        .btn-status.active-absent { background: #ef4444; color: white; border-color: #ef4444; }
+        .btn-status.active-leave { background: #3b82f6; color: white; border-color: #3b82f6; }
+
+        .score-badge {
+            font-size: 0.9rem; font-weight: bold; padding: 2px 10px; border-radius: 20px;
+            background: #f3f4f6; color: #374151;
+        }
+        .score-positive { color: #10b981; }
+        .score-negative { color: #ef4444; }
+
+        .fab {
+            position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px;
+            background: #4338ca; color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; box-shadow: 0 4px 15px rgba(67, 56, 202, 0.4);
+            cursor: pointer; transition: 0.3s; z-index: 999; border: none;
+        }
+        .fab:hover { transform: scale(1.1); }
+
+        /* Tabs */
+        .nav-pills .nav-link { 
+            color: #6b7280; border-radius: 50px; padding: 8px 20px; margin-right: 5px; 
+            font-weight: 600;
+        }
+        .nav-pills .nav-link.active { background-color: #4338ca; color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="main-header">
+        <div class="fw-bold fs-5"><i class="fa-solid fa-user-graduate me-2"></i> Student Care</div>
+        <a href="dashboard.html" class="btn-back"><i class="fa-solid fa-house"></i> กลับ</a>
+    </div>
+
+    <div class="container py-4">
+        
+        <!-- Summary Stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-4">
+                <div class="stat-card stat-present">
+                    <h3 class="fw-bold m-0 text-success" id="countPresent">0</h3>
+                    <small class="text-muted" style="font-size: 0.8rem;">มาเรียน</small>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="stat-card stat-late">
+                    <h3 class="fw-bold m-0 text-warning" id="countLate">0</h3>
+                    <small class="text-muted" style="font-size: 0.8rem;">มาสาย</small>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="stat-card stat-absent">
+                    <h3 class="fw-bold m-0 text-danger" id="countAbsent">0</h3>
+                    <small class="text-muted" style="font-size: 0.8rem;">ขาด/ลา</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter & Date -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="fw-bold m-0 text-dark"><i class="fa-solid fa-calendar-day me-2"></i>เช็คชื่อวันนี้</h5>
+            <div class="text-muted small" id="currentDateDisplay">...</div>
+        </div>
+
+        <!-- Tabs -->
+        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+            <li class="nav-item"><button class="nav-link active" id="pills-check-tab" data-bs-toggle="pill" data-bs-target="#pills-check" type="button">📝 เช็คชื่อ</button></li>
+            <li class="nav-item"><button class="nav-link" id="pills-score-tab" data-bs-toggle="pill" data-bs-target="#pills-score" type="button">⭐ คะแนนพฤติกรรม</button></li>
+        </ul>
+
+        <div class="tab-content" id="pills-tabContent">
+            
+            <!-- Tab 1: Check In -->
+            <div class="tab-pane fade show active" id="pills-check">
+                <div id="studentListContainer">
+                    <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+                </div>
+                <button class="btn btn-primary w-100 rounded-pill py-2 mt-3 fw-bold shadow-sm" onclick="saveAttendance()">
+                    <i class="fa-solid fa-save me-2"></i> บันทึกการเช็คชื่อ
+                </button>
+            </div>
+
+            <!-- Tab 2: Score -->
+            <div class="tab-pane fade" id="pills-score">
+                <div class="d-flex gap-2 mb-3">
+                    <input type="text" id="searchStudent" class="form-control rounded-pill" placeholder="🔍 ค้นหาชื่อนักเรียน...">
+                </div>
+                <div id="studentScoreContainer">
+                    <!-- รายชื่อนักเรียนสำหรับตัดคะแนน -->
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- ปุ่มลัดสำหรับสร้างข้อมูลจำลอง (ใช้ครั้งแรก) -->
+    <button class="fab" onclick="generateDummyData()" title="สร้างข้อมูลจำลอง">
+        <i class="fa-solid fa-wand-magic-sparkles"></i>
+    </button>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, query, where, setDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
+            authDomain: "school-management-system-10cbb.firebaseapp.com",
+            projectId: "school-management-system-10cbb",
+            storageBucket: "school-management-system-10cbb.firebasestorage.app",
+            messagingSenderId: "674779385916",
+            appId: "1:674779385916:web:9a26e4d25282dc23a6f339"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        let studentsData = [];
+        const todayStr = new Date().toISOString().split('T')[0];
+        document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString('th-TH', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // เช็คสิทธิ์ (ให้ครูหรือ Admin เท่านั้น)
+                loadStudents();
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        // 1. โหลดข้อมูลนักเรียน
+        async function loadStudents() {
+            const container = document.getElementById('studentListContainer');
+            const scoreContainer = document.getElementById('studentScoreContainer');
+            
+            try {
+                // ดึงรายชื่อนักเรียน
+                const q = query(collection(db, "students"), orderBy("studentId")); // สมมติว่ามี field studentId
+                // *หมายเหตุ: ถ้ายังไม่มี collection 'students' ระบบจะว่างเปล่า ให้กดปุ่มไม้กายสิทธิ์เพื่อเจนข้อมูล
+                
+                const snapshot = await getDocs(collection(db, "students"));
+                
+                if (snapshot.empty) {
+                    container.innerHTML = `<div class="text-center py-5 text-muted"><i class="fa-solid fa-users-slash fs-1 mb-3"></i><br>ยังไม่มีข้อมูลนักเรียน<br><small>กดปุ่มไม้กายสิทธิ์ขวาล่างเพื่อสร้างข้อมูลตัวอย่าง</small></div>`;
+                    return;
+                }
+
+                studentsData = [];
+                snapshot.forEach(doc => {
+                    studentsData.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // เรียงตามเลขที่
+                studentsData.sort((a,b) => a.number - b.number);
+
+                renderCheckList(studentsData);
+                renderScoreList(studentsData);
+
+            } catch (e) {
+                console.error(e);
+                container.innerHTML = "Error loading students";
+            }
+        }
+
+        // 2. Render หน้าเช็คชื่อ
+        function renderCheckList(data) {
+            const container = document.getElementById('studentListContainer');
+            container.innerHTML = "";
+            let present=0, late=0, absent=0;
+
+            data.forEach(std => {
+                // เช็คว่าวันนี้เช็คไปหรือยัง (สมมติเก็บใน Local State ก่อนโหลดจริง)
+                let status = std.attendance?.[todayStr] || 'present'; // Default มาเรียน
+                
+                if(status === 'present') present++;
+                if(status === 'late') late++;
+                if(status === 'absent' || status === 'leave') absent++;
+
+                container.innerHTML += `
+                    <div class="student-list-item" id="row-${std.id}">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-circle">${std.number}</div>
+                            <div>
+                                <div class="fw-bold">${std.name}</div>
+                                <div class="small text-muted">${std.studentId}</div>
+                            </div>
+                        </div>
+                        <div class="action-btn-group">
+                            <button class="btn-status ${status==='present'?'active-present':''}" onclick="setAttendance('${std.id}', 'present')">P</button>
+                            <button class="btn-status ${status==='late'?'active-late':''}" onclick="setAttendance('${std.id}', 'late')">L</button>
+                            <button class="btn-status ${status==='absent'?'active-absent':''}" onclick="setAttendance('${std.id}', 'absent')">A</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            updateStats(present, late, absent);
+        }
+
+        // 3. Render หน้าคะแนน
+        function renderScoreList(data) {
+            const container = document.getElementById('studentScoreContainer');
+            container.innerHTML = "";
+            
+            data.forEach(std => {
+                let score = std.behavior_score || 100;
+                let scoreClass = score >= 100 ? 'score-positive' : (score < 50 ? 'score-negative' : '');
+                
+                container.innerHTML += `
+                    <div class="student-list-item score-row">
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-circle" style="background:#f3e8ff; color:#6b21a8;">${std.number}</div>
+                            <div>
+                                <div class="fw-bold">${std.name}</div>
+                                <span class="score-badge ${scoreClass}"><i class="fa-solid fa-star me-1"></i> ${score} คะแนน</span>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-success btn-sm rounded-circle" onclick="adjustScore('${std.id}', 5)" style="width:32px;height:32px;"><i class="fa-solid fa-plus"></i></button>
+                            <button class="btn btn-outline-danger btn-sm rounded-circle" onclick="adjustScore('${std.id}', -5)" style="width:32px;height:32px;"><i class="fa-solid fa-minus"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        window.setAttendance = (id, status) => {
+            // Update UI Only first
+            const row = document.getElementById(`row-${id}`);
+            const buttons = row.querySelectorAll('.btn-status');
+            buttons.forEach(btn => {
+                btn.className = 'btn-status'; // Reset
+                if(btn.innerText === status.charAt(0).toUpperCase()) {
+                    btn.classList.add(`active-${status}`);
+                }
+            });
+            // Update Data Array (In memory)
+            const idx = studentsData.findIndex(s => s.id === id);
+            if(idx > -1) {
+                if(!studentsData[idx].attendance) studentsData[idx].attendance = {};
+                studentsData[idx].attendance[todayStr] = status;
+            }
+            reCalcStats();
+        };
+
+        function reCalcStats() {
+            let p=0, l=0, a=0;
+            studentsData.forEach(s => {
+                let st = s.attendance?.[todayStr] || 'present';
+                if(st==='present') p++; else if(st==='late') l++; else a++;
+            });
+            updateStats(p, l, a);
+        }
+
+        function updateStats(p, l, a) {
+            document.getElementById('countPresent').innerText = p;
+            document.getElementById('countLate').innerText = l;
+            document.getElementById('countAbsent').innerText = a;
+        }
+
+        window.saveAttendance = async () => {
+            Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+            try {
+                const batchPromises = studentsData.map(std => {
+                    const status = std.attendance?.[todayStr] || 'present';
+                    const docRef = doc(db, "students", std.id);
+                    // บันทึกแบบ Merge เข้าไปใน Field attendance (Map)
+                    return updateDoc(docRef, {
+                        [`attendance.${todayStr}`]: status,
+                        last_updated: serverTimestamp()
+                    });
+                });
+                await Promise.all(batchPromises);
+                Swal.fire('สำเร็จ', 'บันทึกการเช็คชื่อเรียบร้อย', 'success');
+            } catch(e) {
+                console.error(e);
+                Swal.fire('Error', 'เกิดข้อผิดพลาด: ' + e.message, 'error');
+            }
+        };
+
+        window.adjustScore = async (id, point) => {
+            const reason = point > 0 ? 'ทำความดี/จิตอาสา' : 'มาสาย/พฤติกรรมไม่เหมาะสม';
+            const { value: text } = await Swal.fire({
+                title: point > 0 ? 'เพิ่มคะแนน (+'+point+')' : 'หักคะแนน ('+point+')',
+                input: 'text',
+                inputValue: reason,
+                inputLabel: 'ระบุเหตุผล',
+                showCancelButton: true
+            });
+
+            if (text) {
+                Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+                try {
+                    const studentRef = doc(db, "students", id);
+                    await runTransaction(db, async (transaction) => {
+                        const sfDoc = await transaction.get(studentRef);
+                        if (!sfDoc.exists()) throw "Student does not exist!";
+                        
+                        const newScore = (sfDoc.data().behavior_score || 100) + point;
+                        
+                        // 1. อัปเดตคะแนนรวม
+                        transaction.update(studentRef, { behavior_score: newScore });
+                        
+                        // 2. บันทึก Log (Optional: สร้าง subcollection)
+                        const logRef = doc(collection(db, "students", id, "behavior_logs"));
+                        transaction.set(logRef, {
+                            point: point,
+                            reason: text,
+                            timestamp: serverTimestamp(),
+                            recorder: auth.currentUser.email
+                        });
+                    });
+                    
+                    Swal.fire('เรียบร้อย', 'อัปเดตคะแนนแล้ว', 'success');
+                    loadStudents(); // Reload UI
+                } catch (e) {
+                    Swal.fire('Error', e.message, 'error');
+                }
+            }
+        };
+
+        // 🛠️ ฟังก์ชันสร้างข้อมูลจำลอง (กดปุ่มไม้กายสิทธิ์)
+        window.generateDummyData = async () => {
+            const confirm = await Swal.fire({
+                title: 'สร้างข้อมูลนักเรียนจำลอง?',
+                text: "ระบบจะเพิ่มนักเรียนตัวอย่าง 5 คนในฐานข้อมูล",
+                icon: 'question',
+                showCancelButton: true
+            });
+
+            if(confirm.isConfirmed) {
+                Swal.fire({ title: 'กำลังสร้าง...', didOpen: () => Swal.showLoading() });
+                const dummyStudents = [
+                    { number: 1, studentId: '66001', name: 'ด.ช. รักเรียน เพียรศึกษา', behavior_score: 100 },
+                    { number: 2, studentId: '66002', name: 'ด.ญ. ใจดี มีน้ำใจ', behavior_score: 105 },
+                    { number: 3, studentId: '66003', name: 'ด.ช. กล้าหาญ ชาญชัย', behavior_score: 95 },
+                    { number: 4, studentId: '66004', name: 'ด.ญ. มานี มีตา', behavior_score: 100 },
+                    { number: 5, studentId: '66005', name: 'ด.ช. มานะ อดทน', behavior_score: 80 },
+                ];
+
+                try {
+                    for (const s of dummyStudents) {
+                        await addDoc(collection(db, "students"), s);
+                    }
+                    Swal.fire('เสร็จสิ้น', 'รีเฟรชหน้าเพื่อดูข้อมูล', 'success').then(() => location.reload());
+                } catch (e) {
+                    Swal.fire('Error', e.message, 'error');
+                }
+            }
+        }
+
+        // Search Filter
+        document.getElementById('searchStudent').addEventListener('keyup', (e) => {
+            const term = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('.score-row');
+            rows.forEach(row => {
+                const name = row.innerText.toLowerCase();
+                row.style.display = name.includes(term) ? 'flex' : 'none';
+            });
+        });
+
+    </script>
+</body>
+</html>
+```
+
+### วิธีเชื่อมต่อกับหน้า Dashboard 🔗
+พี่อาร์มไปที่ไฟล์ **`dashboard.html`** แล้วเพิ่มปุ่มเมนูนี้ลงไปในส่วนของ `teacherSection` (หรือ Admin) ได้เลยครับ:
+
+```html
+<div class="col-6 col-md-3">
+    <div class="card card-menu" onclick="window.location.href='student_care.html'">
+        <i class="fa-solid fa-user-graduate text-primary" style="color: #4338ca !important;"></i>
+        <h6>Student Care</h6>
+    </div>
+</div>

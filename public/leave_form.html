@@ -3,6 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="icon" href="icon.png" type="image/png">
+    <link rel="shortcut icon" href="icon.png" type="image/png">
+    
     <title>ระบบการลา - School System</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -13,7 +18,7 @@
     <style>
         body { background-color: #f3e5f5; font-family: 'Sarabun', sans-serif; }
         
-        /* ธีมสีม่วง */
+        /* ธีมสีม่วง (Personnel) */
         .main-header {
             background-color: #7b1fa2; 
             color: white;
@@ -67,13 +72,11 @@
 
         .readonly-field { background-color: #f8f9fa; border: 1px solid #dee2e6; color: #6c757d; }
         
-        /* สไตล์ตารางคาบสอน */
         .schedule-table th { background-color: #6a1b9a; color: white; text-align: center; }
         .schedule-table td { vertical-align: middle; }
         .schedule-input { border: 1px solid #eee; width: 100%; text-align: center; padding: 5px; border-radius: 4px; }
         .schedule-input:focus { outline: 2px solid #ce93d8; border-color: transparent; }
 
-        /* Radio Custom */
         .btn-outline-purple { color: #6a1b9a; border-color: #6a1b9a; }
         .btn-outline-purple:hover, .btn-check:checked + .btn-outline-purple { background-color: #6a1b9a; color: white; }
     </style>
@@ -140,17 +143,26 @@
                     <textarea id="reason" class="form-control" rows="2" placeholder="ระบุสาเหตุ..." required></textarea>
                 </div>
 
+                <div class="mb-3">
+                    <label class="form-label fw-bold">ช่วงเวลาการลา <span class="text-danger">*</span></label>
+                    <select id="leaveDuration" class="form-select" onchange="toggleDuration()">
+                        <option value="full">เต็มวัน (1 วันขึ้นไป)</option>
+                        <option value="half_morning">ครึ่งวัน (เช้า) (0.5 วัน)</option>
+                        <option value="half_afternoon">ครึ่งวัน (บ่าย) (0.5 วัน)</option>
+                    </select>
+                </div>
+
                 <div class="row mb-3">
                     <div class="col-md-4">
                         <label class="form-label fw-bold">ลาตั้งแต่วันที่</label>
-                        <input type="date" id="startDate" class="form-control" required>
+                        <input type="date" id="startDate" class="form-control" required onchange="calculateDays()">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-bold">ถึงวันที่</label>
-                        <input type="date" id="endDate" class="form-control" required>
+                        <input type="date" id="endDate" class="form-control" required onchange="calculateDays()">
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label fw-bold">มีกำหนด (วัน)</label>
+                        <label class="form-label fw-bold">รวม (วัน)</label>
                         <input type="number" id="totalDays" class="form-control" placeholder="เช่น 1" min="0.5" step="0.5" required>
                     </div>
                 </div>
@@ -204,9 +216,9 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, doc, getDoc, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // 🔥 Config ของอาร์ม (เช็คความถูกต้องอีกทีนะ)
+        // 🔥 Config ของอาร์ม
         const firebaseConfig = {
             apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
             authDomain: "school-management-system-10cbb.firebaseapp.com",
@@ -222,21 +234,69 @@
         const db = getFirestore(app);
         let currentUser = null;
 
-        // ตั้งค่าเริ่มต้น: ใส่วันที่ปัจจุบัน
         document.getElementById('writeDate').valueAsDate = new Date();
 
-        // ฟังก์ชันสลับฟอร์ม (ครู vs บุคลากร)
         window.toggleForm = () => {
             const isTeacher = document.getElementById('typeTeacher').checked;
             const scheduleSection = document.getElementById('teacherScheduleSection');
-            
             if (isTeacher) {
                 scheduleSection.style.display = 'block';
             } else {
                 scheduleSection.style.display = 'none';
-                // เคลียร์ค่าในตารางออก
                 document.querySelectorAll('.schedule-input').forEach(input => input.value = '');
             }
+        }
+
+        window.toggleDuration = () => {
+            const duration = document.getElementById('leaveDuration').value;
+            const startDate = document.getElementById('startDate');
+            const endDate = document.getElementById('endDate');
+            const totalDays = document.getElementById('totalDays');
+
+            if (duration === 'half_morning' || duration === 'half_afternoon') {
+                if (startDate.value) endDate.value = startDate.value;
+                endDate.readOnly = true;
+                totalDays.value = 0.5;
+                totalDays.readOnly = true;
+            } else {
+                endDate.readOnly = false;
+                totalDays.readOnly = false;
+                calculateDays();
+            }
+        }
+
+        window.calculateDays = () => {
+            const duration = document.getElementById('leaveDuration').value;
+            const start = document.getElementById('startDate').value;
+            
+            if (duration === 'half_morning' || duration === 'half_afternoon') {
+                if (start) document.getElementById('endDate').value = start;
+                document.getElementById('totalDays').value = 0.5;
+                return;
+            }
+
+            const end = document.getElementById('endDate').value;
+            if (start && end) {
+                const s = new Date(start);
+                const e = new Date(end);
+                const diffTime = Math.abs(e - s);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
+                if (diffDays > 0) document.getElementById('totalDays').value = diffDays;
+            }
+        }
+
+        async function getEmailsByMultipleRoles(rolesArray) {
+            console.log("🔍 หาอีเมล Role:", rolesArray);
+            const emails = new Set();
+            try {
+                const q = query(collection(db, "users"), where("role", "in", rolesArray));
+                const querySnapshot = await getDocs(q);
+                querySnapshot.forEach((doc) => {
+                    const userData = doc.data();
+                    if (userData.email) emails.add(userData.email);
+                });
+            } catch (error) { console.error("❌ Error fetching emails:", error); }
+            return Array.from(emails);
         }
 
         onAuthStateChanged(auth, async (user) => {
@@ -249,7 +309,6 @@
                         document.getElementById('requesterName').value = data.firstName || user.email;
                         document.getElementById('requesterRole').value = getRoleName(data.role);
                         
-                        // Auto-select radio button based on role
                         if(data.role === 'teacher') {
                             document.getElementById('typeTeacher').checked = true;
                         } else {
@@ -273,9 +332,9 @@
 
             if (!currentUser) { Swal.fire('Error', 'กรุณาล็อกอินใหม่', 'error'); return; }
 
-            // ดึงข้อมูลพื้นฐาน
             const staffType = document.getElementById('typeTeacher').checked ? 'สายการสอน' : 'สายสนับสนุน';
             const leaveType = document.getElementById('leaveType').value;
+            const leaveDuration = document.getElementById('leaveDuration').value;
             const reason = document.getElementById('reason').value;
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
@@ -283,14 +342,17 @@
             const contactPhone = document.getElementById('contactPhone').value;
             const requesterName = document.getElementById('requesterName').value;
 
-            // ดึงข้อมูลตารางสอน (เฉพาะครู) และสร้าง HTML Table สำหรับอีเมล
+            let durationText = "";
+            if (leaveDuration === 'half_morning') durationText = " (ครึ่งวันเช้า)";
+            else if (leaveDuration === 'half_afternoon') durationText = " (ครึ่งวันบ่าย)";
+
             let substituteSchedule = [];
             let scheduleHtmlForEmail = "";
             
+            // Logic สร้างตารางสอนแทนในอีเมล (สวยๆ)
             if (staffType === 'สายการสอน') {
                 const subjects = document.querySelectorAll('.period-subject');
                 const teachers = document.querySelectorAll('.period-teacher');
-                
                 let hasClass = false;
                 let tableRows = "";
 
@@ -300,10 +362,10 @@
                     if (sub || teach) { 
                         substituteSchedule.push({ period: i+1, subject: sub, substitute: teach });
                         tableRows += `
-                            <tr>
-                                <td style="padding:5px; border:1px solid #ddd; text-align:center;">${i+1}</td>
-                                <td style="padding:5px; border:1px solid #ddd;">${sub}</td>
-                                <td style="padding:5px; border:1px solid #ddd;">${teach}</td>
+                            <tr style="background-color: ${i % 2 === 0 ? '#fafafa' : '#fff'};">
+                                <td style="padding: 10px; border: 1px solid #e0e0e0; text-align: center; font-weight: bold; color: #7b1fa2;">${i+1}</td>
+                                <td style="padding: 10px; border: 1px solid #e0e0e0;">${sub || '-'}</td>
+                                <td style="padding: 10px; border: 1px solid #e0e0e0;">${teach || '-'}</td>
                             </tr>
                         `;
                         hasClass = true;
@@ -313,33 +375,35 @@
                 if (hasClass) {
                     scheduleHtmlForEmail = `
                         <br>
-                        <h3 style="color:#e65100;">📚 ตารางสอนแทน</h3>
-                        <table style="width:100%; border-collapse:collapse; font-size:14px;">
-                            <thead style="background:#fff3e0;">
-                                <tr>
-                                    <th style="padding:8px; border:1px solid #ddd;">คาบ</th>
-                                    <th style="padding:8px; border:1px solid #ddd;">วิชา/ห้อง</th>
-                                    <th style="padding:8px; border:1px solid #ddd;">ผู้สอนแทน</th>
-                                </tr>
-                            </thead>
-                            <tbody>${tableRows}</tbody>
-                        </table>
+                        <div style="background-color: #fff3e0; border: 1px solid #ffcc80; border-radius: 8px; overflow: hidden; margin-top: 15px;">
+                            <div style="background-color: #ffcc80; padding: 8px 15px; color: #e65100; font-weight: bold; font-size: 14px;">
+                                📚 ตารางสอนแทน
+                            </div>
+                            <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                                <thead>
+                                    <tr style="background-color: #ffe0b2;">
+                                        <th style="padding: 8px; border: 1px solid #ffcc80; width: 15%;">คาบ</th>
+                                        <th style="padding: 8px; border: 1px solid #ffcc80; width: 40%;">วิชา/ห้อง</th>
+                                        <th style="padding: 8px; border: 1px solid #ffcc80; width: 45%;">ผู้สอนแทน</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${tableRows}</tbody>
+                            </table>
+                        </div>
                     `;
                 }
             }
 
             Swal.fire({ 
-                title: 'กำลังส่งข้อมูล...', 
-                text: 'ระบบกำลังแจ้งเตือนฝ่ายบุคคล',
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading() 
+                title: 'กำลังส่งข้อมูล...', text: 'ระบบกำลังแจ้งเตือนฝ่ายบุคคล', 
+                allowOutsideClick: false, didOpen: () => Swal.showLoading() 
             });
 
             try {
-                // 1. บันทึก Firebase (Collection: leave_requests)
                 await addDoc(collection(db, "leave_requests"), {
                     staff_type: staffType,
-                    leave_type: leaveType,
+                    leave_type: leaveType + durationText,
+                    leave_duration_code: leaveDuration,
                     reason: reason,
                     start_date: startDate,
                     end_date: endDate,
@@ -354,31 +418,52 @@
                     created_at: serverTimestamp()
                 });
 
-                // 2. 🔥 ส่งอีเมลแจ้ง Admin (อาร์ม)
-                // แทนที่ Telegram ด้วย Extension
+                let targetRoles = ["personnel", "admin", "Admin"];
+                let emailTo = await getEmailsByMultipleRoles(targetRoles);
+                if (emailTo.length === 0) emailTo = ["armvbn.123my4@gmail.com"]; 
+
+                // 🔥 HTML Email Template สวยๆ
                 await addDoc(collection(db, "mail"), {
-                    to: "armvbn.123my4@gmail.com", // เมลอาร์ม
+                    to: emailTo,
                     message: {
                         subject: `📄 ขออนุญาตลา (${leaveType}): ${requesterName}`,
                         html: `
-                            <div style="font-family: sans-serif; padding: 20px; border: 1px solid #9c27b0; border-radius: 10px;">
-                                <h2 style="color: #9c27b0;">📢 มีคำขออนุญาตลา (${staffType})</h2>
-                                <p><strong>ผู้ลา:</strong> ${requesterName}</p>
-                                <p><strong>ประเภท:</strong> ${leaveType}</p>
-                                <hr>
-                                <p><strong>วันที่:</strong> ${startDate} ถึง ${endDate} (รวม ${totalDays} วัน)</p>
-                                <p><strong>เหตุผล:</strong> ${reason}</p>
-                                <p><strong>เบอร์ติดต่อ:</strong> ${contactPhone}</p>
+                            <div style="font-family: 'Sarabun', sans-serif; max-width: 600px; margin: auto; border: 1px solid #e1bee7; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                                <div style="background-color: #7b1fa2; padding: 20px; text-align: center;">
+                                    <h2 style="color: #ffffff; margin: 0; font-size: 22px;">📢 คำขออนุญาตลา (${staffType})</h2>
+                                </div>
                                 
-                                ${scheduleHtmlForEmail} <br>
-                                <a href="#" style="background: #9c27b0; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">เข้าสู่ระบบเพื่ออนุมัติ</a>
+                                <div style="padding: 30px; background-color: #ffffff;">
+                                    <div style="margin-bottom: 20px;">
+                                        <p style="margin: 5px 0; color: #555;"><strong>ผู้ลา:</strong> <span style="font-size: 1.1em; color: #000;">${requesterName}</span></p>
+                                        <p style="margin: 5px 0; color: #555;"><strong>ตำแหน่ง:</strong> ${document.getElementById('requesterRole').value}</p>
+                                        <p style="margin: 5px 0; color: #555;"><strong>เบอร์ติดต่อ:</strong> ${contactPhone}</p>
+                                    </div>
+
+                                    <div style="background-color: #f3e5f5; border-left: 5px solid #7b1fa2; padding: 15px; border-radius: 4px;">
+                                        <h3 style="color: #6a1b9a; margin-top: 0; font-size: 18px;">${leaveType} ${durationText}</h3>
+                                        <p style="margin: 5px 0;"><strong>📅 วันที่:</strong> ${startDate} ถึง ${endDate}</p>
+                                        <p style="margin: 5px 0;"><strong>⏳ รวม:</strong> ${totalDays} วัน</p>
+                                        <p style="margin: 10px 0 0 0;"><strong>📝 เหตุผล:</strong><br>${reason}</p>
+                                    </div>
+
+                                    ${scheduleHtmlForEmail}
+
+                                    <div style="text-align: center; margin-top: 30px;">
+                                        <a href="#" style="background-color: #7b1fa2; color: white; padding: 12px 25px; text-decoration: none; border-radius: 50px; font-weight: bold; display: inline-block;">เข้าสู่ระบบเพื่ออนุมัติ</a>
+                                    </div>
+                                </div>
+                                
+                                <div style="background-color: #f8f9fa; padding: 15px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee;">
+                                    School Hub Management System
+                                </div>
                             </div>
                         `
                     }
                 });
 
                 Swal.fire({
-                    icon: 'success', title: 'ส่งใบลาสำเร็จ!', text: 'แจ้งเรื่องไปยังฝ่ายบุคคลแล้วครับ',
+                    icon: 'success', title: 'ส่งใบลาสำเร็จ!', text: 'แจ้งเรื่องไปยังฝ่ายบุคคลเรียบร้อยแล้ว',
                     timer: 2000, showConfirmButton: false
                 }).then(() => window.location.href = "dashboard.html");
 
