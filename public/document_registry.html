@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ระบบงานสารบรรณ 2567 - School Hub</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        :root { --primary-color: #0f766e; --secondary-color: #14b8a6; --bg-color: #f0fdfa; }
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); color: #1f2937; padding-bottom: 80px; }
+        
+        .main-header {
+            background: linear-gradient(135deg, #0f766e, #0d9488); color: white;
+            padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 4px 15px rgba(15, 118, 110, 0.2); position: sticky; top: 0; z-index: 1000;
+        }
+        .btn-back {
+            background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.5);
+            color: white; border-radius: 50px; padding: 5px 15px; font-size: 0.9rem;
+            text-decoration: none; transition: 0.3s; display: flex; align-items: center; gap: 5px;
+        }
+        .btn-back:hover { background: white; color: #0f766e; }
+
+        .filter-card {
+            background: white; border-radius: 16px; padding: 15px;
+            margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+            border: 1px solid #ccfbf1;
+        }
+
+        .nav-pills { 
+            background: #e0f2fe; padding: 5px; border-radius: 50px; 
+            display: inline-flex; width: 100%; overflow-x: auto; 
+            -webkit-overflow-scrolling: touch; 
+        }
+        .nav-pills::-webkit-scrollbar { display: none; }
+        .nav-pills .nav-link { 
+            color: #0369a1; border-radius: 50px; padding: 8px 15px; 
+            font-weight: 600; font-size: 0.9rem; white-space: nowrap; flex: 0 0 auto; margin-right: 5px;
+        }
+        .nav-pills .nav-link.active { background-color: white; color: #0284c7; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+        .doc-card {
+            background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02); border-left: 5px solid #ccc;
+            transition: 0.2s; position: relative;
+        }
+        .doc-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        
+        /* Color Coding */
+        .border-memo { border-left-color: #3b82f6; }       
+        .border-command { border-left-color: #ef4444; }    
+        .border-send { border-left-color: #f97316; }       
+        .border-announce { border-left-color: #8b5cf6; }   
+        .border-certificate { border-left-color: #eab308; }
+        .border-student_affairs { border-left-color: #10b981; }
+
+        .doc-id { font-weight: bold; font-size: 1.1rem; color: #374151; }
+        .doc-date { font-size: 0.85rem; color: #6b7280; background: #f3f4f6; padding: 2px 8px; border-radius: 4px; }
+        .doc-subject { font-size: 1rem; font-weight: 500; margin: 5px 0; color: #1f2937; }
+        .doc-meta { font-size: 0.85rem; color: #6b7280; display: flex; flex-wrap: wrap; gap: 10px; margin-top: 5px; }
+        .doc-meta span { display: flex; align-items: center; gap: 4px; }
+        .doc-meta i { color: #9ca3af; }
+
+        .fab-container { position: fixed; bottom: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; align-items: end; gap: 10px; }
+        .fab-main {
+            width: 60px; height: 60px; background: #0f766e; color: white; border-radius: 50%; border: none;
+            box-shadow: 0 4px 15px rgba(15, 118, 110, 0.4); font-size: 1.5rem;
+            display: flex; align-items: center; justify-content: center; transition: 0.3s;
+        }
+        .fab-main:active { transform: scale(0.9); }
+        .fab-item {
+            width: 45px; height: 45px; background: white; color: #4b5563; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); border: none; cursor: pointer; opacity: 0; transform: translateY(20px); transition: 0.3s;
+        }
+        .fab-container:hover .fab-item { opacity: 1; transform: translateY(0); }
+        
+        .empty-state { text-align: center; padding: 50px 20px; color: #9ca3af; }
+        .btn-ai-magic {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6); border: none; color: white;
+            box-shadow: 0 4px 10px rgba(99, 102, 241, 0.3); transition: 0.3s;
+        }
+        .btn-ai-magic:hover { transform: scale(1.05); color: white; }
+    </style>
+</head>
+<body>
+
+    <div class="main-header">
+        <div class="fw-bold fs-5"><i class="fa-solid fa-folder-tree me-2"></i> งานสารบรรณ</div>
+        <a href="dashboard.html" class="btn-back"><i class="fa-solid fa-house"></i> กลับ</a>
+    </div>
+
+    <div class="container py-3">
+
+        <!-- Filter & Search -->
+        <div class="filter-card">
+            <div class="row g-2">
+                <div class="col-8">
+                    <input type="text" id="searchInput" class="form-control rounded-pill border-0 bg-light" placeholder="🔍 ค้นหา (เลขที่, เรื่อง)...">
+                </div>
+                <div class="col-4">
+                    <select id="yearSelect" class="form-select rounded-pill border-0 bg-light text-center fw-bold text-secondary">
+                        <option value="2569">2569</option>
+                        <option value="2568" selected>2568</option>
+                        <option value="2567">2567</option>
+                        <option value="2566">2566</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- 6 Tabs -->
+        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
+            <li class="nav-item"><button class="nav-link active" onclick="changeCategory('memo')">📨 บันทึกข้อความ</button></li>
+            <li class="nav-item"><button class="nav-link" onclick="changeCategory('command')">⚖️ คำสั่ง</button></li>
+            <li class="nav-item"><button class="nav-link" onclick="changeCategory('send')">📤 หนังสือส่ง</button></li>
+            <li class="nav-item"><button class="nav-link" onclick="changeCategory('announce')">📢 ประกาศ</button></li>
+            <li class="nav-item"><button class="nav-link" onclick="changeCategory('certificate')">🎖️ เกียรติบัตร</button></li>
+            <li class="nav-item"><button class="nav-link" onclick="changeCategory('student_affairs')">🎓 กิจการฯ</button></li>
+        </ul>
+
+        <!-- Content Header -->
+        <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+            <small class="text-muted fw-bold" id="statusText">กำลังโหลด...</small>
+            <div class="d-flex gap-2">
+                 <button class="btn btn-sm btn-outline-danger rounded-pill px-3" onclick="clearCategoryData()">
+                    <i class="fa-solid fa-trash me-1"></i> ล้าง
+                </button>
+                <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="exportToExcel()">
+                    <i class="fa-solid fa-file-excel me-1"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="documentList">
+            <div class="text-center py-5"><div class="spinner-border text-secondary"></div></div>
+        </div>
+        
+        <!-- Load More Button -->
+        <div id="loadMoreContainer" class="text-center my-3" style="display:none;">
+            <button class="btn btn-light text-primary rounded-pill px-4 fw-bold shadow-sm" onclick="loadMoreItems()">
+                <i class="fa-solid fa-circle-chevron-down me-2"></i> แสดงเพิ่ม
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Floating Menu -->
+    <div class="fab-container">
+        <button class="fab-item bg-warning text-dark" onclick="importFromText()" title="นำเข้าจากข้อความ"><i class="fa-solid fa-paste"></i></button>
+        <button class="fab-item bg-info text-white" onclick="importFromGoogleSheet()" title="ดึงจาก Google Sheet"><i class="fa-brands fa-google-drive"></i></button>
+        <button class="fab-item bg-success text-white" onclick="importFromExcel()" title="นำเข้า Excel"><i class="fa-solid fa-file-import"></i></button>
+        <button class="fab-main" onclick="openAddModal()"><i class="fa-solid fa-plus"></i></button>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, deleteDoc, doc, where, writeBatch, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
+            authDomain: "school-management-system-10cbb.firebaseapp.com",
+            projectId: "school-management-system-10cbb",
+            storageBucket: "school-management-system-10cbb.firebasestorage.app",
+            messagingSenderId: "674779385916",
+            appId: "1:674779385916:web:9a26e4d25282dc23a6f339"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        let currentCategory = 'memo'; 
+        let currentYear = '2568';
+        let allDocs = [];
+        let filteredDocs = [];
+        let displayLimit = 50; 
+        let unsubscribe = null;
+
+        // Init
+        document.getElementById('yearSelect').value = currentYear;
+        
+        document.getElementById('yearSelect').addEventListener('change', (e) => {
+            currentYear = e.target.value;
+            displayLimit = 50;
+            filterLocalData(); 
+            loadDocuments();   
+        });
+
+        document.getElementById('searchInput').addEventListener('keyup', (e) => {
+            displayLimit = 50;
+            filterLocalData(e.target.value.toLowerCase());
+        });
+
+        function filterLocalData(term = "") {
+            const searchTerm = term || document.getElementById('searchInput').value.toLowerCase();
+            
+            filteredDocs = allDocs.filter(d => {
+                let itemYear = String(d.year || "");
+                if (d.doc_no && d.doc_no.includes('/' + currentYear)) {
+                    itemYear = currentYear;
+                }
+                else if (!itemYear && d.doc_date) {
+                    const parts = d.doc_date.split('-');
+                    if (parts.length === 3) {
+                        let y = parseInt(parts[0]);
+                        itemYear = y < 2400 ? String(y + 543) : String(y);
+                    }
+                }
+                
+                if (itemYear && itemYear !== String(currentYear)) return false;
+
+                const subject = (d.subject || "").toLowerCase();
+                const docNo = (d.doc_no || "").toLowerCase();
+                const to = (d.to || "").toLowerCase();
+                const practitioner = (d.practitioner || "").toLowerCase();
+                const dept = (d.department || "").toLowerCase();
+                const activity = (d.activity || "").toLowerCase();
+                
+                return subject.includes(searchTerm) || docNo.includes(searchTerm) || to.includes(searchTerm) || practitioner.includes(searchTerm) || dept.includes(searchTerm) || activity.includes(searchTerm);
+            });
+            renderList();
+        }
+
+        window.changeCategory = (cat) => {
+            currentCategory = cat;
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            event.target.classList.add('active');
+            displayLimit = 50;
+            loadDocuments();
+        }
+
+        window.loadMoreItems = () => {
+            displayLimit += 50;
+            renderList();
+        }
+
+        function loadDocuments() {
+            const list = document.getElementById('documentList');
+            list.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-secondary"></div></div>';
+            
+            let q = query(collection(db, "documents"), where("category", "==", currentCategory));
+
+            if(unsubscribe) unsubscribe();
+
+            unsubscribe = onSnapshot(q, (snapshot) => {
+                allDocs = [];
+                snapshot.forEach(doc => { allDocs.push({ id: doc.id, ...doc.data() }); });
+                
+                // 🔥 SORT BY DATE DESCENDING, THEN DOC NO
+                allDocs.sort((a, b) => {
+                    // Primary: Date Desc
+                    const dateA = a.doc_date || "";
+                    const dateB = b.doc_date || "";
+                    if (dateA !== dateB) {
+                        return dateB.localeCompare(dateA); // Newest first
+                    }
+                    
+                    // Secondary: Doc No Desc
+                    const idA = a.doc_no || "";
+                    const idB = b.doc_no || "";
+                    return idB.localeCompare(idA, undefined, { numeric: true, sensitivity: 'base' });
+                });
+                
+                filterLocalData(); 
+            }, (error) => {
+                console.error("Query Error:", error);
+                list.innerHTML = `<div class="alert alert-danger">Error: ${error.message}</div>`;
+            });
+        }
+
+        function renderList() {
+            const list = document.getElementById('documentList');
+            const status = document.getElementById('statusText');
+            const loadMoreBtn = document.getElementById('loadMoreContainer');
+            
+            const catNames = {
+                'memo': 'บันทึกข้อความ', 'command': 'คำสั่ง', 'send': 'หนังสือส่ง',
+                'announce': 'ประกาศ', 'certificate': 'เกียรติบัตร', 'student_affairs': 'กิจการนักเรียน'
+            };
+            
+            status.innerHTML = `${catNames[currentCategory]} <span class="badge bg-secondary rounded-pill">${filteredDocs.length}/${allDocs.length}</span>`;
+            list.innerHTML = "";
+
+            if(filteredDocs.length === 0) {
+                list.innerHTML = `<div class="empty-state"><i class="fa-regular fa-folder-open fa-3x mb-3 opacity-50"></i><p>ไม่พบข้อมูลปี ${currentYear}</p></div>`;
+                loadMoreBtn.style.display = 'none';
+                return;
+            }
+
+            const itemsToShow = filteredDocs.slice(0, displayLimit);
+
+            itemsToShow.forEach(d => {
+                let thaiDate = d.doc_date || '-';
+                if(d.doc_date && d.doc_date.includes('-')) {
+                    const parts = d.doc_date.split('-');
+                    if(parts.length === 3) {
+                        const m = ["ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."];
+                        let y = parseInt(parts[0]);
+                        if(y < 2400) y += 543;
+                        thaiDate = `${parseInt(parts[2])} ${m[parseInt(parts[1])-1]} ${y}`;
+                    }
+                }
+
+                let metaHtml = '';
+                let subjectText = d.subject || '-';
+
+                if(currentCategory === 'memo') {
+                    if(d.practitioner && d.practitioner !== '-') metaHtml += `<span><i class="fa-solid fa-user-pen"></i> ผู้ปฏิบัติ: ${d.practitioner}</span>`;
+                } else if(currentCategory === 'command') {
+                    if(d.signer && d.signer !== '-') metaHtml += `<span><i class="fa-solid fa-file-signature"></i> ผู้ลงนาม: ${d.signer}</span>`;
+                } else if(currentCategory === 'send' || currentCategory === 'student_affairs') {
+                    if(d.from && d.from !== '-') metaHtml += `<span><i class="fa-solid fa-right-from-bracket"></i> จาก: ${d.from}</span>`;
+                    if(d.to && d.to !== '-') metaHtml += `<span><i class="fa-solid fa-right-to-bracket"></i> ถึง: ${d.to}</span>`;
+                    if(d.practitioner && d.practitioner !== '-') metaHtml += `<span><i class="fa-solid fa-user-pen"></i> ${d.practitioner}</span>`;
+                } else if(currentCategory === 'announce') {
+                    if(d.signer && d.signer !== '-') metaHtml += `<span><i class="fa-solid fa-file-signature"></i> ผู้ลงนาม: ${d.signer}</span>`;
+                } else if(currentCategory === 'certificate') {
+                    subjectText = d.activity || d.subject || '-';
+                    if(d.department) metaHtml += `<span><i class="fa-solid fa-layer-group"></i> ฝ่าย: ${d.department}</span>`;
+                    if(d.signer) metaHtml += `<span><i class="fa-solid fa-file-signature"></i> ลงนาม: ${d.signer}</span>`;
+                    if(d.practitioner) metaHtml += `<span><i class="fa-solid fa-user-check"></i> รับผิดชอบ: ${d.practitioner}</span>`;
+                }
+
+                list.innerHTML += `
+                    <div class="doc-card border-${currentCategory}">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <span class="doc-id text-primary">${d.doc_no || '-'}</span>
+                                <span class="doc-date ms-2 badge bg-light text-dark border"><i class="fa-regular fa-calendar"></i> ${thaiDate}</span>
+                            </div>
+                            <div class="dropdown">
+                                <i class="fa-solid fa-ellipsis-vertical text-muted p-2" data-bs-toggle="dropdown" style="cursor:pointer"></i>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item text-danger" href="#" onclick="deleteDocItem('${d.id}')">ลบ</a></li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="doc-subject mt-2">${subjectText}</div>
+                        <div class="doc-meta small text-muted">${metaHtml}</div>
+                    </div>`;
+            });
+
+            loadMoreBtn.style.display = (filteredDocs.length > displayLimit) ? 'block' : 'none';
+        }
+
+        // --- Helper for Auto ID ---
+        function generateNextDocNo(docs, category, year) {
+            let maxNum = 0;
+            let lastSuffix = ''; 
+
+            allDocs.forEach(d => {
+                if (d.category !== category) return;
+                if (category === 'certificate') {
+                    if (!d.doc_no.includes('/' + year)) return;
+                } else {
+                    if (String(d.year) !== String(year)) return;
+                }
+                
+                if (!d.doc_no) return;
+
+                let num = 0;
+                let suffix = '';
+
+                if (category === 'memo') {
+                    const m = d.doc_no.match(/ฮ\.อบ\.(\d+)(\.\d+)?\//);
+                    if (m) {
+                        num = parseInt(m[1]);
+                        suffix = m[2] || '';
+                    }
+                } else if (category === 'certificate') {
+                    const rangeMatch = d.doc_no.match(/-(\d+)\//);
+                    if (rangeMatch) {
+                        num = parseInt(rangeMatch[1]);
+                    } else {
+                        const singleMatch = d.doc_no.match(/ฮ\.อบ\.(\d+)\//);
+                        if (singleMatch) num = parseInt(singleMatch[1]);
+                    }
+                } else if (category === 'command' || category === 'announce') {
+                    const m = d.doc_no.match(/ฮ\.อบ\.(\d+)\//);
+                    if (m) num = parseInt(m[1]);
+                } else if (category === 'send') {
+                    const m = d.doc_no.match(/\/(\d+)$/);
+                    if (m) num = parseInt(m[1]);
+                } else if (category === 'student_affairs') {
+                    const m = d.doc_no.match(/(\d+)$/);
+                    if (m) num = parseInt(m[1]);
+                }
+
+                if (num > maxNum) {
+                    maxNum = num;
+                    lastSuffix = suffix;
+                }
+            });
+
+            const nextNum = maxNum + 1;
+            
+            if (category === 'memo') {
+                if (!lastSuffix) lastSuffix = '.1';
+                return `ฮ.อบ.${String(nextNum).padStart(3, '0')}${lastSuffix}/${year}`;
+            } else if (category === 'command' || category === 'announce') {
+                return `ฮ.อบ.${nextNum}/${year}`;
+            } else if (category === 'send') {
+                return `ที่ ศธ 02132.023/${String(nextNum).padStart(3, '0')}`;
+            } else if (category === 'student_affairs') {
+                return `กนร.ฮ.อบ. ${String(nextNum).padStart(3, '0')}`;
+            } else if (category === 'certificate') {
+                return `ฮ.อบ.${nextNum}/${year}`;
+            }
+            return '';
+        }
+
+        // --- NEW: Dynamic Fields Generator ---
+        function getFieldsHtml(cat, nextId) {
+            const inputStyle = `class="form-control mb-2" style="background:#f9fafb;"`;
+            
+            if(cat === 'memo') {
+                return `
+                    <label class="small text-muted w-100 text-start">เลขที่ (Auto Lock)</label>
+                    <div class="input-group mb-2">
+                        <input id="swal-no" ${inputStyle} value="${nextId}" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('swal-no').readOnly = false"><i class="fa-solid fa-pen"></i></button>
+                    </div>
+                    <input id="swal-subject" class="form-control mb-2" placeholder="เรื่อง">
+                    <input id="swal-practitioner" class="form-control mb-2" placeholder="ผู้ปฏิบัติ">`;
+            } else if(cat === 'command') {
+                return `
+                    <label class="small text-muted w-100 text-start">เลขที่คำสั่ง (Auto Lock)</label>
+                    <div class="input-group mb-2">
+                        <input id="swal-no" ${inputStyle} value="${nextId}" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('swal-no').readOnly = false"><i class="fa-solid fa-pen"></i></button>
+                    </div>
+                    <input id="swal-subject" class="form-control mb-2" placeholder="เรื่อง">
+                    <input id="swal-signer" class="form-control mb-2" placeholder="ผู้ลงนาม">`;
+            } else if(cat === 'send' || cat === 'student_affairs') {
+                return `
+                    <label class="small text-muted w-100 text-start">เลขที่หนังสือ (Auto Lock)</label>
+                    <div class="input-group mb-2">
+                        <input id="swal-no" ${inputStyle} value="${nextId}" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('swal-no').readOnly = false"><i class="fa-solid fa-pen"></i></button>
+                    </div>
+                    <input id="swal-from" class="form-control mb-2" placeholder="จาก">
+                    <input id="swal-to" class="form-control mb-2" placeholder="ถึง">
+                    <input id="swal-subject" class="form-control mb-2" placeholder="เรื่อง">
+                    <input id="swal-practitioner" class="form-control mb-2" placeholder="ผู้ปฏิบัติ">`;
+            } else if(cat === 'announce') {
+                return `
+                    <label class="small text-muted w-100 text-start">เลขที่ประกาศ (Auto Lock)</label>
+                    <div class="input-group mb-2">
+                        <input id="swal-no" ${inputStyle} value="${nextId}" readonly>
+                        <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('swal-no').readOnly = false"><i class="fa-solid fa-pen"></i></button>
+                    </div>
+                    <input id="swal-subject" class="form-control mb-2" placeholder="เรื่อง">
+                    <input id="swal-signer" class="form-control mb-2" placeholder="ผู้ลงนาม">`;
+            } else if(cat === 'certificate') {
+                return `
+                    <label class="small text-muted w-100 text-start">เลขที่ ถึง เลขที่</label>
+                    <div class="input-group mb-2">
+                        <input id="swal-no" ${inputStyle} value="${nextId}" placeholder="เช่น ฮ.อบ.1/2568-33/2568">
+                        <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('swal-no').readOnly = false"><i class="fa-solid fa-pen"></i></button>
+                    </div>
+                    <input id="swal-department" class="form-control mb-2" placeholder="กลุ่มสาระฯ/ฝ่ายงาน">
+                    <input id="swal-activity" class="form-control mb-2" placeholder="ชื่อกิจกรรม">
+                    <input id="swal-signer" class="form-control mb-2" placeholder="ผู้ลงนาม">
+                    <input id="swal-practitioner" class="form-control mb-2" placeholder="ผู้รับผิดชอบกิจกรรม">`;
+            }
+            return '';
+        }
+
+        window.openAddModal = async () => {
+            const nextId = generateNextDocNo(allDocs, currentCategory, currentYear);
+            
+            // Dropdown HTML
+            const catSelectHtml = `
+                <select id="swal-cat-select" class="form-select mb-3" onchange="updateModalFields()">
+                    <option value="memo" ${currentCategory==='memo'?'selected':''}>📨 บันทึกข้อความ</option>
+                    <option value="command" ${currentCategory==='command'?'selected':''}>⚖️ คำสั่ง</option>
+                    <option value="send" ${currentCategory==='send'?'selected':''}>📤 หนังสือส่ง</option>
+                    <option value="announce" ${currentCategory==='announce'?'selected':''}>📢 ประกาศ</option>
+                    <option value="certificate" ${currentCategory==='certificate'?'selected':''}>🎖️ เกียรติบัตร</option>
+                    <option value="student_affairs" ${currentCategory==='student_affairs'?'selected':''}>🎓 กิจการนักเรียน</option>
+                </select>
+                <div id="swal-dynamic-fields">${getFieldsHtml(currentCategory, nextId)}</div>
+            `;
+
+            // Expose update function globally for inline onchange
+            window.updateModalFields = () => {
+                const sel = document.getElementById('swal-cat-select').value;
+                const newNextId = generateNextDocNo(allDocs, sel, currentYear);
+                document.getElementById('swal-dynamic-fields').innerHTML = getFieldsHtml(sel, newNextId);
+            };
+
+            const { value: form } = await Swal.fire({
+                title: 'เพิ่มข้อมูลใหม่',
+                html: `${catSelectHtml}<label class="small text-muted w-100 text-start">ลงวันที่</label><input id="swal-date" type="date" class="form-control mb-2" value="${new Date().toISOString().split('T')[0]}">`,
+                showCancelButton: true, confirmButtonText: 'บันทึก',
+                preConfirm: () => {
+                    const selCat = document.getElementById('swal-cat-select').value;
+                    const no = document.getElementById('swal-no').value;
+                    const date = document.getElementById('swal-date').value;
+                    
+                    if(!no || !date) Swal.showValidationMessage('กรอกเลขที่และวันที่ด้วยครับ');
+                    
+                    return {
+                        doc_no: no, doc_date: date,
+                        subject: document.getElementById('swal-subject')?.value || '-',
+                        from: document.getElementById('swal-from')?.value || '-',
+                        to: document.getElementById('swal-to')?.value || '-',
+                        practitioner: document.getElementById('swal-practitioner')?.value || '-',
+                        signer: document.getElementById('swal-signer')?.value || '-',
+                        department: document.getElementById('swal-department')?.value || '-',
+                        activity: document.getElementById('swal-activity')?.value || '-',
+                        category: selCat, 
+                        year: String(currentYear), 
+                        created_at: serverTimestamp()
+                    }
+                }
+            });
+
+            if(form) {
+                await addDoc(collection(db, "documents"), form);
+                Swal.fire('เรียบร้อย', 'บันทึกข้อมูลแล้ว', 'success');
+                // If added category matches current view, reload
+                if (form.category === currentCategory) loadDocuments();
+            }
+        };
+
+        // --- NEW: Multi-Category Smart Paste With Select ---
+        window.importFromText = async () => {
+            const { value: formValues } = await Swal.fire({
+                title: 'วางข้อความเพื่อนำเข้า (Smart Paste)',
+                html: `
+                    <select id="swal-paste-cat" class="form-select mb-3">
+                        <option value="memo" selected>📨 บันทึกข้อความ (ฮ.อบ.xxx.x)</option>
+                        <option value="command">⚖️ คำสั่ง (ฮ.อบ.xxx)</option>
+                        <option value="send">📤 หนังสือส่ง (ที่ ศธ...)</option>
+                        <option value="announce">📢 ประกาศ (ฮ.อบ/ประกาศ)</option>
+                        <option value="student_affairs">🎓 กิจการนักเรียน (กนร...)</option>
+                        <option value="certificate">🎖️ เกียรติบัตร (ฮ.อบ...)</option>
+                    </select>
+                    <textarea id="swal-paste-text" class="form-control" style="height:250px" placeholder="วางข้อมูลที่นี่..."></textarea>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'ประมวลผล',
+                preConfirm: () => {
+                    return {
+                        cat: document.getElementById('swal-paste-cat').value,
+                        text: document.getElementById('swal-paste-text').value
+                    }
+                }
+            });
+
+            if (formValues && formValues.text) {
+                Swal.fire({title: 'กำลังประมวลผล...', didOpen: () => Swal.showLoading()});
+                
+                const staffNames = [
+                    "สุภาวดี", "กนกอร", "สุกัญญา", "สุุกัญญา", "นุชจริยา", "ธัญชาติ", "วีรยา", "Ryan", "กนกวรรณ", "Grip", "นงคราญ", 
+                    "อภิญญา", "วรรณิศา", "วัชรา", "นริสรา", "ชลธิชา", "ไพรินทร์", "ไพรินทร์์", "ทิพย์สุดา", "ทิพย์สุุดา", "อภัสรา", "ภาณุวัฒน์", 
+                    "ภัทธิรา", "พิมพ์นันทา", "พิมพ์์นันทา", "รินสุข", "ปราริชาติ", "อริษา", "อริิษา", "อริิิษา", "กาญจนา", "กาญจนา จันทมาศ", 
+                    "วราภรณ์", "วราภรณ์์", "ศตพล", "กิตติศักดิ์", "เกศกัญญา", "จารุณี", "พิชยา", "ศุภกร", "ฐิติพันธ์", "ภัทราพร", "ภััทราพร", 
+                    "พิชญ์", "พิิชญ์", "ลลิตา", "เพ็ญนภา", "เพ็็ญนภา", "ดารุณี", "นิตยา", "จารุวรรณ", "จารุุวรรณ", "ชุติมา ศิลาชาติ", 
+                    "วิชยานันท์", "วิชยานันท์์", "วิชยานัันท์", "ฉัตรชัย", "ปรรัตน์", "ศิรินภา", "เบญจพร", "โชติิกา", "ผอ.", "ผจก.", "กิติพงษ์", "กิิติพงษ์"
+                ];
+
+                const items = [];
+                const cat = formValues.cat;
+                
+                // Determine Splitter based on category
+                let splitter;
+                if(cat === 'memo') splitter = /(?=^ฮ\.อบ\.[\d\.]+\/)/gm;
+                else if(cat === 'command' || cat === 'announce' || cat === 'certificate') splitter = /(?=^ฮ\.อบ\.\d+\/)/gm;
+                else if(cat === 'send') splitter = /(?=^ที่ ศธ)/gm;
+                else if(cat === 'student_affairs') splitter = /(?=^กนร\.)/gm;
+                else splitter = /\n/; // Fallback
+
+                let lines = formValues.text.split('\n').filter(l => l.trim().length > 0);
+                
+                if(lines.length > 0 && !lines[0].match(/^(ฮ\.อบ\.|ที่ ศธ|กนร\.|ประกาศ)/)) {
+                     lines = formValues.text.split(splitter);
+                }
+
+                lines.forEach(chunk => {
+                    chunk = chunk.trim();
+                    if (!chunk) return;
+
+                    let docNo = '', docDateRaw = '', subject = '', practitioner = '-', from = '-', to = '-', signer = '-';
+                    let department = '-', activity = '-';
+                    
+                    let match;
+                    
+                    if(cat === 'student_affairs') {
+                        // FIX: Aggressive parsing for Student Affairs
+                        // Pattern: กนร.ฮ.อบ. 00127 มิถุนายน 2568กิจการนักเรียน...
+                        const dateRegex = /(\d{1,2}\s+[ก-๙]+\s+\d{4})/;
+                        const dateMatch = chunk.match(dateRegex);
+                        
+                        if (dateMatch) {
+                            docDateRaw = dateMatch[1]; 
+                            const dateIndex = chunk.indexOf(docDateRaw);
+                            
+                            docNo = chunk.substring(0, dateIndex).trim(); 
+                            let content = chunk.substring(dateIndex + docDateRaw.length).trim();
+                            
+                            // Extract Practitioner
+                            for (const name of staffNames) {
+                                if (content.endsWith(name)) {
+                                    practitioner = name;
+                                    content = content.substring(0, content.lastIndexOf(name)).trim();
+                                    break;
+                                }
+                            }
+
+                            // Extract From/To
+                            if (content.startsWith("กิจการนักเรียน")) {
+                                from = "กิจการนักเรียน";
+                                content = content.substring("กิจการนักเรียน".length).trim();
+                            } else if (content.startsWith("กิจการนัักเรียน")) {
+                                from = "กิจการนักเรียน";
+                                content = content.substring("กิจการนัักเรียน".length).trim();
+                            }
+
+                            if (content.startsWith("ผู้ปกครองนักเรียน")) {
+                                to = "ผู้ปกครองนักเรียน";
+                                content = content.substring("ผู้ปกครองนักเรียน".length).trim();
+                            } else if (content.startsWith("ผู้ปกครอง")) {
+                                to = "ผู้ปกครอง";
+                                content = content.substring("ผู้ปกครอง".length).trim();
+                            }
+
+                            subject = content;
+                        } else {
+                            match = chunk.match(/^(กนร\.ฮ\.อบ\.\s*\d+)(.*)/);
+                            if(match) {
+                                docNo = match[1];
+                                subject = match[2].trim();
+                            }
+                        }
+                    }
+                    else if (cat === 'certificate') {
+                        match = chunk.match(/^(ฮ\.อบ\.[\d\/]+(-[\d\/]+)?)(.*)/);
+                        if(match) {
+                            docNo = match[1];
+                            let content = match[3].trim();
+                            const dateMatch = content.match(/(\d{1,2}\s*[\u0E00-\u0E7F\.]+\s*\d{4})/);
+                            if(dateMatch) {
+                                docDateRaw = dateMatch[1];
+                                const dateIndex = content.indexOf(docDateRaw);
+                                const part1 = content.substring(0, dateIndex).trim(); 
+                                const part2 = content.substring(dateIndex + docDateRaw.length).trim(); 
+
+                                const depts = ["ลูกเสือ", "กิจการนักเรียน", "กิจการนัักเรียน", "ภาษาไทย", "พละศึกษา", "ภาษาอังกฤษ", "ภาษาจีน", "วิชาการ", "วิทยาศาสตร์", "คณิตศาสตร์", "สังคมศึกษา", "ศิลปะ", "การงานอาชีพ", "แนะแนว", "ปฐมวัย"];
+                                let foundDept = false;
+                                for (const d of depts) {
+                                    if (part1.startsWith(d)) {
+                                        department = d;
+                                        activity = part1.substring(d.length).trim(); 
+                                        foundDept = true;
+                                        break;
+                                    }
+                                }
+                                if (!foundDept) activity = part1; 
+                                subject = activity;
+
+                                for (const name of staffNames) {
+                                    if (part2.endsWith(name)) {
+                                        practitioner = name;
+                                        signer = part2.substring(0, part2.lastIndexOf(name)).trim();
+                                        break;
+                                    }
+                                }
+                                if (practitioner === '-') signer = part2; 
+                            }
+                        }
+                    } 
+                    else if(cat === 'memo') {
+                        match = chunk.match(/^(ฮ\.อบ\.[\d\.]+\/\d{4})(\d{1,2}\s+[ก-๙]+\s+\d{4})?(.*)/);
+                        if(match) {
+                            docNo = match[1];
+                            docDateRaw = match[2] ? match[2].trim() : "";
+                            subject = match[3] ? match[3].trim() : "";
+                        }
+                    } 
+                    else if(cat === 'command' || cat === 'announce') {
+                        match = chunk.match(/^(ฮ\.อบ\.\d+\/\d{4})(.*)/);
+                        if(match) {
+                            docNo = match[1];
+                            let rest = match[2].trim();
+                            const dateMatch = rest.match(/(\d{1,2}\s+[ก-๙]+\s+\d{4})/);
+                            if(dateMatch) {
+                                docDateRaw = dateMatch[1];
+                                let parts = rest.split(docDateRaw);
+                                subject = parts[0].trim();
+                                signer = parts[1] ? parts[1].trim() : '-';
+                            } else {
+                                subject = rest;
+                            }
+                        }
+                    }
+                    else if(cat === 'send') {
+                        match = chunk.match(/^(ที่ ศธ [0-9\.]+\/[\d]+)(.*)/);
+                        if(match) {
+                            docNo = match[1];
+                            let rest = match[2].trim();
+                            const dateMatch = rest.match(/(\d{1,2}\s+[ก-๙]+\s+\d{4})/);
+                            if(dateMatch) {
+                                docDateRaw = dateMatch[1];
+                                subject = rest.replace(docDateRaw, '').trim(); 
+                            } else {
+                                subject = rest;
+                            }
+                        }
+                    }
+
+                    if (docNo) {
+                        // Date Fallback
+                        if (!docDateRaw) {
+                             const dateMatch = chunk.substring(docNo.length).match(/^\s*(\d{1,2}\s+[^\s0-9]+\s+\d{4})(.*)/);
+                             if(dateMatch) {
+                                docDateRaw = dateMatch[1];
+                                if(cat === 'memo') subject = dateMatch[2].trim();
+                             }
+                        }
+
+                        let docDateISO = '';
+                        if (docDateRaw) {
+                            const mNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม", "มิ.ย."];
+                            let normalizedDate = docDateRaw.trim();
+                            normalizedDate = normalizedDate.replace('มิ.ย.', 'มิถุนายน').replace('ก.พ.', 'กุมภาพันธ์').replace('ม.ค.', 'มกราคม').replace('มี.ค.', 'มีนาคม').replace('เม.ย.', 'เมษายน').replace('พ.ค.', 'พฤษภาคม').replace('ก.ค.', 'กรกฎาคม').replace('ส.ค.', 'สิงหาคม').replace('ก.ย.', 'กันยายน').replace('ต.ค.', 'ตุลาคม').replace('พ.ย.', 'พฤศจิกายน').replace('ธ.ค.', 'ธันวาคม');
+                            
+                            const parts = normalizedDate.split(' ');
+                            if(parts.length >= 3) {
+                                const day = parts[0].replace(/[^\d]/g, '').padStart(2, '0');
+                                const monthIdx = mNames.findIndex(m => parts[1].includes(m)) + 1;
+                                const month = monthIdx > 0 ? monthIdx.toString().padStart(2, '0') : '01';
+                                let year = parseInt(parts[2]);
+                                if (year > 2400) year -= 543;
+                                docDateISO = `${year}-${month}-${day}`;
+                            }
+                        }
+
+                        // Extract Practitioner for other cats
+                        if(cat === 'memo' || cat === 'send') {
+                            for (const name of staffNames) {
+                                if (subject.endsWith(name)) {
+                                    practitioner = name;
+                                    subject = subject.substring(0, subject.lastIndexOf(name)).trim();
+                                    break;
+                                }
+                            }
+                        }
+                        
+                        subject = subject.replace(/^,|,$/g, '').trim();
+
+                        items.push({
+                            doc_no: docNo,
+                            doc_date: docDateISO || new Date().toISOString().split('T')[0],
+                            subject: subject,
+                            practitioner: practitioner,
+                            signer: signer,
+                            from: from,
+                            to: to,
+                            department: department,
+                            activity: activity,
+                            category: cat,
+                            year: String(currentYear),
+                            created_at: serverTimestamp()
+                        });
+                    }
+                });
+
+                if (items.length > 0) {
+                    const CHUNK_SIZE = 400; 
+                    for (let i = 0; i < items.length; i += CHUNK_SIZE) {
+                        const batch = writeBatch(db);
+                        const chunk = items.slice(i, i + CHUNK_SIZE);
+                        chunk.forEach(item => {
+                            const ref = doc(collection(db, "documents"));
+                            batch.set(ref, item);
+                        });
+                        await batch.commit();
+                    }
+                    Swal.fire('สำเร็จ', `นำเข้า ${items.length} รายการ (หมวด: ${formValues.cat})`, 'success');
+                    setTimeout(() => loadDocuments(), 1000);
+                } else {
+                    Swal.fire('ไม่พบข้อมูล', 'ไม่พบรูปแบบเอกสารที่ตรงกับหมวดที่เลือก', 'warning');
+                }
+            }
+        };
+
+        // ... (Other functions same as before) ...
+        async function processRawData(arrayBufferOrString, isString = false) {
+            try {
+                let jsonData;
+                if (isString) {
+                    const workbook = XLSX.read(arrayBufferOrString, {type: 'string'});
+                    jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
+                } else {
+                    const data = new Uint8Array(arrayBufferOrString);
+                    const workbook = XLSX.read(data, {type: 'array'});
+                    jsonData = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]], {header: 1});
+                }
+
+                const batch = writeBatch(db);
+                let count = 0;
+
+                jsonData.forEach((row, index) => {
+                    if(row.length < 2) return; 
+                    const c0 = (row[0]||'').toString().trim();
+                    if(c0.includes('เลขที่') || c0.includes('ที่') || c0.includes('ภาคเรียน') || c0 === '') return;
+
+                    let d = { category: currentCategory, year: String(currentYear), created_at: serverTimestamp() };
+                    let dateRaw = null;
+
+                    if(currentCategory === 'memo') { 
+                        d.doc_no = row[0]||'-'; dateRaw = row[1]; d.subject = row[2]||'-'; d.practitioner = row[3]||'-';
+                    } else if(currentCategory === 'command') { 
+                        d.doc_no = row[0]||'-'; d.subject = row[1]||'-'; dateRaw = row[2]; d.signer = row[3]||'-';
+                    } else if(currentCategory === 'send' || currentCategory === 'student_affairs') { 
+                        d.doc_no = row[0]||'-'; dateRaw = row[1]; d.from = row[2]||'-'; d.to = row[3]||'-'; d.subject = row[4]||'-'; d.practitioner = row[5]||'-';
+                    } else if(currentCategory === 'announce') { 
+                        d.doc_no = row[0]||'-'; d.subject = row[1]||'-'; dateRaw = row[2]; d.signer = row[3]||'-';
+                    } else if(currentCategory === 'certificate') { 
+                        // Updated mapping for certificate
+                        // Col: เลขที่, กลุ่มสาระ, กิจกรรม, ลงวันที่, ผู้ลงนาม, ผู้รับผิดชอบ
+                        d.doc_no = row[0]||'-'; 
+                        d.department = row[1]||'-'; 
+                        d.activity = row[2]||'-'; 
+                        d.subject = row[2]||'-'; // Also save activity as subject for searching
+                        dateRaw = row[3]; 
+                        d.signer = row[4]||'-'; 
+                        d.practitioner = row[5]||'-';
+                    }
+
+                    try {
+                        if(typeof dateRaw === 'number') {
+                            d.doc_date = new Date((dateRaw - (25567 + 2)) * 86400 * 1000).toISOString().split('T')[0];
+                        } else if(typeof dateRaw === 'string') {
+                            if(dateRaw.match(/\d+\/\d+\/\d+/)) { 
+                                const p = dateRaw.split('/');
+                                let y = parseInt(p[2]); if(y>2400) y-=543;
+                                d.doc_date = `${y}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+                            } else if(dateRaw.includes(' ')) { 
+                                const mNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+                                const p = dateRaw.split(' ');
+                                const dNum = p[0];
+                                const mIdx = mNames.findIndex(m => p[1].includes(m)) + 1;
+                                let y = parseInt(p[2]); if(y>2400) y-=543;
+                                d.doc_date = `${y}-${mIdx.toString().padStart(2,'0')}-${dNum.padStart(2,'0')}`;
+                            } else {
+                                d.doc_date = new Date().toISOString().split('T')[0];
+                            }
+                        } else {
+                            d.doc_date = new Date().toISOString().split('T')[0];
+                        }
+                    } catch(e) { d.doc_date = new Date().toISOString().split('T')[0]; }
+
+                    if(d.doc_no && d.doc_no !== '-') {
+                        batch.set(doc(collection(db, "documents")), d);
+                        count++;
+                    }
+                });
+
+                await batch.commit();
+                Swal.fire('สำเร็จ', `นำเข้า ${count} รายการ`, 'success');
+            } catch (e) {
+                console.error(e);
+                Swal.fire('Error', 'ข้อมูลไม่ถูกต้อง: ' + e.message, 'error');
+            }
+        }
+
+        window.importFromExcel = async () => {
+            const { value: file } = await Swal.fire({
+                title: 'นำเข้าไฟล์ Excel',
+                text: 'รองรับไฟล์ .xlsx, .xls, .csv',
+                input: 'file',
+                inputAttributes: { 'accept': '.xlsx, .xls, .csv' }
+            });
+
+            if(file) {
+                Swal.fire({title:'กำลังอ่านไฟล์...', didOpen:()=>Swal.showLoading()});
+                const reader = new FileReader();
+                reader.onload = async (e) => processRawData(e.target.result, false);
+                reader.readAsArrayBuffer(file);
+            }
+        };
+
+        window.importFromGoogleSheet = async () => {
+            const { value: url } = await Swal.fire({
+                title: 'ดึงข้อมูลจาก Google Sheet',
+                html: `<input id="swal-url" class="form-control" placeholder="วางลิงก์ CSV ที่นี่">`,
+                showCancelButton: true,
+                confirmButtonText: 'ดึงข้อมูล',
+                preConfirm: () => document.getElementById('swal-url').value
+            });
+
+            if(url) {
+                Swal.fire({title:'กำลังดาวน์โหลด...', didOpen:()=>Swal.showLoading()});
+                try {
+                    const response = await fetch(url);
+                    if(!response.ok) throw new Error('โหลดไฟล์ไม่ได้');
+                    const csvText = await response.text();
+                    await processRawData(csvText, true);
+                } catch(e) {
+                    Swal.fire('Error', e.message, 'error');
+                }
+            }
+        }
+
+        window.clearCategoryData = async () => {
+            const res = await Swal.fire({
+                title: `ลบข้อมูล "${currentCategory}" ทั้งหมด?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                confirmButtonText: 'ลบ'
+            });
+
+            if(res.isConfirmed) {
+                Swal.fire({title: 'กำลังลบ...', didOpen: () => Swal.showLoading()});
+                const batch = writeBatch(db);
+                filteredDocs.slice(0, 490).forEach(d => {
+                    batch.delete(doc(db, "documents", d.id));
+                });
+                await batch.commit();
+                Swal.fire('ลบแล้ว', '', 'success');
+            }
+        }
+
+        window.deleteDocItem = async (id) => {
+            if((await Swal.fire({title:'ลบรายการนี้?', showCancelButton:true, confirmButtonText:'ลบ'})).isConfirmed) {
+                await deleteDoc(doc(db, "documents", id));
+            }
+        };
+
+        window.exportToExcel = () => {
+            const ws = XLSX.utils.json_to_sheet(filteredDocs);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Data");
+            XLSX.writeFile(wb, `Sarabun_${currentCategory}.xlsx`);
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            if(user) loadDocuments();
+            else signInAnonymously(auth);
+        });
+    </script>
+</body>
+</html>

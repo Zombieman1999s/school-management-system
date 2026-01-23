@@ -7,163 +7,264 @@
     
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
     
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
+    <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SheetJS (Excel) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Bootstrap JS (ตัวสำคัญที่ทำให้กด Tab ได้!) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <style>
-        :root { --primary-color: #4338ca; --secondary-color: #6366f1; }
-        body { font-family: 'Sarabun', sans-serif; background-color: #f3f4f6; color: #1f2937; padding-bottom: 80px; }
+        :root { --primary-color: #4338ca; --secondary-color: #6366f1; --bg-color: #f3f4f6; }
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); color: #1f2937; padding-bottom: 90px; }
         
         .main-header {
             background: linear-gradient(135deg, #4338ca, #6366f1); color: white;
             padding: 15px 20px; display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 4px 15px rgba(67, 56, 202, 0.3);
+            box-shadow: 0 4px 15px rgba(67, 56, 202, 0.3); position: sticky; top: 0; z-index: 1000;
         }
         .btn-back {
             background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.5);
             color: white; border-radius: 50px; padding: 5px 15px; font-size: 0.9rem;
             text-decoration: none; transition: 0.3s; display: flex; align-items: center; gap: 5px;
         }
-        .btn-back:hover { background: white; color: #4338ca; }
+
+        /* Filter Section Style */
+        .filter-section {
+            background: white; border-radius: 16px; padding: 15px;
+            margin-bottom: 20px; box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        }
+        .form-select-custom {
+            border: 2px solid #e0e7ff; border-radius: 12px; padding: 8px;
+            font-weight: 600; color: #4338ca; background-image: none;
+            text-align: center; cursor: pointer; transition: 0.2s; font-size: 0.9rem;
+        }
+        .form-select-custom:focus { border-color: #4338ca; box-shadow: 0 0 0 4px rgba(67, 56, 202, 0.1); outline: none; }
 
         .stat-card {
-            background: white; border-radius: 12px; padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05); text-align: center;
-            border-bottom: 4px solid transparent;
+            background: white; border-radius: 16px; padding: 15px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03); text-align: center;
+            border: 1px solid #f0f0f0; position: relative; overflow: hidden;
         }
-        .stat-present { border-bottom-color: #10b981; }
-        .stat-absent { border-bottom-color: #ef4444; }
-        .stat-late { border-bottom-color: #f59e0b; }
-
-        .student-list-item {
-            background: white; border-radius: 12px; padding: 15px; margin-bottom: 10px;
-            display: flex; align-items: center; justify-content: space-between;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.03); border: 1px solid #e5e7eb;
-        }
+        .stat-value { font-size: 1.8rem; font-weight: 700; line-height: 1.2; position: relative; z-index: 2; }
+        .stat-label { font-size: 0.8rem; color: #6b7280; font-weight: 500; position: relative; z-index: 2; }
         
+        .student-list-item {
+            background: white; border-radius: 16px; padding: 12px 15px; margin-bottom: 10px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.02); border: 1px solid #f3f4f6;
+            transition: 0.2s; animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
         .avatar-circle {
-            width: 45px; height: 45px; background: #e0e7ff; color: #4338ca;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-weight: bold; font-size: 1.2rem; margin-right: 15px;
+            width: 42px; height: 42px; background: #e0e7ff; color: #4338ca;
+            border-radius: 12px; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 1.1rem; margin-right: 12px; flex-shrink: 0;
         }
 
-        .action-btn-group { display: flex; gap: 5px; }
+        .action-btn-group { display: flex; gap: 6px; }
         .btn-status {
-            width: 35px; height: 35px; border-radius: 50%; border: 1px solid #ddd;
-            display: flex; align-items: center; justify-content: center; background: white; color: #ddd;
-            transition: 0.2s;
+            width: 38px; height: 38px; border-radius: 10px; border: 1px solid #eee;
+            display: flex; align-items: center; justify-content: center; background: #f9fafb; color: #9ca3af;
+            transition: all 0.2s; font-weight: 600; font-size: 0.9rem; cursor: pointer;
         }
-        .btn-status.active-present { background: #10b981; color: white; border-color: #10b981; }
-        .btn-status.active-late { background: #f59e0b; color: white; border-color: #f59e0b; }
-        .btn-status.active-absent { background: #ef4444; color: white; border-color: #ef4444; }
-        .btn-status.active-leave { background: #3b82f6; color: white; border-color: #3b82f6; }
+        .btn-status.active-present { background: #10b981; color: white; border-color: #10b981; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2); }
+        .btn-status.active-late { background: #f59e0b; color: white; border-color: #f59e0b; box-shadow: 0 4px 6px rgba(245, 158, 11, 0.2); }
+        .btn-status.active-absent { background: #ef4444; color: white; border-color: #ef4444; box-shadow: 0 4px 6px rgba(239, 68, 68, 0.2); }
 
-        .score-badge {
-            font-size: 0.9rem; font-weight: bold; padding: 2px 10px; border-radius: 20px;
-            background: #f3f4f6; color: #374151;
+        /* FAB Menu */
+        .fab-container { position: fixed; bottom: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; align-items: end; gap: 10px; }
+        .fab-main {
+            width: 60px; height: 60px; background: #4338ca; color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 1.5rem;
+            box-shadow: 0 4px 15px rgba(67, 56, 202, 0.4); border: none; cursor: pointer; transition: 0.3s;
         }
-        .score-positive { color: #10b981; }
-        .score-negative { color: #ef4444; }
-
-        .fab {
-            position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px;
-            background: #4338ca; color: white; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 24px; box-shadow: 0 4px 15px rgba(67, 56, 202, 0.4);
-            cursor: pointer; transition: 0.3s; z-index: 999; border: none;
+        .fab-main:active { transform: scale(0.9); }
+        .fab-item {
+            width: 45px; height: 45px; background: white; color: #4b5563; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1); border: none; cursor: pointer; opacity: 0; transform: translateY(20px); transition: 0.3s;
         }
-        .fab:hover { transform: scale(1.1); }
-
+        .fab-container:hover .fab-item { opacity: 1; transform: translateY(0); }
+        
         /* Tabs */
-        .nav-pills .nav-link { 
-            color: #6b7280; border-radius: 50px; padding: 8px 20px; margin-right: 5px; 
-            font-weight: 600;
+        .nav-pills { background: #e0e7ff; padding: 5px; border-radius: 50px; display: inline-flex; overflow-x: auto; white-space: nowrap; max-width: 100%; }
+        .nav-pills .nav-link { color: #6366f1; border-radius: 50px; padding: 6px 15px; font-weight: 600; font-size: 0.9rem; }
+        .nav-pills .nav-link.active { background-color: white; color: #4338ca; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+
+        /* Empty State */
+        .empty-state { text-align: center; padding: 40px 20px; color: #9ca3af; }
+        .empty-state i { font-size: 3rem; margin-bottom: 15px; color: #e5e7eb; }
+
+        /* Homework Card */
+        .homework-card {
+            background: white; border-radius: 12px; border-left: 5px solid #4338ca;
+            padding: 15px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+            position: relative;
         }
-        .nav-pills .nav-link.active { background-color: #4338ca; color: white; }
+        .homework-card .subject { font-weight: bold; color: #4338ca; font-size: 1.1rem; }
+        .homework-card .detail { font-size: 0.95rem; color: #374151; margin-top: 5px; white-space: pre-line; }
+        .btn-delete-hw {
+            position: absolute; top: 10px; right: 10px; color: #ef4444; background: none; border: none; font-size: 0.9rem; opacity: 0.5;
+        }
+        .btn-delete-hw:hover { opacity: 1; }
     </style>
 </head>
 <body>
 
     <div class="main-header">
         <div class="fw-bold fs-5"><i class="fa-solid fa-user-graduate me-2"></i> Student Care</div>
-        <a href="dashboard.html" class="btn-back"><i class="fa-solid fa-house"></i> กลับ</a>
+        <a href="../dashboard.html" class="btn-back"><i class="fa-solid fa-house"></i> กลับ</a>
     </div>
 
-    <div class="container py-4">
+    <div class="container py-3">
         
-        <!-- Summary Stats -->
-        <div class="row g-3 mb-4">
-            <div class="col-4">
-                <div class="stat-card stat-present">
-                    <h3 class="fw-bold m-0 text-success" id="countPresent">0</h3>
-                    <small class="text-muted" style="font-size: 0.8rem;">มาเรียน</small>
+        <!-- 1. ส่วนเลือกห้อง / วันที่ / คาบเรียน (Filter) -->
+        <div class="filter-section">
+            <div class="row g-2 align-items-center mb-2">
+                <div class="col-6">
+                    <label class="small text-muted fw-bold mb-1 ms-1">ระดับชั้น</label>
+                    <select id="classLevelSelect" class="form-select form-select-custom w-100">
+                        <option value="" disabled selected>-- เลือกห้อง --</option>
+                        <option value="m1">มัธยมศึกษาปีที่ 1</option>
+                        <option value="m2">มัธยมศึกษาปีที่ 2</option>
+                        <option value="m3">มัธยมศึกษาปีที่ 3</option>
+                        <option value="m4">มัธยมศึกษาปีที่ 4</option>
+                        <option value="m5">มัธยมศึกษาปีที่ 5</option>
+                        <option value="m6">มัธยมศึกษาปีที่ 6</option>
+                    </select>
+                </div>
+                <div class="col-6">
+                    <label class="small text-muted fw-bold mb-1 ms-1">วันที่</label>
+                    <input type="date" id="dateFilter" class="form-control border-0 bg-light rounded-pill text-center fw-bold" style="height: 40px; font-size: 0.9rem;">
                 </div>
             </div>
-            <div class="col-4">
-                <div class="stat-card stat-late">
-                    <h3 class="fw-bold m-0 text-warning" id="countLate">0</h3>
-                    <small class="text-muted" style="font-size: 0.8rem;">มาสาย</small>
-                </div>
-            </div>
-            <div class="col-4">
-                <div class="stat-card stat-absent">
-                    <h3 class="fw-bold m-0 text-danger" id="countAbsent">0</h3>
-                    <small class="text-muted" style="font-size: 0.8rem;">ขาด/ลา</small>
+            
+            <!-- เพิ่มตัวเลือกคาบเรียน -->
+            <div class="row g-2 align-items-center">
+                <div class="col-12">
+                    <label class="small text-muted fw-bold mb-1 ms-1">ช่วงเวลาที่เช็ค</label>
+                    <select id="periodSelect" class="form-select form-select-custom w-100 bg-white border-primary text-primary">
+                        <option value="morning" selected>🌅 เช็คชื่อหน้าเสาธง (เช้า)</option>
+                        <option value="p1">1️⃣ คาบที่ 1 (08:30-09:20)</option>
+                        <option value="p2">2️⃣ คาบที่ 2 (09:20-10:10)</option>
+                        <option value="p3">3️⃣ คาบที่ 3 (10:10-11:00)</option>
+                        <option value="p4">4️⃣ คาบที่ 4 (11:00-11:50)</option>
+                        <option value="p5">5️⃣ คาบที่ 5 (11:50-12:40)</option>
+                        <option value="p6">6️⃣ คาบที่ 6 (12:40-13:30)</option>
+                        <option value="p7">7️⃣ คาบที่ 7 (13:30-14:20)</option>
+                        <option value="p8">8️⃣ คาบที่ 8 (14:20-15:10)</option>
+                        <option value="p9">9️⃣ คาบที่ 9 (15:10-16:00)</option>
+                    </select>
                 </div>
             </div>
         </div>
 
-        <!-- Filter & Date -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h5 class="fw-bold m-0 text-dark"><i class="fa-solid fa-calendar-day me-2"></i>เช็คชื่อวันนี้</h5>
-            <div class="text-muted small" id="currentDateDisplay">...</div>
+        <!-- Summary Stats -->
+        <div class="row g-2 mb-4">
+            <div class="col-4">
+                <div class="stat-card" style="border-bottom: 3px solid #10b981;">
+                    <div class="stat-value text-success" id="countPresent">0</div>
+                    <div class="stat-label">มาเรียน</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="stat-card" style="border-bottom: 3px solid #f59e0b;">
+                    <div class="stat-value text-warning" id="countLate">0</div>
+                    <div class="stat-label">มาสาย</div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="stat-card" style="border-bottom: 3px solid #ef4444;">
+                    <div class="stat-value text-danger" id="countAbsent">0</div>
+                    <div class="stat-label">ขาด/ลา</div>
+                </div>
+            </div>
         </div>
 
         <!-- Tabs -->
-        <ul class="nav nav-pills mb-3" id="pills-tab" role="tablist">
-            <li class="nav-item"><button class="nav-link active" id="pills-check-tab" data-bs-toggle="pill" data-bs-target="#pills-check" type="button">📝 เช็คชื่อ</button></li>
-            <li class="nav-item"><button class="nav-link" id="pills-score-tab" data-bs-toggle="pill" data-bs-target="#pills-score" type="button">⭐ คะแนนพฤติกรรม</button></li>
-        </ul>
+        <div class="d-flex justify-content-center mb-3">
+            <ul class="nav nav-pills" id="pills-tab" role="tablist">
+                <li class="nav-item"><button class="nav-link active" id="pills-check-tab" data-bs-toggle="pill" data-bs-target="#pills-check" type="button">📝 เช็คชื่อ</button></li>
+                <li class="nav-item"><button class="nav-link" id="pills-score-tab" data-bs-toggle="pill" data-bs-target="#pills-score" type="button">⭐ คะแนน</button></li>
+                <li class="nav-item"><button class="nav-link" id="pills-homework-tab" data-bs-toggle="pill" data-bs-target="#pills-homework" type="button">📚 การบ้าน</button></li>
+            </ul>
+        </div>
 
         <div class="tab-content" id="pills-tabContent">
             
             <!-- Tab 1: Check In -->
             <div class="tab-pane fade show active" id="pills-check">
-                <div id="studentListContainer">
-                    <div class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+                <div class="d-flex justify-content-between align-items-center mb-2 px-1">
+                    <small class="text-muted" id="statusText">กรุณาเลือกระดับชั้น...</small>
+                    <button class="btn btn-sm btn-outline-primary rounded-pill px-3" onclick="markAllPresent()" id="btnMarkAll" style="display:none;">
+                        <i class="fa-solid fa-check-double me-1"></i> มาครบ
+                    </button>
                 </div>
-                <button class="btn btn-primary w-100 rounded-pill py-2 mt-3 fw-bold shadow-sm" onclick="saveAttendance()">
-                    <i class="fa-solid fa-save me-2"></i> บันทึกการเช็คชื่อ
-                </button>
+                <div id="studentListContainer">
+                    <div class="empty-state"><i class="fa-solid fa-school"></i><p>กรุณาเลือกระดับชั้นด้านบน<br>เพื่อเริ่มเช็คชื่อ</p></div>
+                </div>
             </div>
 
             <!-- Tab 2: Score -->
             <div class="tab-pane fade" id="pills-score">
-                <div class="d-flex gap-2 mb-3">
-                    <input type="text" id="searchStudent" class="form-control rounded-pill" placeholder="🔍 ค้นหาชื่อนักเรียน...">
-                </div>
+                <input type="text" id="searchStudent" class="form-control rounded-pill mb-3" placeholder="🔍 ค้นหาชื่อ..." style="background: white;">
                 <div id="studentScoreContainer">
-                    <!-- รายชื่อนักเรียนสำหรับตัดคะแนน -->
+                    <div class="empty-state"><i class="fa-solid fa-user-tag"></i><p>เลือกห้องก่อนนะพี่ชาย</p></div>
+                </div>
+            </div>
+
+            <!-- Tab 3: Homework -->
+            <div class="tab-pane fade" id="pills-homework">
+                <div class="card border-0 shadow-sm mb-3">
+                    <div class="card-body bg-white rounded-3">
+                        <h6 class="fw-bold text-primary mb-3"><i class="fa-solid fa-pen-to-square me-2"></i>สั่งการบ้านวันนี้</h6>
+                        <div class="mb-2">
+                            <input type="text" id="hw-subject" class="form-control" placeholder="วิชา (เช่น คณิตศาสตร์)">
+                        </div>
+                        <div class="mb-2">
+                            <textarea id="hw-detail" class="form-control" rows="3" placeholder="รายละเอียด (เช่น แบบฝึกหัดหน้า 10-12)"></textarea>
+                        </div>
+                        <button class="btn btn-primary w-100 rounded-pill fw-bold" onclick="saveHomework()">
+                            <i class="fa-solid fa-paper-plane me-2"></i> โพสต์การบ้าน
+                        </button>
+                    </div>
+                </div>
+                <h6 class="fw-bold text-muted ms-1 mb-2">รายการที่สั่งแล้ว</h6>
+                <div id="homeworkListContainer">
+                    <div class="empty-state py-3">
+                        <small class="text-muted">ยังไม่มีการบ้านวันนี้</small>
+                    </div>
                 </div>
             </div>
         </div>
 
     </div>
 
-    <!-- ปุ่มลัดสำหรับสร้างข้อมูลจำลอง (ใช้ครั้งแรก) -->
-    <button class="fab" onclick="generateDummyData()" title="สร้างข้อมูลจำลอง">
-        <i class="fa-solid fa-wand-magic-sparkles"></i>
-    </button>
+    <!-- FAB Menu -->
+    <div class="fab-container">
+        <!-- ปุ่มนำเข้า Excel -->
+        <button class="fab-item bg-success text-white" onclick="importFromExcel()" title="นำเข้าจาก Excel"><i class="fa-solid fa-file-excel"></i></button>
+        <!-- ปุ่มเพิ่มทีละคน -->
+        <button class="fab-item bg-primary text-white" onclick="openAddStudentModal()" title="เพิ่มนักเรียนใหม่"><i class="fa-solid fa-user-plus"></i></button>
+        <!-- ปุ่มบันทึก -->
+        <button class="fab-main" onclick="saveAttendance()" id="btnSave"><i class="fa-solid fa-save"></i></button>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, query, where, setDoc, serverTimestamp, runTransaction } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, query, orderBy, onSnapshot, serverTimestamp, runTransaction, where, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
@@ -178,141 +279,144 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
 
-        let studentsData = [];
-        const todayStr = new Date().toISOString().split('T')[0];
-        document.getElementById('currentDateDisplay').innerText = new Date().toLocaleDateString('th-TH', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+        let allStudents = [];
+        let currentStudents = [];
+        let selectedDate = new Date().toISOString().split('T')[0];
+        let currentLevel = "";
+        let selectedPeriod = "morning"; // Default เป็นเช็คชื่อเช้า
+        let unsubscribeStudent = null;
+        let unsubscribeHomework = null;
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-                // เช็คสิทธิ์ (ให้ครูหรือ Admin เท่านั้น)
-                loadStudents();
-            } else {
-                window.location.href = "index.html";
-            }
+        // Init UI
+        document.getElementById('dateFilter').value = selectedDate;
+
+        // --- Event Listeners ---
+        document.getElementById('dateFilter').addEventListener('change', (e) => {
+            selectedDate = e.target.value;
+            renderUI();
+            loadHomeworks();
         });
 
-        // 1. โหลดข้อมูลนักเรียน
-        async function loadStudents() {
-            const container = document.getElementById('studentListContainer');
-            const scoreContainer = document.getElementById('studentScoreContainer');
-            
-            try {
-                // ดึงรายชื่อนักเรียน
-                const q = query(collection(db, "students"), orderBy("studentId")); // สมมติว่ามี field studentId
-                // *หมายเหตุ: ถ้ายังไม่มี collection 'students' ระบบจะว่างเปล่า ให้กดปุ่มไม้กายสิทธิ์เพื่อเจนข้อมูล
-                
-                const snapshot = await getDocs(collection(db, "students"));
-                
-                if (snapshot.empty) {
-                    container.innerHTML = `<div class="text-center py-5 text-muted"><i class="fa-solid fa-users-slash fs-1 mb-3"></i><br>ยังไม่มีข้อมูลนักเรียน<br><small>กดปุ่มไม้กายสิทธิ์ขวาล่างเพื่อสร้างข้อมูลตัวอย่าง</small></div>`;
-                    return;
-                }
+        document.getElementById('classLevelSelect').addEventListener('change', (e) => {
+            currentLevel = e.target.value;
+            filterAndRender();
+            loadHomeworks();
+        });
 
-                studentsData = [];
-                snapshot.forEach(doc => {
-                    studentsData.push({ id: doc.id, ...doc.data() });
-                });
-                
-                // เรียงตามเลขที่
-                studentsData.sort((a,b) => a.number - b.number);
+        document.getElementById('periodSelect').addEventListener('change', (e) => {
+            selectedPeriod = e.target.value;
+            renderUI(); // Render ใหม่เพื่อแสดงสถานะของคาบนั้นๆ
+        });
 
-                renderCheckList(studentsData);
-                renderScoreList(studentsData);
+        // --- Auth & Init ---
+        onAuthStateChanged(auth, (user) => {
+            initRealtimeData();
+        });
 
-            } catch (e) {
-                console.error(e);
-                container.innerHTML = "Error loading students";
+        function initRealtimeData() {
+            const q = query(collection(db, "students"), orderBy("number"));
+            if(unsubscribeStudent) unsubscribeStudent();
+            unsubscribeStudent = onSnapshot(q, (snapshot) => {
+                allStudents = [];
+                snapshot.forEach(doc => { allStudents.push({ id: doc.id, ...doc.data() }); });
+                filterAndRender();
+            });
+        }
+
+        // --- Students Logic ---
+        function filterAndRender() {
+            const listContainer = document.getElementById('studentListContainer');
+            const markAllBtn = document.getElementById('btnMarkAll');
+
+            if (!currentLevel) {
+                listContainer.innerHTML = `<div class="empty-state"><i class="fa-solid fa-school"></i><p>กรุณาเลือกระดับชั้นด้านบน</p></div>`;
+                markAllBtn.style.display = 'none';
+                return;
+            }
+
+            currentStudents = allStudents.filter(s => s.level === currentLevel);
+            currentStudents.sort((a,b) => Number(a.number) - Number(b.number));
+
+            if (currentStudents.length === 0) {
+                listContainer.innerHTML = `<div class="empty-state"><i class="fa-solid fa-user-slash"></i><p>ไม่มีนักเรียนในชั้นนี้<br>กดปุ่ม + หรือ Excel เพื่อเพิ่ม</p></div>`;
+                markAllBtn.style.display = 'none';
+            } else {
+                markAllBtn.style.display = 'block';
+                renderUI();
             }
         }
 
-        // 2. Render หน้าเช็คชื่อ
+        // Helper หา Key ของคาบปัจจุบัน
+        function getCurrentAttendanceKey() {
+            // ถ้าเป็นเช้า ใช้ key เดิม (backward compatibility) หรือใช้ _morning ก็ได้
+            // แต่เพื่อให้ง่าย ใช้ key วันที่ตรงๆ สำหรับเช้า และ _pX สำหรับคาบ
+            if (selectedPeriod === 'morning') return selectedDate;
+            return `${selectedDate}_${selectedPeriod}`;
+        }
+
+        function renderUI() {
+            if(!currentLevel || currentStudents.length === 0) return;
+            renderCheckList(currentStudents);
+            renderScoreList(currentStudents);
+            
+            const dateObj = new Date(selectedDate);
+            const dateStr = dateObj.toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: '2-digit' });
+            
+            // Text แสดงคาบ
+            const periodText = document.getElementById('periodSelect').options[document.getElementById('periodSelect').selectedIndex].text;
+            document.getElementById('statusText').innerText = `ห้อง ${currentLevel.toUpperCase()} • ${dateStr} • ${periodText.split(' ')[0]}`;
+        }
+
         function renderCheckList(data) {
             const container = document.getElementById('studentListContainer');
             container.innerHTML = "";
-            let present=0, late=0, absent=0;
+            let p=0, l=0, a=0;
+            const currentKey = getCurrentAttendanceKey();
 
             data.forEach(std => {
-                // เช็คว่าวันนี้เช็คไปหรือยัง (สมมติเก็บใน Local State ก่อนโหลดจริง)
-                let status = std.attendance?.[todayStr] || 'present'; // Default มาเรียน
+                let status = std.attendance?.[currentKey] || 'none';
+                if(status === 'present') p++; else if(status === 'late') l++; else if(status === 'absent') a++;
                 
-                if(status === 'present') present++;
-                if(status === 'late') late++;
-                if(status === 'absent' || status === 'leave') absent++;
-
                 container.innerHTML += `
                     <div class="student-list-item" id="row-${std.id}">
-                        <div class="d-flex align-items-center">
+                        <div class="d-flex align-items-center" onclick="toggleStatus('${std.id}')">
                             <div class="avatar-circle">${std.number}</div>
                             <div>
                                 <div class="fw-bold">${std.name}</div>
-                                <div class="small text-muted">${std.studentId}</div>
+                                <div class="small text-muted" style="font-size:0.75rem;">${std.studentId}</div>
                             </div>
                         </div>
                         <div class="action-btn-group">
-                            <button class="btn-status ${status==='present'?'active-present':''}" onclick="setAttendance('${std.id}', 'present')">P</button>
-                            <button class="btn-status ${status==='late'?'active-late':''}" onclick="setAttendance('${std.id}', 'late')">L</button>
-                            <button class="btn-status ${status==='absent'?'active-absent':''}" onclick="setAttendance('${std.id}', 'absent')">A</button>
+                            <button class="btn-status ${status==='present'?'active-present':''}" onclick="setAttendance('${std.id}', 'present')">ม</button>
+                            <button class="btn-status ${status==='late'?'active-late':''}" onclick="setAttendance('${std.id}', 'late')">ส</button>
+                            <button class="btn-status ${status==='absent'?'active-absent':''}" onclick="setAttendance('${std.id}', 'absent')">ข</button>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
-            
-            updateStats(present, late, absent);
+            updateStats(p, l, a);
         }
 
-        // 3. Render หน้าคะแนน
         function renderScoreList(data) {
             const container = document.getElementById('studentScoreContainer');
             container.innerHTML = "";
-            
             data.forEach(std => {
                 let score = std.behavior_score || 100;
-                let scoreClass = score >= 100 ? 'score-positive' : (score < 50 ? 'score-negative' : '');
-                
+                let color = score >= 100 ? '#10b981' : (score < 50 ? '#ef4444' : '#f59e0b');
                 container.innerHTML += `
                     <div class="student-list-item score-row">
                         <div class="d-flex align-items-center">
                             <div class="avatar-circle" style="background:#f3e8ff; color:#6b21a8;">${std.number}</div>
                             <div>
                                 <div class="fw-bold">${std.name}</div>
-                                <span class="score-badge ${scoreClass}"><i class="fa-solid fa-star me-1"></i> ${score} คะแนน</span>
+                                <span class="badge rounded-pill" style="background:${color}20; color:${color}">⭐ ${score}</span>
                             </div>
                         </div>
-                        <div class="d-flex gap-2">
-                            <button class="btn btn-outline-success btn-sm rounded-circle" onclick="adjustScore('${std.id}', 5)" style="width:32px;height:32px;"><i class="fa-solid fa-plus"></i></button>
-                            <button class="btn btn-outline-danger btn-sm rounded-circle" onclick="adjustScore('${std.id}', -5)" style="width:32px;height:32px;"><i class="fa-solid fa-minus"></i></button>
+                        <div class="d-flex gap-1">
+                            <button class="btn btn-sm btn-outline-success rounded-3" onclick="adjustScore('${std.id}', 5)">+</button>
+                            <button class="btn btn-sm btn-outline-danger rounded-3" onclick="adjustScore('${std.id}', -5)">-</button>
                         </div>
-                    </div>
-                `;
+                    </div>`;
             });
-        }
-
-        window.setAttendance = (id, status) => {
-            // Update UI Only first
-            const row = document.getElementById(`row-${id}`);
-            const buttons = row.querySelectorAll('.btn-status');
-            buttons.forEach(btn => {
-                btn.className = 'btn-status'; // Reset
-                if(btn.innerText === status.charAt(0).toUpperCase()) {
-                    btn.classList.add(`active-${status}`);
-                }
-            });
-            // Update Data Array (In memory)
-            const idx = studentsData.findIndex(s => s.id === id);
-            if(idx > -1) {
-                if(!studentsData[idx].attendance) studentsData[idx].attendance = {};
-                studentsData[idx].attendance[todayStr] = status;
-            }
-            reCalcStats();
-        };
-
-        function reCalcStats() {
-            let p=0, l=0, a=0;
-            studentsData.forEach(s => {
-                let st = s.attendance?.[todayStr] || 'present';
-                if(st==='present') p++; else if(st==='late') l++; else a++;
-            });
-            updateStats(p, l, a);
         }
 
         function updateStats(p, l, a) {
@@ -321,119 +425,205 @@
             document.getElementById('countAbsent').innerText = a;
         }
 
-        window.saveAttendance = async () => {
-            Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+        // --- Homework Logic ---
+        function loadHomeworks() {
+            if(!currentLevel) return;
+            const hwContainer = document.getElementById('homeworkListContainer');
+            hwContainer.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary spinner-border-sm"></div></div>';
+            const q = query(collection(db, "homeworks"), where("level", "==", currentLevel), where("date", "==", selectedDate), orderBy("created_at", "desc"));
+            if(unsubscribeHomework) unsubscribeHomework();
+            unsubscribeHomework = onSnapshot(q, (snapshot) => {
+                hwContainer.innerHTML = "";
+                if(snapshot.empty) {
+                    hwContainer.innerHTML = `<div class="empty-state py-3"><small class="text-muted">ยังไม่มีการบ้านวันนี้</small></div>`;
+                } else {
+                    snapshot.forEach(doc => {
+                        const hw = doc.data();
+                        hwContainer.innerHTML += `
+                            <div class="homework-card">
+                                <div class="subject">${hw.subject}</div>
+                                <div class="detail">${hw.detail}</div>
+                                <button class="btn-delete-hw" onclick="deleteHomework('${doc.id}')"><i class="fa-solid fa-trash"></i></button>
+                            </div>`;
+                    });
+                }
+            });
+        }
+
+        window.saveHomework = async () => {
+            if(!currentLevel) { Swal.fire('เตือน', 'เลือกห้องก่อนนะครับ', 'warning'); return; }
+            const subject = document.getElementById('hw-subject').value;
+            const detail = document.getElementById('hw-detail').value;
+            if(!subject || !detail) { Swal.fire('ข้อมูลไม่ครบ', 'ใส่ชื่อวิชาและรายละเอียดด้วยนะ', 'error'); return; }
             try {
-                const batchPromises = studentsData.map(std => {
-                    const status = std.attendance?.[todayStr] || 'present';
-                    const docRef = doc(db, "students", std.id);
-                    // บันทึกแบบ Merge เข้าไปใน Field attendance (Map)
-                    return updateDoc(docRef, {
-                        [`attendance.${todayStr}`]: status,
+                await addDoc(collection(db, "homeworks"), { level: currentLevel, date: selectedDate, subject: subject, detail: detail, created_at: serverTimestamp() });
+                document.getElementById('hw-subject').value = ''; document.getElementById('hw-detail').value = '';
+                Swal.fire({ icon: 'success', title: 'โพสต์การบ้านแล้ว!', timer: 1000, showConfirmButton: false });
+            } catch(e) { console.error(e); Swal.fire('Error', e.message, 'error'); }
+        }
+
+        window.deleteHomework = async (id) => {
+            const result = await Swal.fire({ title: 'ลบรายการนี้?', icon: 'warning', showCancelButton: true, confirmButtonText: 'ลบเลย' });
+            if(result.isConfirmed) await deleteDoc(doc(db, "homeworks", id));
+        }
+
+        // --- Attendance Actions ---
+        window.setAttendance = (id, status) => {
+            const student = allStudents.find(s => s.id === id);
+            if(student) {
+                if(!student.attendance) student.attendance = {};
+                student.attendance[getCurrentAttendanceKey()] = status;
+                filterAndRender();
+            }
+        };
+
+        window.markAllPresent = () => {
+            if(!currentLevel) return;
+            const periodText = document.getElementById('periodSelect').options[document.getElementById('periodSelect').selectedIndex].text;
+            Swal.fire({
+                title: 'เช็คมาครบ?',
+                text: `${periodText} ห้อง ${currentLevel.toUpperCase()}`,
+                showCancelButton: true,
+                confirmButtonText: 'จัดไป'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const key = getCurrentAttendanceKey();
+                    currentStudents.forEach(std => {
+                        const globalStd = allStudents.find(s => s.id === std.id);
+                        if(globalStd) {
+                            if(!globalStd.attendance) globalStd.attendance = {};
+                            globalStd.attendance[key] = 'present';
+                        }
+                    });
+                    filterAndRender();
+                    saveAttendance(true);
+                }
+            });
+        };
+
+        window.saveAttendance = async (silent = false) => {
+            if(!silent) Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+            try {
+                const key = getCurrentAttendanceKey();
+                const batchPromises = currentStudents.map(std => {
+                    if (std.id.startsWith('dummy')) return Promise.resolve();
+                    const status = std.attendance?.[key];
+                    if(!status) return Promise.resolve();
+                    return updateDoc(doc(db, "students", std.id), {
+                        [`attendance.${key}`]: status,
                         last_updated: serverTimestamp()
                     });
                 });
                 await Promise.all(batchPromises);
-                Swal.fire('สำเร็จ', 'บันทึกการเช็คชื่อเรียบร้อย', 'success');
-            } catch(e) {
-                console.error(e);
-                Swal.fire('Error', 'เกิดข้อผิดพลาด: ' + e.message, 'error');
+                if(!silent) Swal.fire({ icon: 'success', title: 'บันทึกเรียบร้อย', timer: 1000, showConfirmButton: false });
+            } catch(e) { Swal.fire('Error', e.message, 'error'); }
+        };
+
+        // --- Import Excel & Add Student ---
+        
+        window.openAddStudentModal = async () => {
+            if (!currentLevel) { Swal.fire('แจ้งเตือน', 'กรุณาเลือกระดับชั้นก่อน', 'warning'); return; }
+            const { value: formValues } = await Swal.fire({
+                title: `เพิ่มนักเรียน ${currentLevel.toUpperCase()}`,
+                html: `<input id="swal-number" type="number" class="form-control mb-2" placeholder="เลขที่"><input id="swal-id" class="form-control mb-2" placeholder="รหัสนักเรียน"><input id="swal-name" class="form-control" placeholder="ชื่อ-นามสกุล">`,
+                focusConfirm: false, showCancelButton: true,
+                preConfirm: () => {
+                    return { number: document.getElementById('swal-number').value, studentId: document.getElementById('swal-id').value, name: document.getElementById('swal-name').value, level: currentLevel }
+                }
+            });
+            if (formValues && formValues.name) {
+                await addDoc(collection(db, "students"), { ...formValues, behavior_score: 100, attendance: {} });
+                Swal.fire('สำเร็จ', 'เพิ่มนักเรียนแล้ว', 'success');
+            }
+        };
+
+        // ฟังก์ชันนำเข้า Excel
+        window.importFromExcel = async () => {
+            if (!currentLevel) { Swal.fire('แจ้งเตือน', 'กรุณาเลือกระดับชั้นก่อนนำเข้าข้อมูล', 'warning'); return; }
+
+            const { value: file } = await Swal.fire({
+                title: 'นำเข้าไฟล์ Excel',
+                html: `
+                    <div class="text-start small">
+                        <p class="mb-2">กรุณาเตรียมไฟล์ Excel (.xlsx) โดยมีคอลัมน์ดังนี้:</p>
+                        <ul class="text-muted">
+                            <li>Column A: <b>เลขที่</b></li>
+                            <li>Column B: <b>รหัสนักเรียน</b></li>
+                            <li>Column C: <b>ชื่อ-นามสกุล</b></li>
+                        </ul>
+                        <p class="text-danger mb-0">* ไม่ต้องมีหัวตาราง (Header) แถวแรกเป็นข้อมูลเลย</p>
+                    </div>
+                    <input type="file" id="excel-file" class="form-control mt-3" accept=".xlsx, .xls">
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'อัปโหลด',
+                preConfirm: () => {
+                    const fileInput = document.getElementById('excel-file');
+                    if (!fileInput.files.length) Swal.showValidationMessage('กรุณาเลือกไฟล์');
+                    return fileInput.files[0];
+                }
+            });
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 }); // Read as array of arrays
+                        
+                        // Process Data
+                        const studentsToAdd = [];
+                        jsonData.forEach(row => {
+                            if (row[0] && row[2]) { // Check number and name exist
+                                studentsToAdd.push({
+                                    number: parseInt(row[0]),
+                                    studentId: row[1] ? row[1].toString() : "-",
+                                    name: row[2],
+                                    level: currentLevel,
+                                    behavior_score: 100,
+                                    attendance: {}
+                                });
+                            }
+                        });
+
+                        if(studentsToAdd.length === 0) throw new Error("ไม่พบข้อมูลในไฟล์");
+
+                        Swal.fire({ title: `กำลังนำเข้า ${studentsToAdd.length} รายชื่อ...`, didOpen: () => Swal.showLoading() });
+                        
+                        // Batch Write (Limit 500 per batch)
+                        const batch = writeBatch(db);
+                        studentsToAdd.forEach(std => {
+                            const newRef = doc(collection(db, "students"));
+                            batch.set(newRef, std);
+                        });
+                        
+                        await batch.commit();
+                        Swal.fire('สำเร็จ', `นำเข้า ${studentsToAdd.length} คนเรียบร้อย`, 'success');
+
+                    } catch (error) {
+                        console.error(error);
+                        Swal.fire('Error', 'รูปแบบไฟล์ไม่ถูกต้อง หรือเกิดข้อผิดพลาด', 'error');
+                    }
+                };
+                reader.readAsArrayBuffer(file);
             }
         };
 
         window.adjustScore = async (id, point) => {
-            const reason = point > 0 ? 'ทำความดี/จิตอาสา' : 'มาสาย/พฤติกรรมไม่เหมาะสม';
-            const { value: text } = await Swal.fire({
-                title: point > 0 ? 'เพิ่มคะแนน (+'+point+')' : 'หักคะแนน ('+point+')',
-                input: 'text',
-                inputValue: reason,
-                inputLabel: 'ระบุเหตุผล',
-                showCancelButton: true
-            });
-
-            if (text) {
-                Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
-                try {
-                    const studentRef = doc(db, "students", id);
-                    await runTransaction(db, async (transaction) => {
-                        const sfDoc = await transaction.get(studentRef);
-                        if (!sfDoc.exists()) throw "Student does not exist!";
-                        
-                        const newScore = (sfDoc.data().behavior_score || 100) + point;
-                        
-                        // 1. อัปเดตคะแนนรวม
-                        transaction.update(studentRef, { behavior_score: newScore });
-                        
-                        // 2. บันทึก Log (Optional: สร้าง subcollection)
-                        const logRef = doc(collection(db, "students", id, "behavior_logs"));
-                        transaction.set(logRef, {
-                            point: point,
-                            reason: text,
-                            timestamp: serverTimestamp(),
-                            recorder: auth.currentUser.email
-                        });
-                    });
-                    
-                    Swal.fire('เรียบร้อย', 'อัปเดตคะแนนแล้ว', 'success');
-                    loadStudents(); // Reload UI
-                } catch (e) {
-                    Swal.fire('Error', e.message, 'error');
-                }
+             if(id.startsWith('dummy')) return;
+             const reason = point > 0 ? 'ทำดี' : 'ทำผิด';
+             const { value: text } = await Swal.fire({ title: point > 0 ? `+${point}` : `${point}`, input: 'text', inputValue: reason, showCancelButton: true });
+            if(text) {
+                const ref = doc(db, "students", id);
+                await runTransaction(db, async (t) => {
+                     const s = await t.get(ref);
+                     t.update(ref, { behavior_score: (s.data().behavior_score || 100) + point });
+                });
             }
         };
-
-        // 🛠️ ฟังก์ชันสร้างข้อมูลจำลอง (กดปุ่มไม้กายสิทธิ์)
-        window.generateDummyData = async () => {
-            const confirm = await Swal.fire({
-                title: 'สร้างข้อมูลนักเรียนจำลอง?',
-                text: "ระบบจะเพิ่มนักเรียนตัวอย่าง 5 คนในฐานข้อมูล",
-                icon: 'question',
-                showCancelButton: true
-            });
-
-            if(confirm.isConfirmed) {
-                Swal.fire({ title: 'กำลังสร้าง...', didOpen: () => Swal.showLoading() });
-                const dummyStudents = [
-                    { number: 1, studentId: '66001', name: 'ด.ช. รักเรียน เพียรศึกษา', behavior_score: 100 },
-                    { number: 2, studentId: '66002', name: 'ด.ญ. ใจดี มีน้ำใจ', behavior_score: 105 },
-                    { number: 3, studentId: '66003', name: 'ด.ช. กล้าหาญ ชาญชัย', behavior_score: 95 },
-                    { number: 4, studentId: '66004', name: 'ด.ญ. มานี มีตา', behavior_score: 100 },
-                    { number: 5, studentId: '66005', name: 'ด.ช. มานะ อดทน', behavior_score: 80 },
-                ];
-
-                try {
-                    for (const s of dummyStudents) {
-                        await addDoc(collection(db, "students"), s);
-                    }
-                    Swal.fire('เสร็จสิ้น', 'รีเฟรชหน้าเพื่อดูข้อมูล', 'success').then(() => location.reload());
-                } catch (e) {
-                    Swal.fire('Error', e.message, 'error');
-                }
-            }
-        }
-
-        // Search Filter
-        document.getElementById('searchStudent').addEventListener('keyup', (e) => {
-            const term = e.target.value.toLowerCase();
-            const rows = document.querySelectorAll('.score-row');
-            rows.forEach(row => {
-                const name = row.innerText.toLowerCase();
-                row.style.display = name.includes(term) ? 'flex' : 'none';
-            });
-        });
 
     </script>
 </body>
 </html>
-```
-
-### วิธีเชื่อมต่อกับหน้า Dashboard 🔗
-พี่อาร์มไปที่ไฟล์ **`dashboard.html`** แล้วเพิ่มปุ่มเมนูนี้ลงไปในส่วนของ `teacherSection` (หรือ Admin) ได้เลยครับ:
-
-```html
-<div class="col-6 col-md-3">
-    <div class="card card-menu" onclick="window.location.href='student_care.html'">
-        <i class="fa-solid fa-user-graduate text-primary" style="color: #4338ca !important;"></i>
-        <h6>Student Care</h6>
-    </div>
-</div>

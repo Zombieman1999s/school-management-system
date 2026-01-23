@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บันทึกการเรียนการสอน - School Hub</title>
+    <link rel="icon" href="icon.png" type="image/png">
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <style>
+        :root { --primary-color: #0d6efd; --bg-color: #f0f2f5; }
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); }
+        .navbar-custom { background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
+        .card { border-radius: 16px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .student-row { transition: 0.2s; }
+        .student-row:hover { background-color: #f8f9fa; }
+        .status-radio { display: none; }
+        .status-label {
+            cursor: pointer; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; border: 1px solid #dee2e6; color: #6c757d; transition: 0.2s;
+        }
+        .status-radio:checked + .status-label.present { background: #d1fae5; color: #047857; border-color: #10b981; font-weight: bold; }
+        .status-radio:checked + .status-label.late { background: #fef3c7; color: #b45309; border-color: #f59e0b; font-weight: bold; }
+        .status-radio:checked + .status-label.absent { background: #fee2e2; color: #b91c1c; border-color: #ef4444; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="dashboard.html"><i class="fa-solid fa-chevron-left me-2"></i> บันทึกการเรียน</a>
+            <span class="text-muted small" id="teacherName">...</span>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        
+        <!-- 1. ส่วนเลือกข้อมูล -->
+        <div class="card p-4">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-filter me-2 text-primary"></i>ข้อมูลการสอน</h5>
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">วันที่</label>
+                    <input type="date" id="teachDate" class="form-control">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">คาบเรียน (1-9)</label>
+                    <select id="period" class="form-select">
+                        <option value="1">คาบที่ 1 (08:30-09:20)</option>
+                        <option value="2">คาบที่ 2 (09:20-10:10)</option>
+                        <option value="3">คาบที่ 3 (10:10-11:00)</option>
+                        <option value="4">คาบที่ 4 (11:00-11:50)</option>
+                        <option value="5">คาบที่ 5 (11:50-12:40)</option>
+                        <option value="6">คาบที่ 6 (12:40-13:30)</option>
+                        <option value="7">คาบที่ 7 (13:30-14:20)</option>
+                        <option value="8">คาบที่ 8 (14:20-15:10)</option>
+                        <option value="9">คาบที่ 9 (15:10-16:00)</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">ระดับชั้น/ห้อง</label>
+                    <select id="classSelect" class="form-select" onchange="loadStudents()">
+                        <option value="" selected disabled>-- เลือกห้อง --</option>
+                        <!-- JS จะเติมห้องเรียนที่นี่ -->
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">วิชา</label>
+                    <input type="text" id="subject" class="form-control" placeholder="เช่น คณิตศาสตร์">
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. ส่วนเช็กชื่อ (จะแสดงเมื่อเลือกห้อง) -->
+        <div id="attendanceSection" class="card p-4 d-none">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold m-0"><i class="fa-solid fa-user-check me-2 text-success"></i>เช็กชื่อนักเรียน</h5>
+                <span class="badge bg-light text-dark border">นักเรียนทั้งหมด: <span id="studentCount">0</span></span>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th width="50">#</th>
+                            <th>ชื่อ-นามสกุล</th>
+                            <th class="text-center" width="200">สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentTableBody">
+                        <!-- รายชื่อนักเรียนจะมาที่นี่ -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 3. ส่วนสั่งการบ้าน -->
+        <div id="homeworkSection" class="card p-4 d-none">
+            <h5 class="fw-bold mb-3"><i class="fa-solid fa-book-open-reader me-2 text-warning"></i>สั่งการบ้าน / ภาระงาน</h5>
+            <textarea id="homeworkDetail" class="form-control mb-3" rows="4" placeholder="รายละเอียดการบ้าน... (ถ้าไม่มีให้เว้นว่าง)"></textarea>
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                     <label class="small text-muted">กำหนดส่ง:</label>
+                     <input type="date" id="homeworkDeadline" class="form-control d-inline-block w-auto ms-2">
+                </div>
+                <div class="col-md-6 text-end mt-3 mt-md-0">
+                    <button class="btn btn-primary px-4 rounded-pill fw-bold shadow" onclick="saveRecord()">
+                        <i class="fa-solid fa-save me-2"></i> บันทึกและแจ้งเตือน
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
+            authDomain: "school-management-system-10cbb.firebaseapp.com",
+            projectId: "school-management-system-10cbb",
+            storageBucket: "school-management-system-10cbb.firebasestorage.app",
+            messagingSenderId: "674779385916",
+            appId: "1:674779385916:web:9a26e4d25282dc23a6f339"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        let currentUser = null;
+
+        // Class List
+        const classList = [
+            "ป.1/1", "ป.1/2", "ป.2/1", "ป.3/1", "ป.3/2", "ป.3/3",
+            "ป.4/1", "ป.4/2", "ป.4/3", "ป.5/1", "ป.5/2", "ป.5/3", "ป.6/1", "ป.6/2",
+            "ม.1/1", "ม.1/2", "ม.2/1", "ม.2/2", "ม.3/1", "ม.3/2",
+            "ม.4/1", "ม.4/2", "ม.5/1", "ม.5/2", "ม.6/1", "ม.6/2"
+        ];
+
+        // Init
+        document.getElementById('teachDate').valueAsDate = new Date();
+        const select = document.getElementById('classSelect');
+        classList.forEach(c => select.innerHTML += `<option value="${c}">${c}</option>`);
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('teacherName').innerText = user.displayName || user.email;
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        // Load Students
+        window.loadStudents = async () => {
+            const selectedClass = document.getElementById('classSelect').value;
+            if (!selectedClass) return;
+
+            Swal.fire({ title: 'กำลังโหลดรายชื่อ...', didOpen: () => Swal.showLoading() });
+
+            try {
+                // ค้นหานักเรียนที่มี studentClass ตรงกับที่เลือก
+                const q = query(collection(db, "users"), where("studentClass", "==", selectedClass), where("role", "==", "student"));
+                const snapshot = await getDocs(q);
+                
+                const tbody = document.getElementById('studentTableBody');
+                tbody.innerHTML = "";
+                document.getElementById('studentCount').innerText = snapshot.size;
+
+                if (snapshot.empty) {
+                    tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-muted">ไม่พบนักเรียนในห้อง ${selectedClass}</td></tr>`;
+                } else {
+                    let i = 1;
+                    snapshot.forEach(doc => {
+                        const s = doc.data();
+                        const uid = doc.id;
+                        tbody.innerHTML += `
+                            <tr class="student-row">
+                                <td>${i++}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="bg-secondary bg-opacity-25 rounded-circle me-2" style="width:30px;height:30px;"></div>
+                                        <div>${s.firstName}</div>
+                                    </div>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <label>
+                                            <input type="radio" name="att_${uid}" value="present" class="status-radio" checked>
+                                            <span class="status-label present">มา</span>
+                                        </label>
+                                        <label>
+                                            <input type="radio" name="att_${uid}" value="late" class="status-radio">
+                                            <span class="status-label late">สาย</span>
+                                        </label>
+                                        <label>
+                                            <input type="radio" name="att_${uid}" value="absent" class="status-radio">
+                                            <span class="status-label absent">ขาด</span>
+                                        </label>
+                                    </div>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+                
+                document.getElementById('attendanceSection').classList.remove('d-none');
+                document.getElementById('homeworkSection').classList.remove('d-none');
+                Swal.close();
+
+            } catch (error) {
+                console.error(error);
+                Swal.fire('Error', 'โหลดข้อมูลไม่สำเร็จ', 'error');
+            }
+        };
+
+        // Save Record
+        window.saveRecord = async () => {
+            const date = document.getElementById('teachDate').value;
+            const period = document.getElementById('period').value;
+            const className = document.getElementById('classSelect').value;
+            const subject = document.getElementById('subject').value;
+            const homework = document.getElementById('homeworkDetail').value;
+            const deadline = document.getElementById('homeworkDeadline').value;
+
+            if (!className || !subject) {
+                Swal.fire('ข้อมูลไม่ครบ', 'กรุณาเลือกห้องและระบุวิชา', 'warning');
+                return;
+            }
+
+            // Collect Attendance Data
+            const attendanceData = {};
+            const radios = document.querySelectorAll('input[type="radio"]:checked');
+            radios.forEach(r => {
+                const uid = r.name.replace('att_', '');
+                attendanceData[uid] = r.value;
+            });
+
+            Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+
+            try {
+                // Save to Firestore
+                await addDoc(collection(db, "learning_records"), {
+                    teacherId: currentUser.uid,
+                    teacherName: currentUser.displayName || "ครู",
+                    date: date,
+                    period: parseInt(period),
+                    className: className,
+                    subject: subject,
+                    homework: homework,
+                    homeworkDeadline: deadline,
+                    attendance: attendanceData,
+                    created_at: serverTimestamp()
+                });
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'บันทึกสำเร็จ!',
+                    text: homework ? `สั่งการบ้านให้นักเรียนห้อง ${className} เรียบร้อยแล้ว` : 'บันทึกการสอนเรียบร้อย',
+                    confirmButtonText: 'ตกลง'
+                }).then(() => {
+                    // Reset or Redirect
+                    window.location.href = "dashboard.html";
+                });
+
+            } catch (e) {
+                console.error(e);
+                Swal.fire('Error', e.message, 'error');
+            }
+        };
+    </script>
+</body>
+</html>

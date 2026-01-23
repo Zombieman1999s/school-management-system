@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>เข้าสู่ระบบ - School Hub</title>
     <link rel="icon" href="icon.png" type="image/png">
-    <link rel="shortcut icon" href="icon.png" type="image/png">
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -13,194 +12,346 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     
     <style>
-        :root {
-            --primary-color: #0d6efd;
-            --secondary-color: #0dcaf0;
-        }
-        body {
-            font-family: 'Sarabun', sans-serif;
-            background-color: #f0f2f5;
-            height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .login-card {
-            border: none;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            overflow: hidden;
-            max-width: 450px;
-            width: 100%;
-        }
-        .login-header {
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            padding: 30px 20px;
-            text-align: center;
-            color: white;
-        }
-        .login-logo {
-            max-width: 120px;
-            height: auto;
-            margin-bottom: 15px;
-            filter: drop-shadow(0 2px 5px rgba(0,0,0,0.2));
-        }
-        .login-body {
-            padding: 40px 30px;
-            background: white;
-        }
-        .form-control {
-            border-radius: 10px;
-            padding: 12px 15px;
-            border: 1px solid #dee2e6;
-            background-color: #f8f9fa;
-        }
-        .form-control:focus {
-            background-color: white;
-            box-shadow: none;
-            border-color: var(--primary-color);
-        }
-        .btn-login {
-            border-radius: 10px;
-            padding: 12px;
-            font-weight: 600;
-            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-            border: none;
-            transition: all 0.3s;
-        }
-        .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3);
-        }
-        .btn-google {
-            border-radius: 10px;
-            padding: 12px;
-            font-weight: 600;
-            background: white;
-            border: 2px solid #eee;
-            color: #333;
-            transition: all 0.3s;
-        }
-        .btn-google:hover {
-            background: #f8f9fa;
-            border-color: #ddd;
-        }
-        .divider {
-            text-align: center;
-            margin: 20px 0;
-            position: relative;
-        }
-        .divider::before {
-            content: "";
-            position: absolute;
-            top: 50%;
-            left: 0;
-            width: 100%;
-            height: 1px;
-            background: #eee;
-        }
-        .divider span {
-            position: relative;
-            background: white;
-            padding: 0 15px;
-            color: #999;
-            font-size: 0.9rem;
-        }
-        .btn-register-link {
-            text-decoration: none;
-            color: var(--primary-color);
-            font-weight: bold;
-            cursor: pointer;
-        }
-        .btn-register-link:hover {
-            text-decoration: underline;
-        }
+        :root { --primary-color: #0d6efd; --secondary-color: #0dcaf0; }
+        body { font-family: 'Sarabun', sans-serif; background-color: #f0f2f5; height: 100vh; display: flex; align-items: center; justify-content: center; }
+        .login-card { border: none; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; max-width: 500px; width: 100%; }
+        .login-header { background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); padding: 30px 20px; text-align: center; color: white; }
+        .login-logo { max-width: 100px; height: auto; margin-bottom: 10px; filter: drop-shadow(0 2px 5px rgba(0,0,0,0.2)); }
+        .login-body { padding: 40px 30px; background: white; }
+        .form-control, .form-select { border-radius: 10px; padding: 12px 15px; border: 1px solid #dee2e6; background-color: #f8f9fa; }
+        .form-control:focus, .form-select:focus { background-color: white; box-shadow: none; border-color: var(--primary-color); }
+        .btn-login { border-radius: 10px; padding: 12px; font-weight: 600; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); border: none; transition: all 0.3s; }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(13, 110, 253, 0.3); }
+        .btn-google { border-radius: 10px; padding: 12px; font-weight: 600; background: white; border: 2px solid #eee; color: #333; transition: all 0.3s; }
+        .btn-google:hover { background: #f8f9fa; border-color: #ddd; }
+        .divider { text-align: center; margin: 20px 0; position: relative; }
+        .divider::before { content: ""; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: #eee; }
+        .divider span { position: relative; background: white; padding: 0 15px; color: #999; font-size: 0.9rem; }
+        .btn-register-link { text-decoration: none; color: var(--primary-color); font-weight: bold; cursor: pointer; }
+        .btn-register-link:hover { text-decoration: underline; }
+        
+        /* Modal Styles */
+        .role-section { display: none; background: #f8f9fa; padding: 15px; border-radius: 10px; margin-top: 10px; border: 1px dashed #ced4da; }
+        .modal-body { max-height: 75vh; overflow-y: auto; }
     </style>
 </head>
 <body>
 
     <div class="login-card">
         <div class="login-header">
-            <img src="icon.png" alt="School Hub Logo" class="login-logo">
+            <img src="icon.png" alt="Logo" class="login-logo" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3135/3135715.png'">
             <h3 class="fw-bold">School Hub</h3>
-            <p class="mb-0 opacity-75">ระบบบริหารจัดการโรงเรียน</p>
+            <p class="mb-0 opacity-75">ระบบบริหารจัดการโรงเรียนครบวงจร</p>
         </div>
         <div class="login-body">
             <form id="loginForm">
                 <div class="mb-3">
                     <label class="form-label fw-bold">อีเมล</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-envelope text-muted"></i></span>
-                        <input type="email" id="email" class="form-control border-start-0 ps-0" placeholder="name@school.ac.th" required>
-                    </div>
+                    <input type="email" id="email" class="form-control" placeholder="name@school.ac.th" required>
                 </div>
                 <div class="mb-4">
                     <label class="form-label fw-bold">รหัสผ่าน</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light border-end-0"><i class="fa-solid fa-lock text-muted"></i></span>
-                        <input type="password" id="password" class="form-control border-start-0 ps-0" placeholder="••••••••" required>
-                    </div>
+                    <input type="password" id="password" class="form-control" placeholder="••••••••" required>
                 </div>
                 <div class="d-grid">
-                    <button type="submit" class="btn btn-primary btn-login text-white">
-                        เข้าสู่ระบบ
-                    </button>
+                    <button type="submit" class="btn btn-primary btn-login text-white">เข้าสู่ระบบ</button>
                 </div>
             </form>
 
-            <div class="divider">
-                <span>หรือเข้าสู่ระบบด้วย</span>
-            </div>
-
+            <div class="divider"><span>หรือเข้าสู่ระบบด้วย</span></div>
             <div class="d-grid">
                 <button id="googleLoginBtn" class="btn btn-google">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="20" class="me-2">
-                    Google Account
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="20" class="me-2"> Google Account
                 </button>
             </div>
-
             <div class="text-center mt-4 text-muted small">
                 <p class="mb-0">ยังไม่มีบัญชี? <span class="btn-register-link" data-bs-toggle="modal" data-bs-target="#registerModal">สมัครสมาชิกใหม่</span></p>
-                <p class="mb-0 mt-2">© 2024 School Hub Management System</p>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="registerModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+    <!-- Modal สมัครสมาชิก (Email/Pass) -->
+    <div class="modal fade" id="registerModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-user-plus me-2"></i>สมัครสมาชิกใหม่</h5>
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-user-plus me-2"></i>ลงทะเบียนสมาชิกใหม่</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4">
                     <form id="regForm">
-                        <div class="mb-3">
-                            <label class="form-label">อีเมล</label>
-                            <input type="email" id="regEmail" class="form-control" required>
+                        <!-- 1. ข้อมูลเข้าสู่ระบบ -->
+                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">1. ข้อมูลบัญชี (Account)</h6>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label">อีเมล <span class="text-danger">*</span></label>
+                                <input type="email" id="regEmail" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">รหัสผ่าน (6 ตัวขึ้นไป) <span class="text-danger">*</span></label>
+                                <input type="password" id="regPassword" class="form-control" required minlength="6">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label">รหัสผ่าน (6 ตัวขึ้นไป)</label>
-                            <input type="password" id="regPassword" class="form-control" required minlength="6">
+
+                        <!-- 2. ข้อมูลส่วนตัว -->
+                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">2. ข้อมูลส่วนตัว (Personal Info)</h6>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label">คำนำหน้า</label>
+                                <select id="regPrefix" class="form-select" required>
+                                    <option value="" selected disabled>-</option>
+                                    <option value="ด.ช.">ด.ช.</option>
+                                    <option value="ด.ญ.">ด.ญ.</option>
+                                    <option value="นาย">นาย</option>
+                                    <option value="นาง">นาง</option>
+                                    <option value="นางสาว">นางสาว</option>
+                                    <option value="Mr.">Mr.</option>
+                                    <option value="Mrs.">Mrs.</option>
+                                    <option value="Ms.">Ms.</option>
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label">ชื่อ - นามสกุล (ไทย) <span class="text-danger">*</span></label>
+                                <input type="text" id="regName" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">ชื่อเล่น</label>
+                                <input type="text" id="regNickname" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">วัน/เดือน/ปีเกิด</label>
+                                <input type="date" id="regDob" class="form-control">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">เลขบัตรประชาชน</label>
+                                <input type="text" id="regNationalId" class="form-control" maxlength="13" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">เบอร์โทรศัพท์ <span class="text-danger">*</span></label>
+                                <input type="tel" id="regPhone" class="form-control" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                            </div>
                         </div>
+
+                        <!-- 3. ข้อมูลบทบาท -->
+                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">3. บทบาทและหน้าที่ (Role)</h6>
                         <div class="mb-3">
-                            <label class="form-label">ชื่อ-นามสกุล</label>
-                            <input type="text" id="regName" class="form-control" required>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label">ตำแหน่ง/หน้าที่</label>
-                            <select id="regRole" class="form-select" required>
-                                <option value="" selected disabled>-- เลือกตำแหน่ง --</option>
-                                <option value="teacher_basic">ครู (พื้นฐาน)</option>
-                                <option value="teacher_kindergarten">ครู (อนุบาล)</option>
-                                <option value="personnel">บุคลากร/ฝ่ายบุคคล</option>
-                                <option value="technician">ช่าง/อาคารสถานที่</option>
-                                <option value="transport">พนักงานขับรถ</option>
-                                <option value="security_guard">รปภ.</option>
+                            <label class="form-label">ตำแหน่งของคุณ <span class="text-danger">*</span></label>
+                            <select id="regRole" class="form-select" onchange="toggleRoleFields('reg')" required>
+                                <option value="" selected disabled>-- กรุณาเลือก --</option>
+                                <option value="student">👨‍🎓 นักเรียน / ผู้ปกครอง</option>
+                                <option value="teacher_basic">🏫 ครู (ประถม/มัธยม)</option>
+                                <option value="teacher_kindergarten">🧸 ครู (อนุบาล)</option>
+                                <option value="staff">💼 เจ้าหน้าที่ / บุคลากร</option>
+                                <option value="executive">👔 ผู้บริหาร (รออนุมัติ)</option>
+                                <option value="personnel">📋 ฝ่ายบุคคล</option>
+                                <option value="technician">🛠️ ฝ่ายอาคารสถานที่</option>
+                                <option value="transport">🚍 พนักงานขับรถ</option>
+                                <option value="security_guard">🛡️ รปภ.</option>
                             </select>
                         </div>
-                        <div class="d-grid gap-2">
-                            <button type="submit" class="btn btn-success fw-bold">ยืนยันการสมัคร</button>
+
+                        <!-- Dynamic Fields: นักเรียน -->
+                        <div id="regStudentFields" class="role-section">
+                            <h6 class="fw-bold text-info"><i class="fa-solid fa-graduation-cap"></i> ข้อมูลนักเรียน</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">รหัสนักเรียน</label>
+                                    <input type="text" id="regStudentId" class="form-control">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">ระดับชั้น/ห้อง</label>
+                                    <select id="regStudentClass" class="form-select">
+                                        <option value="">-- เลือกห้อง --</option>
+                                        <!-- JS จะเติมห้องให้ -->
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">เลขที่</label>
+                                    <input type="number" id="regStudentNumber" class="form-control">
+                                </div>
+                                <div class="col-md-12">
+                                    <label class="form-label">แผนการเรียน</label>
+                                    <input type="text" id="regStudyProgram" class="form-control" placeholder="เช่น วิทย์-คณิต, ศิลป์-ภาษา">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">ชื่อผู้ปกครอง</label>
+                                    <input type="text" id="regParentName" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">เบอร์ผู้ปกครอง</label>
+                                    <input type="tel" id="regParentPhone" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Fields: ครู -->
+                        <div id="regTeacherFields" class="role-section">
+                            <h6 class="fw-bold text-success"><i class="fa-solid fa-chalkboard-user"></i> ข้อมูลบุคลากรครู</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label">รหัสประจำตัวครู</label>
+                                    <input type="text" id="regTeacherId" class="form-control">
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">ตำแหน่งทางวิชาการ</label>
+                                    <select id="regTeacherPosition" class="form-select">
+                                        <option value="ครูผู้ช่วย">ครูผู้ช่วย</option>
+                                        <option value="ครู">ครู (คศ.1)</option>
+                                        <option value="ครูชำนาญการ">ครูชำนาญการ (คศ.2)</option>
+                                        <option value="ครูชำนาญการพิเศษ">ครูชำนาญการพิเศษ (คศ.3)</option>
+                                        <option value="ครูเชี่ยวชาญ">ครูเชี่ยวชาญ (คศ.4)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label">กลุ่มสาระฯ</label>
+                                    <select id="regTeacherDept" class="form-select">
+                                        <option value="ภาษาไทย">ภาษาไทย</option>
+                                        <option value="คณิตศาสตร์">คณิตศาสตร์</option>
+                                        <option value="วิทยาศาสตร์">วิทยาศาสตร์ฯ</option>
+                                        <option value="สังคมศึกษา">สังคมศึกษาฯ</option>
+                                        <option value="สุขศึกษา">สุขศึกษาฯ</option>
+                                        <option value="ศิลปะ">ศิลปะ</option>
+                                        <option value="การงานอาชีพ">การงานอาชีพ</option>
+                                        <option value="ภาษาต่างประเทศ">ภาษาต่างประเทศ</option>
+                                        <option value="ปฐมวัย">ปฐมวัย</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Fields: เจ้าหน้าที่ -->
+                        <div id="regStaffFields" class="role-section">
+                            <h6 class="fw-bold text-warning"><i class="fa-solid fa-briefcase"></i> ข้อมูลเจ้าหน้าที่</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">ตำแหน่งงาน</label>
+                                    <input type="text" id="regStaffPosition" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">สังกัด/ฝ่าย</label>
+                                    <input type="text" id="regStaffDept" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-success fw-bold py-2">ยืนยันการสมัครสมาชิก</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Google Register (แก้ไขใหม่ เพิ่มช่องให้ครบทุก Role) -->
+    <div class="modal fade" id="googleRegisterModal" data-bs-backdrop="static" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-warning text-dark">
+                    <h5 class="modal-title fw-bold"><i class="fa-brands fa-google me-2"></i>ยืนยันข้อมูล (Google)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" id="btnCloseGoogleModal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="googleRegForm">
+                        <input type="hidden" id="gRegEmail">
+                        
+                        <!-- ข้อมูลส่วนตัว -->
+                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">1. ข้อมูลส่วนตัวเพิ่มเติม</h6>
+                        <div class="row g-3 mb-3">
+                             <div class="col-md-3">
+                                <label class="form-label">คำนำหน้า</label>
+                                <select id="gRegPrefix" class="form-select" required>
+                                    <option value="นาย">นาย</option>
+                                    <option value="นาง">นาง</option>
+                                    <option value="นางสาว">นางสาว</option>
+                                    <option value="ด.ช.">ด.ช.</option>
+                                    <option value="ด.ญ.">ด.ญ.</option>
+                                </select>
+                            </div>
+                            <div class="col-md-5">
+                                <label class="form-label">ชื่อ - นามสกุล</label>
+                                <input type="text" id="gRegName" class="form-control" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">เบอร์โทรศัพท์ <span class="text-danger">*</span></label>
+                                <input type="tel" id="gRegPhone" class="form-control" required oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                            </div>
+                        </div>
+
+                        <!-- บทบาท -->
+                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">2. บทบาทและหน้าที่</h6>
+                        <div class="mb-3">
+                            <select id="gRegRole" class="form-select" onchange="toggleRoleFields('google')" required>
+                                <option value="" selected disabled>-- เลือกตำแหน่ง --</option>
+                                <option value="student">👨‍🎓 นักเรียน / ผู้ปกครอง</option>
+                                <option value="teacher_basic">🏫 ครู (ประถม/มัธยม)</option>
+                                <option value="teacher_kindergarten">🧸 ครู (อนุบาล)</option>
+                                <option value="staff">💼 เจ้าหน้าที่ / บุคลากร</option>
+                                <option value="executive">👔 ผู้บริหาร (รออนุมัติ)</option>
+                                <option value="personnel">📋 ฝ่ายบุคคล</option>
+                                <option value="technician">🛠️ ฝ่ายอาคารสถานที่</option>
+                                <option value="transport">🚍 พนักงานขับรถ</option>
+                                <option value="security_guard">🛡️ รปภ.</option>
+                            </select>
+                        </div>
+
+                        <!-- Dynamic Fields Google: Student -->
+                        <div id="gRegStudentFields" class="role-section">
+                            <h6 class="fw-bold text-info"><i class="fa-solid fa-graduation-cap"></i> ข้อมูลนักเรียน</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">ระดับชั้น/ห้อง</label>
+                                    <select id="gRegStudentClass" class="form-select">
+                                        <option value="">-- เลือกห้อง --</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">รหัสนักเรียน</label>
+                                    <input type="text" id="gRegStudentId" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Dynamic Fields Google: Teacher (เพิ่มใหม่) -->
+                        <div id="gRegTeacherFields" class="role-section">
+                            <h6 class="fw-bold text-success"><i class="fa-solid fa-chalkboard-user"></i> ข้อมูลครู</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">รหัสประจำตัวครู</label>
+                                    <input type="text" id="gRegTeacherId" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">กลุ่มสาระฯ</label>
+                                    <select id="gRegTeacherDept" class="form-select">
+                                        <option value="ภาษาไทย">ภาษาไทย</option>
+                                        <option value="คณิตศาสตร์">คณิตศาสตร์</option>
+                                        <option value="วิทยาศาสตร์">วิทยาศาสตร์ฯ</option>
+                                        <option value="สังคมศึกษา">สังคมศึกษาฯ</option>
+                                        <option value="ภาษาต่างประเทศ">ภาษาต่างประเทศ</option>
+                                        <option value="ปฐมวัย">ปฐมวัย</option>
+                                        <option value="อื่นๆ">อื่นๆ</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dynamic Fields Google: Staff (เพิ่มใหม่) -->
+                        <div id="gRegStaffFields" class="role-section">
+                            <h6 class="fw-bold text-warning"><i class="fa-solid fa-briefcase"></i> ข้อมูลเจ้าหน้าที่</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label">ตำแหน่งงาน</label>
+                                    <input type="text" id="gRegStaffPosition" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label">สังกัด/ฝ่าย</label>
+                                    <input type="text" id="gRegStaffDept" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="d-grid mt-4">
+                            <button type="submit" class="btn btn-primary fw-bold">บันทึกและเข้าใช้งาน</button>
                         </div>
                     </form>
                 </div>
@@ -212,7 +363,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getAuth, signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, createUserWithEmailAndPassword, sendEmailVerification, updatePassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
@@ -229,97 +380,204 @@
         const db = getFirestore(app);
         const googleProvider = new GoogleAuthProvider();
 
+        let pendingGoogleUser = null;
+
+        // Populate Classes
+        const classList = ["ป.1/1", "ป.1/2", "ป.2/1", "ป.3/1", "ป.4/1", "ป.5/1", "ป.6/1", "ม.1/1", "ม.2/1", "ม.3/1", "ม.4/1", "ม.5/1", "ม.6/1"];
+        function populateClasses() {
+            const opts = classList.map(c => `<option value="${c}">${c}</option>`).join('');
+            document.getElementById('regStudentClass').innerHTML += opts;
+            document.getElementById('gRegStudentClass').innerHTML += opts;
+        }
+        populateClasses();
+
+        // Toggle Fields Logic (Fixed to include Teacher/Staff for Google)
+        window.toggleRoleFields = (type) => {
+            const roleId = type === 'reg' ? 'regRole' : 'gRegRole';
+            const role = document.getElementById(roleId).value;
+            
+            // Hide All First
+            document.querySelectorAll(type === 'reg' ? '#regForm .role-section' : '#googleRegForm .role-section').forEach(el => el.style.display = 'none');
+
+            // Show Specific
+            if (role === 'student') {
+                document.getElementById(type === 'reg' ? 'regStudentFields' : 'gRegStudentFields').style.display = 'block';
+            } else if (role.startsWith('teacher')) {
+                // Now supports Google Teacher Fields
+                const el = document.getElementById(type === 'reg' ? 'regTeacherFields' : 'gRegTeacherFields'); 
+                if(el) el.style.display = 'block';
+            } else if (['staff', 'personnel', 'technician', 'transport', 'security_guard', 'executive'].includes(role)) {
+                // Now supports Google Staff Fields
+                const el = document.getElementById(type === 'reg' ? 'regStaffFields' : 'gRegStaffFields'); 
+                if(el) el.style.display = 'block';
+            }
+        };
+
         async function checkUserInFirestore(user) {
+            if (!user.emailVerified) {
+                Swal.fire({
+                    icon: 'warning', title: 'ยืนยันอีเมลก่อน',
+                    text: `กรุณาตรวจสอบอีเมล ${user.email} เพื่อยืนยันตัวตน`,
+                    confirmButtonText: 'ส่งซ้ำ'
+                }).then(async (r) => {
+                    if (r.isConfirmed) await sendEmailVerification(user);
+                    await signOut(auth);
+                });
+                return;
+            }
+
             const userDoc = await getDoc(doc(db, "users", user.uid));
             if (userDoc.exists()) {
-                Swal.fire({
-                    icon: 'success',
-                    title: 'ยินดีต้อนรับ',
-                    text: `สวัสดีคุณ ${userDoc.data().firstName || user.displayName}`,
-                    timer: 1500,
-                    showConfirmButton: false
-                }).then(() => window.location.href = "dashboard.html");
+                const d = userDoc.data();
+                if (d.role === 'executive' && !d.approved) {
+                    await signOut(auth);
+                    Swal.fire('รออนุมัติ', 'บัญชีผู้บริหารรอการตรวจสอบจาก Admin', 'info');
+                    return;
+                }
+                window.location.href = "dashboard.html";
             } else {
-                await signOut(auth);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'ไม่พบบัญชีผู้ใช้',
-                    text: 'กรุณาติดต่อผู้ดูแลระบบหรือสมัครสมาชิกใหม่'
-                });
+                const isGoogle = user.providerData.some(p => p.providerId === 'google.com');
+                if (isGoogle) {
+                    pendingGoogleUser = user;
+                    document.getElementById('gRegEmail').value = user.email;
+                    document.getElementById('gRegName').value = user.displayName;
+                    new bootstrap.Modal(document.getElementById('googleRegisterModal')).show();
+                } else {
+                    await signOut(auth);
+                    Swal.fire('Error', 'ไม่พบบัญชี', 'error');
+                }
             }
         }
 
-        // Login Logic
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+        // --- Save Logic (รวบรวมข้อมูลทั้งหมด) ---
+        async function saveUserData(uid, email, commonData, roleData) {
+            const finalData = {
+                email: email,
+                firstName: commonData.name,
+                prefix: commonData.prefix,
+                nickname: commonData.nickname,
+                dob: commonData.dob,
+                nationalId: commonData.nationalId,
+                phoneNumber: commonData.phone,
+                role: commonData.role,
+                approved: commonData.role !== 'executive', // Executive ต้องรอ
+                emailVerified: true, 
+                createdAt: serverTimestamp(),
+                ...roleData 
+            };
+            await setDoc(doc(db, "users", uid), finalData);
+        }
 
-            try {
-                const userCredential = await signInWithEmailAndPassword(auth, email, password);
-                checkUserInFirestore(userCredential.user);
-            } catch (error) {
-                console.error(error);
-                let msg = "เกิดข้อผิดพลาด กรุณาลองใหม่";
-                if (error.code === 'auth/invalid-credential' || error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') msg = "อีเมลหรือรหัสผ่านไม่ถูกต้อง";
-                else if (error.code === 'auth/too-many-requests') msg = "ลองบ่อยเกินไป กรุณารอสักครู่";
-                Swal.fire('เข้าสู่ระบบไม่สำเร็จ', msg, 'error');
-            }
-        });
-
-        document.getElementById('googleLoginBtn').addEventListener('click', async () => {
-            try {
-                const result = await signInWithPopup(auth, googleProvider);
-                checkUserInFirestore(result.user);
-            } catch (error) {
-                console.error(error);
-                Swal.fire('Google Login Error', error.message, 'error');
-            }
-        });
-
-        // Registration Logic
+        // Register Submit
         document.getElementById('regForm').addEventListener('submit', async (e) => {
             e.preventDefault();
+            Swal.fire({title: 'กำลังสมัคร...', didOpen: () => Swal.showLoading()});
+            
             const email = document.getElementById('regEmail').value;
             const pass = document.getElementById('regPassword').value;
-            const name = document.getElementById('regName').value;
             const role = document.getElementById('regRole').value;
 
-            Swal.fire({ title: 'กำลังสมัคร...', didOpen: () => Swal.showLoading() });
+            // Collect Data
+            const commonData = {
+                name: document.getElementById('regName').value,
+                prefix: document.getElementById('regPrefix').value,
+                nickname: document.getElementById('regNickname').value,
+                dob: document.getElementById('regDob').value,
+                nationalId: document.getElementById('regNationalId').value,
+                phone: document.getElementById('regPhone').value,
+                role: role
+            };
+
+            let roleData = {};
+            if (role === 'student') {
+                roleData = {
+                    studentId: document.getElementById('regStudentId').value,
+                    studentClass: document.getElementById('regStudentClass').value,
+                    studentNumber: document.getElementById('regStudentNumber').value,
+                    studyProgram: document.getElementById('regStudyProgram').value,
+                    parentName: document.getElementById('regParentName').value,
+                    parentPhone: document.getElementById('regParentPhone').value
+                };
+            } else if (role.startsWith('teacher')) {
+                roleData = {
+                    teacherId: document.getElementById('regTeacherId').value,
+                    academicPosition: document.getElementById('regTeacherPosition').value,
+                    department: document.getElementById('regTeacherDept').value
+                };
+            } else {
+                roleData = {
+                    position: document.getElementById('regStaffPosition').value,
+                    department: document.getElementById('regStaffDept').value
+                };
+            }
 
             try {
-                const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
-                const user = userCredential.user;
-                await sendEmailVerification(user);
-                await setDoc(doc(db, "users", user.uid), {
-                    email: email, firstName: name, role: role, created_at: serverTimestamp()
-                });
+                const uc = await createUserWithEmailAndPassword(auth, email, pass);
+                await sendEmailVerification(uc.user);
+                
+                await saveUserData(uc.user.uid, email, commonData, roleData);
+                
                 await signOut(auth);
-                
-                // ปิด Modal
-                const modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
-                if (modal) modal.hide();
-
-                Swal.fire({
-                    icon: 'success',
-                    title: 'สมัครสำเร็จ!',
-                    html: `ส่งลิงก์ยืนยันไปที่ <b>${email}</b> แล้ว<br><span style="color:red">กรุณายืนยันตัวตนในอีเมลก่อนเข้าสู่ระบบ</span>`
-                });
-                
-                // Reset Form
-                document.getElementById('regForm').reset();
-
-            } catch (error) {
-                if (error.code === 'auth/email-already-in-use') Swal.fire('เตือน', 'อีเมลนี้มีผู้ใช้งานแล้ว', 'warning');
-                else Swal.fire('Error', error.message, 'error');
-            }
+                bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
+                Swal.fire('สำเร็จ', 'กรุณายืนยันอีเมลที่ส่งไปให้', 'success');
+            } catch (err) { Swal.fire('Error', err.message, 'error'); }
         });
 
-        onAuthStateChanged(auth, async (user) => {
-            if (user) {
-               // checkUserInFirestore(user); // เปิดบรรทัดนี้ถ้าอยากให้ Auto Login
+        // Google Register Submit (Updated to handle new fields)
+        document.getElementById('googleRegForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            Swal.fire({title: 'บันทึก...', didOpen: () => Swal.showLoading()});
+            
+            const role = document.getElementById('gRegRole').value;
+            const commonData = {
+                name: document.getElementById('gRegName').value,
+                prefix: document.getElementById('gRegPrefix').value,
+                phone: document.getElementById('gRegPhone').value,
+                role: role,
+                nickname: '', dob: '', nationalId: '' 
+            };
+            
+            let roleData = {};
+            if (role === 'student') {
+                roleData = {
+                    studentId: document.getElementById('gRegStudentId').value,
+                    studentClass: document.getElementById('gRegStudentClass').value
+                };
+            } else if (role.startsWith('teacher')) {
+                roleData = {
+                    teacherId: document.getElementById('gRegTeacherId').value,
+                    department: document.getElementById('gRegTeacherDept').value
+                };
+            } else {
+                roleData = {
+                    position: document.getElementById('gRegStaffPosition').value,
+                    department: document.getElementById('gRegStaffDept').value
+                };
             }
+
+            try {
+                await saveUserData(pendingGoogleUser.uid, pendingGoogleUser.email, commonData, roleData);
+                if (role === 'executive') {
+                    await signOut(auth);
+                    Swal.fire('รออนุมัติ', 'รอ Admin ตรวจสอบ', 'info');
+                } else {
+                    window.location.href = "dashboard.html";
+                }
+            } catch (err) { Swal.fire('Error', err.message, 'error'); }
         });
+
+        // Login Listeners
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            try { const uc = await signInWithEmailAndPassword(auth, document.getElementById('email').value, document.getElementById('password').value); checkUserInFirestore(uc.user); } 
+            catch (error) { Swal.fire('Error', 'Login failed: ' + error.message, 'error'); }
+        });
+        document.getElementById('googleLoginBtn').addEventListener('click', async () => {
+            try { const res = await signInWithPopup(auth, googleProvider); checkUserInFirestore(res.user); } 
+            catch (error) { Swal.fire('Error', error.message, 'error'); }
+        });
+        document.getElementById('btnCloseGoogleModal').addEventListener('click', async () => await signOut(auth));
+
     </script>
 </body>
 </html>
