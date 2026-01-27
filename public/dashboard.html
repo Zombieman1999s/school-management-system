@@ -44,12 +44,12 @@
             transform: scale(1.02);
         }
 
+        /* Snow Effect */
         .snowflake {
             position: fixed; top: -10px; color: #fff; user-select: none; z-index: 9999;
             pointer-events: none; animation-name: fall; animation-timing-function: linear;
             text-shadow: 0 0 5px rgba(255,255,255,0.8);
         }
-
         @keyframes fall { to { transform: translateY(105vh); } }
 
         #loadingScreen {
@@ -75,30 +75,21 @@
             align-items: center;
         }
 
-        .navbar-logo {
-            width: 40px;
-            height: 40px;
-            object-fit: contain;
-            margin-right: 10px;
-        }
+        .navbar-logo { width: 40px; height: 40px; object-fit: contain; margin-right: 10px; }
 
-        /* Profile Image Style */
-        .user-info { font-size: 0.9rem; color: #4b5563; background: #f3f4f6; border: 1px solid #e5e7eb; }
+        /* Profile Nav Item */
+        .user-info { font-size: 0.9rem; color: #4b5563; background: #f3f4f6; border: 1px solid #e5e7eb; cursor: pointer; transition: all 0.2s; }
+        .user-info:hover { background: #eef2ff; border-color: var(--primary-color); }
         .profile-img-container {
             width: 40px; height: 40px; border-radius: 50%; overflow: hidden;
             margin-right: 10px; border: 2px solid #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-            position: relative; cursor: pointer; background-color: #e0e7ff;
+            position: relative; background-color: #e0e7ff;
             display: flex; justify-content: center; align-items: center;
         }
         .profile-img { width: 100%; height: 100%; object-fit: cover; }
         .profile-placeholder { font-size: 1.2rem; color: var(--primary-color); }
-        .profile-img-container:hover::after {
-            content: "\f030"; font-family: "Font Awesome 6 Free"; font-weight: 900;
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.5); color: white; display: flex;
-            align-items: center; justify-content: center; font-size: 1rem;
-        }
 
+        /* Main Dashboard Cards */
         .card { 
             border: 1px solid rgba(255, 255, 255, 0.6); 
             border-radius: 16px; 
@@ -106,20 +97,17 @@
             background-color: #ffffff; 
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
-        
         .card-menu {
             cursor: pointer; height: 100%; display: flex; flex-direction: column;
             align-items: center; justify-content: center; padding: 1.5rem;
             background: white; border: 1px solid rgba(0,0,0,0.03); 
             position: relative; overflow: hidden;
         }
-        
         .card-menu:hover { 
             transform: translateY(-8px); 
             box-shadow: var(--card-hover-shadow); 
             border-color: transparent; z-index: 1;
         }
-        
         .card-menu i { font-size: 2.8rem; margin-bottom: 1rem; transition: transform 0.3s ease; }
         .card-menu:hover i { transform: scale(1.15) rotate(-5deg); }
         .card-menu h6 { font-weight: 700; margin: 0; color: #374151; font-size: 1rem; }
@@ -148,6 +136,7 @@
         .event-dot { width: 6px; height: 6px; border-radius: 50%; position: absolute; bottom: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
         .calendar-day.today .event-dot { border: 1px solid white; }
 
+        /* News List */
         #newsList .list-group-item { border: none; border-bottom: 1px solid #f0f0f0; padding: 1.2rem 1.5rem; transition: background 0.2s; }
         #newsList .list-group-item:hover { background-color: #fafafa; }
         #newsList .list-group-item:last-child { border-bottom: none; }
@@ -155,6 +144,7 @@
         .btn-action { width: 34px; height: 34px; padding: 0; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
         .target-badge { font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; background: #eef2ff; color: #4f46e5; font-weight: 700; margin-left: 8px; border: 1px solid #e0e7ff; }
         
+        /* Menu Icons */
         .menu-icon-primary { color: #2563eb; background: #eff6ff; padding: 14px; border-radius: 16px; }
         .menu-icon-warning { color: #d97706; background: #fffbeb; padding: 14px; border-radius: 16px; }
         .menu-icon-success { color: #059669; background: #ecfdf5; padding: 14px; border-radius: 16px; }
@@ -164,70 +154,63 @@
         .menu-icon-dark { color: #374151; background: #f3f4f6; padding: 14px; border-radius: 16px; }
         .menu-icon-ai { color: #db2777; background: #fdf2f8; padding: 14px; border-radius: 16px; }
 
+        /* 🔥 Profile Page Styles (New & Improved) */
+        #profilePage { display: none; animation: fadeIn 0.3s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .profile-header {
+            background: linear-gradient(135deg, var(--primary-color), #6366f1);
+            height: 180px; border-radius: 0 0 30px 30px; position: relative;
+            box-shadow: 0 4px 15px rgba(13, 110, 253, 0.2); margin-bottom: 70px;
+        }
+        .profile-avatar-wrapper {
+            position: absolute; bottom: -50px; left: 50%; transform: translateX(-50%);
+            width: 120px; height: 120px; border-radius: 50%; border: 4px solid white;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); background: white; overflow: hidden;
+        }
+        .profile-avatar-lg { width: 100%; height: 100%; object-fit: cover; }
+        .btn-edit-avatar {
+            position: absolute; bottom: 0; right: 0; width: 35px; height: 35px;
+            background: var(--primary-color); color: white; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            border: 2px solid white; transition: 0.2s;
+        }
+        .btn-edit-avatar:hover { background: #0b5ed7; transform: scale(1.1); }
+        
+        .profile-info-card { background: white; border-radius: 20px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .profile-label { font-size: 0.85rem; color: #6b7280; font-weight: 500; margin-bottom: 4px; }
+        .profile-value { font-size: 1rem; color: #111827; font-weight: 600; margin-bottom: 16px; border-bottom: 1px solid #f3f4f6; padding-bottom: 8px; }
+        .profile-value:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+        
+        .form-control-plaintext { font-weight: 600; color: #111827; padding: 0; margin-bottom: 16px; border-bottom: 1px solid #f3f4f6; }
+        .form-control-plaintext:focus { outline: none; border-bottom-color: var(--primary-color); }
+        .form-control-plaintext[readonly] { border-bottom: 1px solid transparent; }
+
         /* Notification Popup Style */
         .notification-popup {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            background: white;
-            border-radius: 16px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.25);
-            padding: 20px;
-            width: 340px;
-            z-index: 9999;
-            display: none;
-            border-left: 6px solid #ef4444;
-            animation: slideInUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: fixed; bottom: 30px; right: 30px; background: white;
+            border-radius: 16px; box-shadow: 0 15px 40px rgba(0,0,0,0.25);
+            padding: 20px; width: 340px; z-index: 9999; display: none;
+            border-left: 6px solid #ef4444; animation: slideInUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             font-family: 'Sarabun', sans-serif;
         }
-        
-        @keyframes slideInUp {
-            from { transform: translateY(100px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
-        }
-
+        @keyframes slideInUp { from { transform: translateY(100px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
         .notif-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .notif-title { font-weight: 800; font-size: 1.1rem; color: #1f2937; display: flex; align-items: center; gap: 8px; }
         .notif-close { cursor: pointer; color: #9ca3af; transition: 0.2s; font-size: 1.2rem; }
         .notif-close:hover { color: #4b5563; transform: scale(1.1); }
-        
-        .notif-body { font-size: 0.95rem; color: #4b5563; line-height: 1.6; margin-bottom: 15px; }
+        .btn-check-notif { width: 100%; border-radius: 10px; font-size: 0.95rem; font-weight: 700; background: linear-gradient(to right, #ef4444, #f87171); border: none; padding: 10px; color: white; }
         .notif-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #f3f4f6; }
-        .notif-item:last-child { border-bottom: none; }
-        .notif-item b { color: #ef4444; }
 
-        .notif-count-badge { background: #ef4444; color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; margin-left: auto; }
-        
-        .btn-check-notif {
-            width: 100%; border-radius: 10px; font-size: 0.95rem; font-weight: 700;
-            background: linear-gradient(to right, #ef4444, #f87171); border: none;
-            padding: 10px; box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
-            transition: all 0.2s;
-        }
-        .btn-check-notif:hover { transform: translateY(-2px); box-shadow: 0 6px 15px rgba(239, 68, 68, 0.4); }
-
-        /* ซ่อนทุก Section ไว้ก่อน แล้วเปิดด้วย JS (เพิ่ม studentSection) */
         #academicSection, #teacherSection, #technicianSection, #transportSection, #personnelSection, #adminSection, #newsSection, #securitySection, #studentSection, #healthSection { display: none; }
         .admin-only { display: none; }
 
         @media (max-width: 767.98px) {
             .container { padding-left: 16px; padding-right: 16px; }
-            .card-menu { padding: 1rem; min-height: 110px; }
-            .card-menu i { font-size: 2rem; margin-bottom: 0.5rem; padding: 10px; }
-            .card-menu h6 { font-size: 0.85rem; }
-            .calendar-days { gap: 4px; }
-            .calendar-day { height: 40px; font-size: 0.85rem; border-radius: 8px; }
-            .calendar-header h6 { font-size: 1rem; }
-            .table th, .table td { padding: 0.75rem 0.5rem; font-size: 0.85rem; }
-            .badge { font-size: 0.7rem; padding: 5px 8px; }
-            .section-title { margin: 1.5rem 0 1rem 0; font-size: 1.1rem; }
-            .mb-5 { margin-bottom: 2.5rem !important; }
-            .navbar-brand { font-size: 1.2rem; }
-            #newsList .list-group-item { padding: 1rem; }
-            
-            .notification-popup {
-                left: 15px; right: 15px; bottom: 15px; width: auto;
-            }
+            .profile-header { height: 140px; margin-bottom: 60px; }
+            .profile-avatar-wrapper { width: 100px; height: 100px; bottom: -50px; }
+            .section-title { font-size: 1.1rem; }
+            .notification-popup { left: 15px; right: 15px; bottom: 15px; width: auto; }
         }
     </style>
 </head>
@@ -241,35 +224,28 @@
     <!-- Notification Popup -->
     <div id="notificationPopup" class="notification-popup">
         <div class="notif-header">
-            <div class="notif-title">
-                <i class="fa-solid fa-bell text-danger"></i> แจ้งเตือนงานใหม่
-            </div>
-            <span id="notifTotalCount" class="notif-count-badge">0</span>
+            <div class="notif-title"><i class="fa-solid fa-bell text-danger"></i> แจ้งเตือนงานใหม่</div>
+            <span id="notifTotalCount" class="badge bg-danger rounded-pill">0</span>
             <i class="fa-solid fa-xmark notif-close ms-2" onclick="closeNotification()"></i>
         </div>
-        <div id="notifContent" class="notif-body">
-            <!-- รายการแจ้งเตือนจะมาตรงนี้ -->
-        </div>
-        <button class="btn btn-danger btn-check-notif text-white" onclick="closeNotification()">
-            รับทราบ <i class="fa-solid fa-check ms-1"></i>
-        </button>
+        <div id="notifContent" class="mb-3 small text-muted"></div>
+        <button class="btn btn-check-notif" onclick="closeNotification()">รับทราบ <i class="fa-solid fa-check ms-1"></i></button>
     </div>
 
-    <!-- 🔥 Hidden Input สำหรับเลือกไฟล์รูปโปรไฟล์ -->
     <input type="file" id="profileUploadInput" accept="image/*" style="display: none;" onchange="handleProfileUpload(this)">
 
     <nav class="navbar navbar-expand-lg sticky-top">
         <div class="container">
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="dashboard.html">
                 <img src="icon.png" alt="Logo" class="navbar-logo">
                 School Hub
             </a>
             <div class="d-flex align-items-center gap-3">
-                <!-- 🔥 แก้ไข: เพิ่ม onclick เพื่อเปิด Profile Modal -->
-                <div class="user-info d-none d-md-flex align-items-center bg-white px-3 py-2 rounded-pill shadow-sm border" onclick="openMyProfile()">
-                    <div class="profile-img-container" onclick="event.stopPropagation(); document.getElementById('profileUploadInput').click()">
-                        <img id="userAvatar" src="" class="profile-img d-none" alt="Profile">
-                        <i id="userAvatarPlaceholder" class="fa-regular fa-circle-user profile-placeholder"></i>
+                <!-- User Profile Trigger -->
+                <div class="user-info d-none d-md-flex align-items-center bg-white px-3 py-2 rounded-pill shadow-sm border" onclick="openProfilePage()">
+                    <div class="profile-img-container">
+                        <img id="navUserAvatar" src="" class="profile-img d-none">
+                        <i id="navUserAvatarPlaceholder" class="fa-regular fa-circle-user profile-placeholder"></i>
                     </div>
                     <div>
                         <span id="userEmail" class="fw-bold d-block lh-1 text-dark">...</span>
@@ -285,119 +261,64 @@
 
     <div class="container py-4 mb-5">
         
-        <div id="newsSection" class="mb-5">
-            <div class="row g-3 g-lg-4">
-                <div class="col-lg-7 order-2 order-lg-1">
-                    <div class="card h-100">
-                        <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 border-bottom-0">
-                            <h5 class="m-0 fw-bold text-dark fs-5"><i class="fa-solid fa-bullhorn text-primary me-2"></i> ประชาสัมพันธ์</h5>
-                            <div class="d-flex align-items-center">
-                                <!-- 🔥 ปุ่มเพิ่มข่าว (โผล่เฉพาะ Admin/Executive) -->
-                                <button id="btnAddNews" class="btn btn-sm btn-primary rounded-pill d-none me-2 shadow-sm" onclick="window.location.href='admin_news.html'">
-                                    <i class="fa-solid fa-plus"></i> เพิ่มข่าว
-                                </button>
-                                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">ล่าสุด</span>
-                            </div>
-                        </div>
-                        <div class="card-body p-0">
-                            <ul id="newsList" class="list-group list-group-flush">
-                                <li class="list-group-item text-center py-5 text-muted">
-                                    <div class="spinner-border spinner-border-sm text-secondary mb-2"></div>
-                                    <div>กำลังโหลดประกาศ...</div>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-5 order-1 order-lg-2">
-                    <div class="card h-100">
-                        <div class="card-header bg-white border-0 py-3">
-                            <div class="calendar-header">
-                                <h6 class="m-0 fw-bold text-dark d-flex align-items-center fs-5">
-                                    <i class="fa-regular fa-calendar-days text-success me-2"></i> ปฏิทิน
-                                </h6>
-                                <div class="d-flex align-items-center bg-light rounded-pill p-1">
-                                    <button class="btn btn-sm btn-white rounded-circle shadow-sm me-1" onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
-                                    <span id="calendarMonthYear" class="fw-bold text-dark small px-3" style="min-width: 100px; text-align: center;">...</span>
-                                    <button class="btn btn-sm btn-white rounded-circle shadow-sm ms-1" onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
-                                </div>
-                                <button id="btnAddEvent" class="btn btn-sm btn-primary ms-2 rounded-circle d-none shadow-sm" onclick="openAddEventModal()"><i class="fa-solid fa-plus"></i></button>
-                            </div>
-                        </div>
-                        <div class="card-body pt-0">
-                            <div class="calendar-weekdays">
-                                <div>อา</div><div>จ</div><div>อ</div><div>พ</div><div>พฤ</div><div>ศ</div><div>ส</div>
-                            </div>
-                            <div id="calendarDays" class="calendar-days"></div>
-                            <div class="text-center mt-3 small text-muted bg-light rounded py-1">
-                                <i class="fa-solid fa-circle-info me-1"></i> คลิกวันที่เพื่อดู/เพิ่ม
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 🔥🔥🔥 ส่วนใหม่: เมนูนักเรียน/ผู้ปกครอง 🔥🔥🔥 -->
-        <div id="studentSection">
-            <div class="section-title text-info">เมนูนักเรียน / ผู้ปกครอง</div>
-            <div class="row g-3 g-md-4">
-                
-                <div class="col-6 col-md-3">
-                    <div class="card card-menu" onclick="window.location.href='canteen_dashboard.html'">
-                        <i class="fa-solid fa-wallet menu-icon-primary"></i>
-                        <h6>กระเป๋าเงิน / โรงอาหาร</h6>
-                    </div>
-                </div>
-                
-                <div class="col-6 col-md-3">
-                    <div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบดูการบ้าน กำลังอยู่ระหว่างการพัฒนา', 'info')">
-                        <i class="fa-solid fa-clipboard-list menu-icon-primary"></i>
-                        <h6>ดูการบ้าน / ภาระงาน</h6>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-3">
-                    <div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบห้องสมุดออนไลน์ กำลังอยู่ระหว่างการพัฒนา', 'info')"> 
-                        <i class="fa-solid fa-book-bookmark menu-icon-purple"></i>
-                        <h6>ห้องสมุดออนไลน์ (E-Book)</h6>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-3">
-                    <div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบสมัครชมรม กำลังอยู่ระหว่างการพัฒนา', 'info')">
-                        <i class="fa-solid fa-users-rectangle menu-icon-warning"></i>
-                        <h6>สมัครชมรม / วิชาเลือก</h6>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-3">
-                    <div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบเช็กการเข้าเรียน กำลังอยู่ระหว่างการพัฒนา', 'info')">
-                        <i class="fa-solid fa-calendar-check menu-icon-success"></i>
-                        <h6>เช็กการเข้าเรียน</h6>
-                    </div>
-                </div>
-
-                <!-- 🔥 เพิ่มใหม่: ระบบบันทึกจิตอาสา -->
-                <div class="col-6 col-md-3">
-                    <div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบบันทึกจิตอาสา กำลังอยู่ระหว่างการพัฒนา', 'info')">
-                        <i class="fa-solid fa-hand-holding-heart menu-icon-success"></i>
-                        <h6>บันทึกจิตอาสา</h6>
-                    </div>
-                </div>
-                 <!-- 🔥 เพิ่มใหม่: ระบบประเมิน EQ -->
-                 <div class="col-6 col-md-3">
-                    <div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบประเมิน EQ กำลังอยู่ระหว่างการพัฒนา', 'info')">
-                        <i class="fa-solid fa-brain menu-icon-info"></i>
-                        <h6>ประเมิน EQ</h6>
-                    </div>
-                </div>
+        <!-- 🔥 Wrap Main Dashboard Content -->
+        <div id="mainDashboard">
             
+            <div id="newsSection" class="mb-5">
+                <div class="row g-3 g-lg-4">
+                    <div class="col-lg-7 order-2 order-lg-1">
+                        <div class="card h-100">
+                            <div class="card-header bg-white d-flex justify-content-between align-items-center py-3 border-bottom-0">
+                                <h5 class="m-0 fw-bold text-dark fs-5"><i class="fa-solid fa-bullhorn text-primary me-2"></i> ประชาสัมพันธ์</h5>
+                                <div class="d-flex align-items-center">
+                                    <button id="btnAddNews" class="btn btn-sm btn-primary rounded-pill d-none me-2 shadow-sm" onclick="window.location.href='admin_news.html'"><i class="fa-solid fa-plus"></i> เพิ่มข่าว</button>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">ล่าสุด</span>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <ul id="newsList" class="list-group list-group-flush">
+                                    <li class="list-group-item text-center py-5 text-muted"><div class="spinner-border spinner-border-sm text-secondary mb-2"></div><div>กำลังโหลดประกาศ...</div></li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5 order-1 order-lg-2">
+                        <div class="card h-100">
+                            <div class="card-header bg-white border-0 py-3">
+                                <div class="calendar-header">
+                                    <h6 class="m-0 fw-bold text-dark d-flex align-items-center fs-5"><i class="fa-regular fa-calendar-days text-success me-2"></i> ปฏิทิน</h6>
+                                    <div class="d-flex align-items-center bg-light rounded-pill p-1">
+                                        <button class="btn btn-sm btn-white rounded-circle shadow-sm me-1" onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                                        <span id="calendarMonthYear" class="fw-bold text-dark small px-3" style="min-width: 100px; text-align: center;">...</span>
+                                        <button class="btn btn-sm btn-white rounded-circle shadow-sm ms-1" onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                                    </div>
+                                    <button id="btnAddEvent" class="btn btn-sm btn-primary ms-2 rounded-circle d-none shadow-sm" onclick="openAddEventModal()"><i class="fa-solid fa-plus"></i></button>
+                                </div>
+                            </div>
+                            <div class="card-body pt-0">
+                                <div class="calendar-weekdays"><div>อา</div><div>จ</div><div>อ</div><div>พ</div><div>พฤ</div><div>ศ</div><div>ส</div></div>
+                                <div id="calendarDays" class="calendar-days"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <!-- 🔥🔥🔥 ส่วนใหม่: สุขภาพและสุขภาวะ (เห็นทุก Role) 🔥🔥🔥 -->
-        <div id="healthSection">
+            <!-- Sections -->
+            <div id="studentSection">
+                <div class="section-title text-info">เมนูนักเรียน / ผู้ปกครอง</div>
+                <div class="row g-3 g-md-4">
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='canteen_dashboard.html'"><i class="fa-solid fa-wallet menu-icon-primary"></i><h6>กระเป๋าเงิน / โรงอาหาร</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='homework_dashboard.html'"><i class="fa-solid fa-clipboard-list menu-icon-primary"></i><h6>ดูการบ้าน / ภาระงาน</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบห้องสมุดออนไลน์ กำลังอยู่ระหว่างการพัฒนา', 'info')"><i class="fa-solid fa-book-bookmark menu-icon-purple"></i><h6>ห้องสมุดออนไลน์ (E-Book)</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบสมัครชมรม กำลังอยู่ระหว่างการพัฒนา', 'info')"><i class="fa-solid fa-users-rectangle menu-icon-warning"></i><h6>สมัครชมรม / วิชาเลือก</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบเช็กการเข้าเรียน กำลังอยู่ระหว่างการพัฒนา', 'info')"><i class="fa-solid fa-calendar-check menu-icon-success"></i><h6>เช็กการเข้าเรียน</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบบันทึกจิตอาสา กำลังอยู่ระหว่างการพัฒนา', 'info')"><i class="fa-solid fa-hand-holding-heart menu-icon-success"></i><h6>บันทึกจิตอาสา</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบประเมิน EQ กำลังอยู่ระหว่างการพัฒนา', 'info')"><i class="fa-solid fa-brain menu-icon-info"></i><h6>ประเมิน EQ</h6></div></div>
+                </div>
+            </div>
+
+            <div id="healthSection">
             <div class="section-title text-danger">ระบบดูแลสุขภาพใจ</div>
             <div class="row g-3 g-md-4">
                 <!-- New 1: Calorie Counter -->
@@ -409,19 +330,21 @@
                 </div>
                 <!-- New 2: Air Quality -->
                 <div class="col-6 col-md-3">
-                    <div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบดูค่าฝุ่น PM2.5 กำลังอยู่ระหว่างการพัฒนา', 'info')">
+                    <div class="card card-menu" onclick="window.location.href='pm25_dashboard.html'">
                         <i class="fa-solid fa-smog menu-icon-secondary" style="background-color: #e5e7eb; color: #4b5563;"></i>
                         <h6>ดูค่าฝุ่น PM2.5</h6>
                     </div>
                 </div>
+                <!-- New 3: Stress Assessment -->
                 <div class="col-6 col-md-3">
-                    <div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบประเมินความเครียด กำลังอยู่ระหว่างการพัฒนา', 'info')">
+                    <div class="card card-menu" onclick="window.location.href='stress_assessment.html'">
                         <i class="fa-solid fa-face-tired menu-icon-warning"></i>
                         <h6>ประเมินความเครียด</h6>
                     </div>
                 </div>
+                <!-- New 4: Depression Assessment -->
                 <div class="col-6 col-md-3">
-                    <div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบประเมินภาวะซึมเศร้า กำลังอยู่ระหว่างการพัฒนา', 'info')">
+                    <div class="card card-menu" onclick="window.location.href='depression_assessment.html'">
                         <i class="fa-solid fa-cloud-showers-heavy menu-icon-dark"></i>
                         <h6>ประเมินภาวะซึมเศร้า</h6>
                     </div>
@@ -429,195 +352,129 @@
             </div>
         </div>
 
-        <!-- 🔥🔥🔥 ส่วนงานวิชาการ (ครู) 🔥🔥🔥 -->
-        <div id="academicSection">
-            <div class="section-title text-primary">ส่วนงานวิชาการ (ครู)</div>
-            <div class="row g-3 g-md-4">
-                
-                <div class="col-6 col-md-3">
-                    <div class="card card-menu" onclick="window.location.href='learning_record.html'">
-                        <i class="fa-solid fa-book-open menu-icon-primary"></i>
-                        <h6>บันทึกการเรียน</h6>
-                    </div>
+            <div id="academicSection">
+                <div class="section-title text-primary">ส่วนงานวิชาการ (ครู)</div>
+                <div class="row g-3 g-md-4">
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='learning_record.html'"><i class="fa-solid fa-book-open menu-icon-primary"></i><h6>บันทึกการเรียน</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='ai_scheduler.html'"><i class="fa-solid fa-wand-magic-sparkles menu-icon-ai"></i><h6>จัดตารางสอน AI</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบเยี่ยมบ้านนักเรียน กำลังอยู่ระหว่างการพัฒนา', 'info')"><i class="fa-solid fa-house-user menu-icon-success"></i><h6>เยี่ยมบ้านนักเรียน</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบตรวจข้อสอบอัตโนมัติ กำลังอยู่ระหว่างการพัฒนา', 'info')"><i class="fa-solid fa-file-circle-check menu-icon-purple"></i><h6>ตรวจข้อสอบอัตโนมัติ</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบบันทึกดื่มนม/แปรงฟัน กำลังอยู่ระหว่างการพัฒนา', 'info')"><i class="fa-solid fa-mug-hot menu-icon-warning"></i><h6>บันทึกดื่มนม/แปรงฟัน</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบบันทึกวัคซีน กำลังอยู่ระหว่างการพัฒนา', 'info')"><i class="fa-solid fa-syringe menu-icon-success"></i><h6>บันทึกการฉีดวัคซีน</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบสมรรถภาพทางกาย กำลังอยู่ระหว่างการพัฒนา', 'info')"><i class="fa-solid fa-heart-pulse menu-icon-danger"></i><h6>สมรรถภาพทางร่างกาย</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบบันทึกการเข้าใช้สถานที่ กำลังอยู่ระหว่างการพัฒนา', 'info')"><i class="fa-solid fa-building-user menu-icon-primary"></i><h6>บันทึกการเข้าใช้สถานที่</h6></div></div>
                 </div>
-
-                <div class="col-6 col-md-3">
-                    <div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบจัดตารางสอน AI กำลังอยู่ระหว่างการพัฒนา', 'info')">
-                        <i class="fa-solid fa-wand-magic-sparkles menu-icon-ai"></i>
-                        <h6>จัดตารางสอน AI</h6>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-3">
-                    <div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบเยี่ยมบ้านนักเรียน กำลังอยู่ระหว่างการพัฒนา', 'info')">
-                        <i class="fa-solid fa-house-user menu-icon-success"></i>
-                        <h6>เยี่ยมบ้านนักเรียน</h6>
-                    </div>
-                </div>
-
-                <div class="col-6 col-md-3">
-                    <div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบตรวจข้อสอบอัตโนมัติ กำลังอยู่ระหว่างการพัฒนา', 'info')">
-                        <i class="fa-solid fa-file-circle-check menu-icon-purple"></i>
-                        <h6>ตรวจข้อสอบอัตโนมัติ</h6>
-                    </div>
-                </div>
-
-                <!-- 🔥 เพิ่มใหม่: ระบบสุขภาพปฐมวัย -->
-                <div class="col-6 col-md-3">
-                    <div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบบันทึกดื่มนม/แปรงฟัน กำลังอยู่ระหว่างการพัฒนา', 'info')">
-                        <i class="fa-solid fa-mug-hot menu-icon-warning"></i>
-                        <h6>บันทึกดื่มนม/แปรงฟัน (ปฐมวัย)</h6>
-                    </div>
-                </div>
-
-                <!-- 🔥 เพิ่มใหม่: ระบบวัคซีน -->
-                <div class="col-6 col-md-3">
-                    <div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบบันทึกวัคซีน กำลังอยู่ระหว่างการพัฒนา', 'info')">
-                        <i class="fa-solid fa-syringe menu-icon-success"></i>
-                        <h6>บันทึกการฉีดวัคซีน</h6>
-                    </div>
-                </div>
-
-                 <!-- 🔥 เพิ่มใหม่: สมรรถภาพทางกาย -->
-                 <div class="col-6 col-md-3">
-                    <div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบสมรรถภาพทางกาย กำลังอยู่ระหว่างการพัฒนา', 'info')">
-                        <i class="fa-solid fa-heart-pulse menu-icon-danger"></i>
-                        <h6>สมรรถภาพทางร่างกาย</h6>
-                    </div>
-                </div>
-
-                 <!-- 🔥 เพิ่มใหม่: บันทึกการเข้าใช้สถานที่ -->
-                 <div class="col-6 col-md-3">
-                    <div class="card card-menu" onclick="Swal.fire('ขออภัย', 'ระบบบันทึกการเข้าใช้สถานที่ กำลังอยู่ระหว่างการพัฒนา', 'info')">
-                        <i class="fa-solid fa-building-user menu-icon-primary"></i>
-                        <h6>บันทึกการเข้าใช้สถานที่</h6>
-                    </div>
-                </div>
-
             </div>
-        </div>
 
-        <div id="teacherSection">
-            <div class="section-title">เมนูระบบงานอาคารสถานที่</div>
-            <div class="row g-3 g-md-4">
-                <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='my_history.html'"><i class="fa-solid fa-clock-rotate-left menu-icon-primary"></i><h6>ติดตามสถานะ</h6></div></div>
-                <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='repair_form.html'"><i class="fa-solid fa-screwdriver-wrench menu-icon-warning"></i><h6>แจ้งซ่อม</h6></div></div>
-                <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='vehicle_form.html'"><i class="fa-solid fa-car-side menu-icon-success"></i><h6>เบิกรถ</h6></div></div>
-                <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='leave_form.html'"><i class="fa-solid fa-file-medical menu-icon-purple"></i><h6>ลากิจ/ลาป่วย</h6></div></div>
-                <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='outside_form.html'"><i class="fa-solid fa-person-walking-luggage menu-icon-info"></i><h6>ออกนอกสถานที่</h6></div></div>
-                <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='manpower_form.html'"><i class="fa-solid fa-users menu-icon-danger"></i><h6>ขอกำลังพล</h6></div></div>
-                
-                <div class="col-6 col-md-3">
-                    <div class="card card-menu"onclick="window.location.href='document_registry.html'">
-                        <i class="fa-solid fa-chalkboard-user menu-icon-dark"></i>
-                        <h6>ระบบงานสารบรรณ & ทะเบียนคุม</h6>
-                    </div>
+            <div id="teacherSection">
+                <div class="section-title">เมนูระบบงานอาคารสถานที่</div>
+                <div class="row g-3 g-md-4">
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='my_history.html'"><i class="fa-solid fa-clock-rotate-left menu-icon-primary"></i><h6>ติดตามสถานะ</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='repair_form.html'"><i class="fa-solid fa-screwdriver-wrench menu-icon-warning"></i><h6>แจ้งซ่อม</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='vehicle_form.html'"><i class="fa-solid fa-car-side menu-icon-success"></i><h6>เบิกรถ</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='leave_form.html'"><i class="fa-solid fa-file-medical menu-icon-purple"></i><h6>ลากิจ/ลาป่วย</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='outside_form.html'"><i class="fa-solid fa-person-walking-luggage menu-icon-info"></i><h6>ออกนอกสถานที่</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='manpower_form.html'"><i class="fa-solid fa-users menu-icon-danger"></i><h6>ขอกำลังพล</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='document_registry.html'"><i class="fa-solid fa-chalkboard-user menu-icon-dark"></i><h6>สารบรรณ</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='ai_summary.html'"><i class="fa-solid fa-robot menu-icon-ai"></i><h6>สรุปประชุม AI</h6></div></div>
                 </div>
-                <div class="col-6 col-md-3">
-                    <div class="card card-menu"  onclick="window.location.href='ai_summary.html'">
-                        <i class="fa-solid fa-robot menu-icon-ai"></i>
-                        <h6>สรุปประชุม AI</h6>
-                    </div>
+            </div>
+
+            <!-- Role Specific Cards -->
+            <div id="technicianSection"><div class="section-title text-warning">ส่วนงานช่างอาคาร</div><div class="card"><div class="card-header bg-white py-3 border-bottom"><h6 class="m-0 fw-bold text-dark">รายการแจ้งซ่อมล่าสุด</h6></div><div class="table-responsive"><table class="table table-hover mb-0"><tbody id="quickRepairTable"></tbody></table></div></div></div>
+            <div id="transportSection"><div class="section-title text-success">ส่วนงานยานพาหนะ</div><div class="card"><div class="card-header bg-white py-3 border-bottom"><h6 class="m-0 fw-bold text-dark">คิวรถล่าสุด</h6></div><div class="table-responsive"><table class="table table-hover mb-0"><tbody id="quickTransportTable"></tbody></table></div></div></div>
+            <div id="personnelSection"><div class="section-title" style="color: #8b5cf6;">ส่วนงานบุคคล</div><div class="card"><div class="card-header bg-white py-3 border-bottom"><h6 class="m-0 fw-bold text-dark">รายการลาล่าสุด</h6></div><div class="table-responsive"><table class="table table-hover mb-0"><tbody id="quickLeaveTable"></tbody></table></div></div></div>
+            <div id="securitySection"><div class="section-title" style="color: #6c757d;">ส่วนงานรักษาความปลอดภัย (รปภ.)</div><div class="card"><div class="card-header bg-white py-3 border-bottom"><h6 class="m-0 fw-bold text-dark">รายการขอออกนอกสถานที่ล่าสุด</h6></div><div class="table-responsive"><table class="table table-hover mb-0"><tbody id="quickOutsideTable"></tbody></table></div></div></div>
+
+            <div id="adminSection">
+                <div class="section-title text-danger">ผู้ดูแลระบบ</div>
+                <div class="row g-2 g-md-3">
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='admin_register.html'"><i class="fa-solid fa-user-plus menu-icon-danger"></i><h6>เพิ่มบุคลากร</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='admin_news.html'"><i class="fa-solid fa-bullhorn menu-icon-primary"></i><h6>ลงประกาศ</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='admin_report.html'"><i class="fa-solid fa-chart-pie menu-icon-dark"></i><h6>รายงานสรุป</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu" onclick="openUserManagement()"><i class="fa-solid fa-users-gear menu-icon-info"></i><h6>จัดการผู้ใช้</h6></div></div>
+                    <div class="col-6 col-md-3"><div class="card card-menu bg-danger text-white" onclick="resetAllUsersData()"><i class="fa-solid fa-radiation menu-icon-danger bg-white text-danger"></i><h6 class="text-white">ล้างข้อมูล Users (Reset)</h6></div></div>
                 </div>
             </div>
         </div>
 
-        <div id="technicianSection">
-            <div class="section-title text-warning">ส่วนงานช่างอาคาร</div>
-            <div class="row mb-3 mb-md-4">
-                <div class="col-12">
-                    <div class="card card-menu flex-row align-items-center justify-content-start p-3 p-md-4 bg-white border-warning" onclick="window.location.href='technician_dashboard.html'" style="border-left: 6px solid #f59e0b;">
-                        <i class="fa-solid fa-helmet-safety menu-icon-warning me-3 me-md-4 mb-0"></i>
-                        <div><h5 class="fw-bold mb-1 fs-5 text-dark">ห้องทำงานช่าง</h5><p class="text-muted m-0">จัดการรายการแจ้งซ่อม</p></div>
-                        <i class="fa-solid fa-chevron-right ms-auto text-muted"></i>
+        <!-- 🔥🔥🔥 หน้า Profile Page ใหม่ (Full Page Effect) 🔥🔥🔥 -->
+        <div id="profilePage">
+            <button class="btn btn-light rounded-pill shadow-sm mb-3 fw-bold text-primary" onclick="closeProfilePage()">
+                <i class="fa-solid fa-chevron-left me-2"></i> กลับหน้าหลัก
+            </button>
+
+            <div class="profile-header">
+                <div class="profile-avatar-wrapper">
+                    <img id="pageProfileImg" src="" class="profile-avatar-lg">
+                    <!-- ปุ่มแก้ไขรูป (โผล่เฉพาะเจ้าของ) -->
+                    <div id="btnEditAvatar" class="btn-edit-avatar d-none" onclick="document.getElementById('profileUploadInput').click()">
+                        <i class="fa-solid fa-camera"></i>
                     </div>
                 </div>
             </div>
-            <div class="card">
-                <div class="card-header bg-white py-3 border-bottom"><h6 class="m-0 fw-bold text-dark">รายการแจ้งซ่อมล่าสุด</h6></div>
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0"><thead><tr><th class="ps-4">รายการ</th><th>สถานที่</th><th>สถานะ</th><th class="admin-only text-end pe-4">จัดการ</th></tr></thead><tbody id="quickRepairTable"></tbody></table>
+
+            <div class="text-center mb-4">
+                <h3 class="fw-bold mb-1" id="pageProfileName">...</h3>
+                <span id="pageProfileRole" class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3">...</span>
+            </div>
+
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-6">
+                    <div class="profile-info-card">
+                        <div class="d-flex justify-content-between align-items-center mb-4">
+                            <h5 class="fw-bold m-0"><i class="fa-regular fa-id-card me-2 text-primary"></i>ข้อมูลส่วนตัว</h5>
+                            <div id="profileActionBtns">
+                                <button id="btnEditProfile" class="btn btn-sm btn-outline-primary rounded-pill px-3 fw-bold d-none" onclick="toggleEditMode()">
+                                    <i class="fa-solid fa-pen me-1"></i> แก้ไข
+                                </button>
+                                <button id="btnSaveProfile" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold d-none" onclick="saveProfileChanges()">
+                                    <i class="fa-solid fa-save me-1"></i> บันทึก
+                                </button>
+                            </div>
+                        </div>
+
+                        <form id="profileForm">
+                            <div class="mb-3">
+                                <label class="profile-label">ชื่อ-นามสกุล</label>
+                                <div class="profile-value" id="viewName">...</div>
+                            </div>
+                            <div class="row">
+                                <div class="col-6 mb-3">
+                                    <label class="profile-label">ชื่อเล่น</label>
+                                    <input type="text" id="editNickname" class="form-control form-control-plaintext" readonly>
+                                </div>
+                                <div class="col-6 mb-3">
+                                    <label class="profile-label">เบอร์โทรศัพท์</label>
+                                    <input type="tel" id="editPhone" class="form-control form-control-plaintext" readonly>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="profile-label">อีเมล</label>
+                                <div class="profile-value" id="viewEmail">...</div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="profile-label">ที่อยู่ปัจจุบัน</label>
+                                <input type="text" id="editAddress" class="form-control form-control-plaintext" readonly placeholder="-">
+                            </div>
+                            <div class="mb-3">
+                                <label class="profile-label text-danger">ข้อมูลสุขภาพ (โรคประจำตัว/แพ้ยา)</label>
+                                <textarea id="editHealth" class="form-control form-control-plaintext" readonly rows="2" placeholder="-"></textarea>
+                            </div>
+                            
+                            <!-- ส่วนข้อมูลเฉพาะ Role -->
+                            <div id="roleSpecificInfo" class="mt-4 pt-3 border-top">
+                                <!-- JS จะเติมข้อมูลตรงนี้ -->
+                            </div>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div id="transportSection">
-            <div class="section-title text-success">ส่วนงานยานพาหนะ</div>
-            <div class="row mb-3 mb-md-4">
-                <div class="col-12">
-                    <div class="card card-menu flex-row align-items-center justify-content-start p-3 p-md-4 bg-white border-success" onclick="window.location.href='transport_dashboard.html'" style="border-left: 6px solid #10b981;">
-                        <i class="fa-solid fa-van-shuttle menu-icon-success me-3 me-md-4 mb-0"></i>
-                        <div><h5 class="fw-bold mb-1 fs-5 text-dark">จัดการการจองรถ</h5><p class="text-muted m-0">ตรวจสอบตารางและอนุมัติ</p></div>
-                        <i class="fa-solid fa-chevron-right ms-auto text-muted"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-header bg-white py-3 border-bottom"><h6 class="m-0 fw-bold text-dark">คิวรถล่าสุด</h6></div>
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0"><thead><tr><th class="ps-4">วันที่</th><th>สถานที่</th><th>คนขับ</th><th>สถานะ</th><th class="admin-only text-end pe-4">จัดการ</th></tr></thead><tbody id="quickTransportTable"></tbody></table>
-                </div>
-            </div>
-        </div>
-
-        <div id="personnelSection">
-            <div class="section-title" style="color: #8b5cf6;">ส่วนงานบุคคล</div>
-            <div class="row mb-3 mb-md-4">
-                <div class="col-12">
-                    <div class="card card-menu flex-row align-items-center justify-content-start p-3 p-md-4 bg-white" onclick="window.location.href='personnel_dashboard.html'" style="border-left: 6px solid #8b5cf6;">
-                        <i class="fa-solid fa-clipboard-user menu-icon-purple me-3 me-md-4 mb-0"></i>
-                        <div><h5 class="fw-bold mb-1 fs-5 text-dark">พิจารณาคำขอ</h5><p class="text-muted m-0">ตรวจสอบการลา/ออกนอกสถานที่</p></div>
-                        <i class="fa-solid fa-chevron-right ms-auto text-muted"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-header bg-white py-3 border-bottom"><h6 class="m-0 fw-bold text-dark">รายการลาล่าสุด</h6></div>
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0"><thead><tr><th class="ps-4">ประเภท</th><th>ผู้ลา</th><th>สถานะ</th><th class="admin-only text-end pe-4">จัดการ</th></tr></thead><tbody id="quickLeaveTable"></tbody></table>
-                </div>
-            </div>
-        </div>
-
-        <div id="securitySection">
-            <div class="section-title" style="color: #6c757d;">ส่วนงานรักษาความปลอดภัย (รปภ.)</div>
-            <div class="row mb-3 mb-md-4">
-                <div class="col-12">
-                    <div class="card card-menu flex-row align-items-center justify-content-start p-3 p-md-4 bg-white" onclick="window.location.href='security_dashboard.html'" style="border-left: 6px solid #6c757d;">
-                        <i class="fa-solid fa-shield-halved menu-icon-dark me-3 me-md-4 mb-0"></i>
-                        <div><h5 class="fw-bold mb-1 fs-5 text-dark">ตรวจสอบการออกนอกสถานที่</h5><p class="text-muted m-0">ดูรายการอนุญาต</p></div>
-                        <i class="fa-solid fa-chevron-right ms-auto text-muted"></i>
-                    </div>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-header bg-white py-3 border-bottom"><h6 class="m-0 fw-bold text-dark">รายการขอออกนอกสถานที่ล่าสุด</h6></div>
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead><tr><th class="ps-4">วันที่</th><th>ผู้ขอ</th><th>เวลา</th><th>สถานะ</th><th class="admin-only text-end pe-4">จัดการ</th></tr></thead>
-                        <tbody id="quickOutsideTable"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div id="adminSection">
-            <div class="section-title text-danger">ผู้ดูแลระบบ</div>
-            <div class="row g-2 g-md-3">
-                <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='admin_register.html'"><i class="fa-solid fa-user-plus menu-icon-danger"></i><h6>เพิ่มบุคลากร</h6></div></div>
-                <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='admin_news.html'"><i class="fa-solid fa-bullhorn menu-icon-primary"></i><h6>ลงประกาศ</h6></div></div>
-                <div class="col-6 col-md-3"><div class="card card-menu" onclick="window.location.href='admin_report.html'"><i class="fa-solid fa-chart-pie menu-icon-dark"></i><h6>รายงานสรุป</h6></div></div>
-                <div class="col-6 col-md-3"><div class="card card-menu" onclick="openUserManagement()"><i class="fa-solid fa-users-gear menu-icon-info"></i><h6>จัดการผู้ใช้</h6></div></div>
-                <div class="col-6 col-md-3">
-                    <div class="card card-menu bg-danger text-white" onclick="resetAllUsersData()">
-                        <i class="fa-solid fa-radiation menu-icon-danger bg-white text-danger"></i>
-                        <h6 class="text-white">ล้างข้อมูล Users (Reset)</h6>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 
+    <!-- User Management Modal (Admin View List) -->
     <div class="modal fade" id="userManageModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content border-0 shadow">
@@ -631,77 +488,8 @@
                         <input type="text" id="searchUser" class="form-control border-0 py-2" placeholder="ค้นหาชื่อ หรือ อีเมล...">
                     </div>
                     <div class="table-responsive rounded-3 border">
-                        <table class="table table-hover mb-0 align-middle"><thead class="bg-light"><tr><th class="py-3 ps-4">ชื่อ-สกุล</th><th class="py-3">อีเมล</th><th class="py-3">ตำแหน่ง</th><th class="py-3 text-end pe-4">จัดการ</th></tr></thead><tbody id="userTableBody"><tr><td colspan="4" class="text-center py-4 text-muted">กำลังโหลดข้อมูล...</td></tr></tbody></table>
+                        <table class="table table-hover mb-0 align-middle"><thead class="bg-light"><tr><th class="py-3 ps-4">ชื่อ-สกุล</th><th class="py-3">อีเมล</th><th class="py-3">ตำแหน่ง</th><th class="py-3 text-end pe-4">จัดการ</th></tr></thead><tbody id="userTableBody"></tbody></table>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 🔥 เพิ่ม Modal สำหรับดูรายละเอียด (View Details) -->
-    <div class="modal fade" id="userDetailsModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-id-card me-2"></i>รายละเอียดผู้ใช้</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="text-center mb-3">
-                        <img id="detailImg" src="" class="rounded-circle shadow-sm" style="width: 80px; height: 80px; object-fit: cover;">
-                    </div>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><b>ชื่อ:</b> <span id="detailName">-</span></li>
-                        <li class="list-group-item"><b>อีเมล:</b> <span id="detailEmail">-</span></li>
-                        <li class="list-group-item"><b>เบอร์โทร:</b> <span id="detailPhone">-</span></li>
-                        <li class="list-group-item"><b>วันเกิด:</b> <span id="detailDob">-</span></li>
-                        <li class="list-group-item"><b>เลขบัตร:</b> <span id="detailNatId">-</span></li>
-                        <!-- ข้อมูลเฉพาะ Role -->
-                        <div id="detailExtra" class="mt-2 bg-light p-2 rounded"></div>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 🔥 เพิ่ม Modal แก้ไขข้อมูลส่วนตัว (My Profile) -->
-    <div class="modal fade" id="myProfileModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow">
-                <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-user-pen me-2"></i>ข้อมูลส่วนตัว</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <div class="text-center mb-4">
-                        <div class="position-relative d-inline-block">
-                             <img id="myProfileImg" src="" class="rounded-circle shadow-sm border border-2 border-white" style="width: 100px; height: 100px; object-fit: cover;">
-                             <button class="btn btn-sm btn-light rounded-circle shadow-sm position-absolute bottom-0 end-0" onclick="document.getElementById('profileUploadInput').click()">
-                                 <i class="fa-solid fa-camera text-primary"></i>
-                             </button>
-                        </div>
-                    </div>
-                    <form id="myProfileForm">
-                        <div class="mb-3">
-                            <label class="form-label small text-muted">ชื่อเล่น</label>
-                            <input type="text" id="myNickname" class="form-control">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small text-muted">เบอร์โทรศัพท์</label>
-                            <input type="tel" id="myPhone" class="form-control">
-                        </div>
-                         <div class="mb-3">
-                            <label class="form-label small text-muted">ที่อยู่ปัจจุบัน</label>
-                            <textarea id="myAddress" class="form-control" rows="2"></textarea>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small text-muted">ข้อมูลสุขภาพ (โรคประจำตัว/แพ้ยา)</label>
-                            <textarea id="myHealthInfo" class="form-control" rows="2" placeholder="เช่น แพ้อาหารทะเล, เป็นหอบหืด"></textarea>
-                        </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary fw-bold">บันทึกการเปลี่ยนแปลง</button>
-                        </div>
-                    </form>
                 </div>
             </div>
         </div>
@@ -709,41 +497,11 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const snowContainer = document.createElement('div');
-            snowContainer.style.position = 'fixed';
-            snowContainer.style.top = '0';
-            snowContainer.style.left = '0';
-            snowContainer.style.width = '100%';
-            snowContainer.style.height = '100%';
-            snowContainer.style.pointerEvents = 'none';
-            snowContainer.style.zIndex = '99999';
-            document.body.appendChild(snowContainer);
-
-            function createSnowflake() {
-                const snowflake = document.createElement('div');
-                snowflake.innerHTML = '❄';
-                snowflake.classList.add('snowflake');
-                const left = Math.random() * 100;
-                const animDuration = Math.random() * 3 + 2; 
-                const size = Math.random() * 10 + 10; 
-                const opacity = Math.random() * 0.6 + 0.2;
-                Object.assign(snowflake.style, { left: `${left}vw`, animationDuration: `${animDuration}s`, fontSize: `${size}px`, opacity: opacity });
-                snowContainer.appendChild(snowflake);
-                setTimeout(() => { snowflake.remove(); }, animDuration * 1000);
-            }
-            const snowInterval = setInterval(createSnowflake, 100);
-            setTimeout(() => { clearInterval(snowInterval); }, 60000);
-        });
-    </script>
-
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, signOut, onAuthStateChanged, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        // 🔥 เพิ่ม import ที่จำเป็นให้ครบ
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, doc, getDoc, collection, query, orderBy, limit, onSnapshot, where, deleteDoc, updateDoc, addDoc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js"; // เพิ่ม Storage Import
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
@@ -757,22 +515,202 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const storage = getStorage(app); // Init Storage
+        const storage = getStorage(app);
 
         let currentUserRole = "";
         let currentStudentClass = "";
         let currentDate = new Date();
         let currentEvents = [];
-        let currentUserData = null; // เก็บข้อมูล User ปัจจุบัน
-        // ❌ ลบตัวแปรที่ประกาศซ้ำตรงนี้ออกไปแล้ว
+        let currentUserData = null;
+        let viewingProfileUid = null; 
 
-        setTimeout(() => {
-            const loader = document.getElementById('loadingScreen');
-            if(loader && !loader.classList.contains('hidden')) { console.warn("Loader timed out"); loader.classList.add('hidden'); }
-        }, 3000);
+        // Init
+        document.addEventListener('DOMContentLoaded', () => { /* Snow effect (Optional) */ });
+        setTimeout(() => { const l=document.getElementById('loadingScreen'); if(l) l.classList.add('hidden'); }, 3000);
 
-        window.changeMonth = (step) => { currentDate.setMonth(currentDate.getMonth() + step); loadEventsAndRender(); };
+        // Auth & Main Logic
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                if (!user.emailVerified) { Swal.fire('ยืนยันอีเมลก่อน', '', 'warning').then(() => signOut(auth)); return; }
+                const userDocRef = doc(db, "users", user.uid);
+                onSnapshot(userDocRef, (docSnap) => {
+                    if (docSnap.exists()) {
+                        const d = docSnap.data();
+                        currentUserData = d;
+                        currentUserRole = d.role || 'guest';
+                        currentStudentClass = d.studentClass || "";
+                        
+                        document.getElementById('userEmail').innerText = d.firstName || user.email;
+                        document.getElementById('userRoleBadge').innerText = getThaiRoleName(currentUserRole);
+                        if(d.profileImage) {
+                            document.getElementById('navUserAvatar').src = d.profileImage;
+                            document.getElementById('navUserAvatar').classList.remove('d-none');
+                            document.getElementById('navUserAvatarPlaceholder').classList.add('d-none');
+                        }
 
+                        hideAllSections();
+                        if (currentUserRole === 'student') showSec(['news', 'student', 'health']);
+                        else if (isTeacher(currentUserRole)) { showSec(['news', 'teacher', 'health']); document.getElementById('academicSection').style.display='block'; }
+                        else if (currentUserRole === 'admin' || currentUserRole === 'executive') { 
+                            showSec(['admin', 'teacher', 'news', 'personnel', 'technician', 'transport', 'security', 'student', 'health']);
+                            document.getElementById('academicSection').style.display='block';
+                            document.querySelectorAll('.admin-only').forEach(el=>el.style.display='table-cell');
+                            document.getElementById('btnAddNews').classList.remove('d-none');
+                            document.getElementById('btnAddEvent').classList.remove('d-none');
+                            loadQuickRepairs(); loadQuickLeaves(); loadQuickTransport(); loadQuickOutside();
+                        } else { showSec(['news', 'teacher', 'health']); }
+
+                        loadNews(); loadEventsAndRender(); listenToNotifications();
+                    }
+                });
+            } else { window.location.href = "index.html"; }
+        });
+
+        // 🔥🔥🔥 Profile Page Logic (Unified) 🔥🔥🔥
+        window.openProfilePage = async (targetUid) => {
+            const uid = targetUid || auth.currentUser.uid;
+            viewingProfileUid = uid;
+            
+            Swal.fire({title: 'กำลังโหลดข้อมูล...', didOpen: ()=>Swal.showLoading()});
+
+            try {
+                const docSnap = await getDoc(doc(db, "users", uid));
+                if (!docSnap.exists()) throw new Error("ไม่พบข้อมูลผู้ใช้");
+                const data = docSnap.data();
+                const isMe = (uid === auth.currentUser.uid);
+
+                // UI Elements
+                document.getElementById('pageProfileImg').src = data.profileImage || 'https://via.placeholder.com/150';
+                document.getElementById('pageProfileName').innerText = `${data.prefix||''} ${data.firstName} ${data.lastName||''}`;
+                document.getElementById('pageProfileRole').innerText = getThaiRoleName(data.role);
+                
+                document.getElementById('viewName').innerText = `${data.prefix||''} ${data.firstName} ${data.lastName||''}`;
+                document.getElementById('viewEmail').innerText = data.email;
+                
+                setProfileInput('editNickname', data.nickname);
+                setProfileInput('editPhone', data.phoneNumber);
+                setProfileInput('editAddress', data.address);
+                setProfileInput('editHealth', data.healthInfo);
+
+                // Role Info
+                let roleHtml = '';
+                if(data.role === 'student') roleHtml = `<div class="mb-2"><small class="text-muted">รหัสนักเรียน:</small> <b>${data.studentId||'-'}</b></div><div class="mb-2"><small class="text-muted">ชั้นเรียน:</small> <b>${data.studentClass||'-'}</b></div>`;
+                else if(data.role.startsWith('teacher')) roleHtml = `<div class="mb-2"><small class="text-muted">ตำแหน่ง:</small> <b>${data.academicPosition||'-'}</b></div><div class="mb-2"><small class="text-muted">กลุ่มสาระ:</small> <b>${data.department||'-'}</b></div>`;
+                document.getElementById('roleSpecificInfo').innerHTML = roleHtml;
+
+                // Edit Controls (Only for owner)
+                if(isMe) {
+                    document.getElementById('btnEditAvatar').classList.remove('d-none');
+                    document.getElementById('btnEditProfile').classList.remove('d-none');
+                } else {
+                    document.getElementById('btnEditAvatar').classList.add('d-none');
+                    document.getElementById('btnEditProfile').classList.add('d-none');
+                }
+                
+                // Reset Mode
+                document.getElementById('btnSaveProfile').classList.add('d-none');
+                document.querySelectorAll('.form-control-plaintext').forEach(el => el.setAttribute('readonly', true));
+
+                // Switch View
+                Swal.close();
+                document.getElementById('mainDashboard').style.display = 'none';
+                document.getElementById('profilePage').style.display = 'block';
+                window.scrollTo(0,0);
+
+                // Close Modal if open
+                const modalEl = document.getElementById('userManageModal');
+                const modal = bootstrap.Modal.getInstance(modalEl);
+                if(modal) modal.hide();
+
+            } catch (e) {
+                console.error(e);
+                Swal.fire('Error', 'โหลดข้อมูลไม่สำเร็จ', 'error');
+            }
+        };
+
+        window.closeProfilePage = () => {
+            document.getElementById('profilePage').style.display = 'none';
+            document.getElementById('mainDashboard').style.display = 'block';
+        };
+
+        window.toggleEditMode = () => {
+            const inputs = document.querySelectorAll('.form-control-plaintext');
+            const isReadOnly = inputs[0].hasAttribute('readonly');
+            
+            inputs.forEach(el => {
+                if(isReadOnly) el.removeAttribute('readonly');
+                else el.setAttribute('readonly', true);
+            });
+
+            if(isReadOnly) {
+                document.getElementById('btnSaveProfile').classList.remove('d-none');
+                document.getElementById('btnEditProfile').innerHTML = '<i class="fa-solid fa-xmark"></i> ยกเลิก';
+                document.getElementById('editNickname').focus();
+            } else {
+                document.getElementById('btnSaveProfile').classList.add('d-none');
+                document.getElementById('btnEditProfile').innerHTML = '<i class="fa-solid fa-pen"></i> แก้ไข';
+                openProfilePage(viewingProfileUid); // Reset
+            }
+        };
+
+        window.saveProfileChanges = async () => {
+            try {
+                Swal.fire({title: 'บันทึก...', didOpen: ()=>Swal.showLoading()});
+                await updateDoc(doc(db, "users", viewingProfileUid), {
+                    nickname: document.getElementById('editNickname').value,
+                    phoneNumber: document.getElementById('editPhone').value,
+                    address: document.getElementById('editAddress').value,
+                    healthInfo: document.getElementById('editHealth').value
+                });
+                Swal.fire('สำเร็จ', 'บันทึกข้อมูลแล้ว', 'success');
+                toggleEditMode();
+            } catch(e) { Swal.fire('Error', e.message, 'error'); }
+        };
+
+        // Reuse Image Upload
+        window.handleProfileUpload = async (input) => {
+            const file = input.files[0];
+            if (!file) return;
+            if (file.size > 2 * 1024 * 1024) { Swal.fire('ใหญ่เกิน', 'รูปต้องไม่เกิน 2MB', 'warning'); return; }
+            
+            Swal.fire({ title: 'อัปโหลดรูป...', didOpen: () => Swal.showLoading() });
+            try {
+                const storageRef = ref(storage, `profile_images/${auth.currentUser.uid}_${Date.now()}`);
+                const snap = await uploadBytes(storageRef, file);
+                const url = await getDownloadURL(snap.ref);
+                await updateDoc(doc(db, "users", auth.currentUser.uid), { profileImage: url });
+                
+                document.getElementById('pageProfileImg').src = url;
+                document.getElementById('navUserAvatar').src = url;
+                Swal.close();
+            } catch (e) { Swal.fire('Error', e.message, 'error'); }
+        };
+
+        function setProfileInput(id, val) { document.getElementById(id).value = val || ''; }
+
+        // User Management (Admin)
+        window.openUserManagement = () => { new bootstrap.Modal(document.getElementById('userManageModal')).show(); loadUsers(); };
+        function loadUsers() {
+            const tbody = document.getElementById('userTableBody');
+            onSnapshot(query(collection(db, "users"), orderBy("email")), (snap) => {
+                tbody.innerHTML = "";
+                snap.forEach(d => {
+                    const u = d.data();
+                    let viewBtn = `<button class="btn btn-action btn-light text-info me-1" onclick="openProfilePage('${d.id}')" title="ดูข้อมูล"><i class="fa-solid fa-eye"></i></button>`;
+                    let delBtn = `<button class="btn btn-action btn-light text-danger" onclick="deleteUser('${d.id}')"><i class="fa-solid fa-trash"></i></button>`;
+                    tbody.innerHTML += `<tr><td class="ps-4">${u.firstName}</td><td>${u.email}</td><td>${getThaiRoleName(u.role)}</td><td class="text-end pe-4">${viewBtn}${delBtn}</td></tr>`;
+                });
+            });
+        }
+        window.deleteUser = async (id) => { if(confirm('ลบผู้ใช้นี้?')) await deleteDoc(doc(db, "users", id)); };
+
+        // --- Helper Functions ---
+        function isTeacher(role) { return ['teacher','teacher_basic','teacher_kindergarten'].includes(role); }
+        function getThaiRoleName(role) { const m={'student':'นักเรียน','teacher_basic':'ครู','admin':'ผู้ดูแลระบบ','staff':'เจ้าหน้าที่'}; return m[role]||role; }
+        function hideAllSections() { ['news', 'academic', 'teacher', 'technician', 'transport', 'personnel', 'admin', 'security', 'student', 'health'].forEach(s => { document.getElementById(s+'Section').style.display='none'; }); }
+        function showSec(list) { list.forEach(id => { const el=document.getElementById(id+'Section'); if(el) el.style.display='block'; }); }
+        window.changeMonth = (s) => { currentDate.setMonth(currentDate.getMonth()+s); loadEventsAndRender(); };
+        
         function loadEventsAndRender() {
             try {
                 const year = currentDate.getFullYear();
@@ -785,14 +723,9 @@
                     currentEvents = [];
                     snapshot.forEach(doc => { currentEvents.push({ id: doc.id, ...doc.data() }); });
                     renderCalendar();
-                }, (error) => { 
-                    console.error("Calendar Error:", error); 
-                    // ถ้า error permission ให้ render ปฏิทินเปล่าๆ ไปก่อน
-                    renderCalendar();
-                });
-            } catch (e) { console.error(e); renderCalendar(); }
+                }, (error) => { renderCalendar(); });
+            } catch (e) { renderCalendar(); }
         }
-
         function renderCalendar() {
             const year = currentDate.getFullYear();
             const month = currentDate.getMonth();
@@ -823,7 +756,7 @@
                 daysContainer.innerHTML += `<div class="${className}" style="${style}" ${clickAction}>${i}${dotHtml}</div>`;
             }
         }
-
+        
         window.openAddEventModal = async (preSelectedDate = '') => {
             if(currentUserRole !== 'admin' && currentUserRole !== 'executive') return;
             if(!preSelectedDate) { const now = new Date(); preSelectedDate = now.toISOString().split('T')[0]; }
@@ -862,50 +795,33 @@
             } else { Swal.fire({ title: `กิจกรรมวันที่ ${dateStr}`, html: htmlContent, confirmButtonText: 'ปิด' }); }
         };
 
-        // 🔥 Notification System
+        // Notifications
         let notifUnsubscribes = [];
-
         function listenToNotifications() {
-            // Clear old listeners
-            notifUnsubscribes.forEach(unsub => unsub());
-            notifUnsubscribes = [];
-
+            notifUnsubscribes.forEach(unsub => unsub()); notifUnsubscribes = [];
             const collectionsToCheck = [];
-            
             if (currentUserRole === 'admin' || currentUserRole === 'executive') {
                 collectionsToCheck.push({ name: 'repair_requests', label: 'แจ้งซ่อม' });
                 collectionsToCheck.push({ name: 'vehicle_requests', label: 'จองรถ' });
                 collectionsToCheck.push({ name: 'leave_requests', label: 'ลากิจ/ลาป่วย' });
                 collectionsToCheck.push({ name: 'outside_requests', label: 'ออกนอกสถานที่' });
-            } else if (currentUserRole === 'technician') {
-                collectionsToCheck.push({ name: 'repair_requests', label: 'แจ้งซ่อม' });
-            } else if (currentUserRole === 'transport') {
-                collectionsToCheck.push({ name: 'vehicle_requests', label: 'จองรถ' });
-            } else if (currentUserRole === 'personnel') {
-                collectionsToCheck.push({ name: 'leave_requests', label: 'ลากิจ/ลาป่วย' });
-                collectionsToCheck.push({ name: 'outside_requests', label: 'ออกนอกสถานที่' });
-            } else if (currentUserRole === 'security_guard') {
-                collectionsToCheck.push({ name: 'outside_requests', label: 'ออกนอกสถานที่' });
-            } 
-            // 🔥 เพิ่มแจ้งเตือนการบ้านให้นักเรียน
+            } else if (currentUserRole === 'technician') collectionsToCheck.push({ name: 'repair_requests', label: 'แจ้งซ่อม' });
+            else if (currentUserRole === 'transport') collectionsToCheck.push({ name: 'vehicle_requests', label: 'จองรถ' });
+            else if (currentUserRole === 'personnel') { collectionsToCheck.push({ name: 'leave_requests', label: 'ลากิจ/ลาป่วย' }); collectionsToCheck.push({ name: 'outside_requests', label: 'ออกนอกสถานที่' }); }
+            else if (currentUserRole === 'security_guard') collectionsToCheck.push({ name: 'outside_requests', label: 'ออกนอกสถานที่' });
             else if (currentUserRole === 'student' && currentStudentClass) {
-                // เช็คการบ้านวันนี้ (หรือล่าสุด)
                 const todayStr = new Date().toISOString().split('T')[0];
-                const q = query(collection(db, "learning_records"), where("className", "==", currentStudentClass), where("date", ">=", todayStr)); // แจ้งเฉพาะของวันนี้หรืออนาคต
+                const q = query(collection(db, "learning_records"), where("className", "==", currentStudentClass), where("date", ">=", todayStr));
                 const unsub = onSnapshot(q, (snapshot) => {
-                    let hwCount = 0;
-                    snapshot.forEach(d => { if(d.data().homework) hwCount++; });
+                    let hwCount = 0; snapshot.forEach(d => { if(d.data().homework) hwCount++; });
                     if(hwCount > 0) updateNotificationPopup({'การบ้านใหม่': hwCount});
                     else document.getElementById('notificationPopup').style.display = 'none';
                 });
                 notifUnsubscribes.push(unsub);
-                return; // จบของนักเรียน
+                return;
             }
-
             if (collectionsToCheck.length === 0) return;
-
             const counts = {};
-            
             collectionsToCheck.forEach(col => {
                 const q = query(collection(db, col.name), where("status", "==", "pending"));
                 const unsub = onSnapshot(q, (snapshot) => {
@@ -915,304 +831,15 @@
                 notifUnsubscribes.push(unsub);
             });
         }
-
         function updateNotificationPopup(counts) {
-            let total = 0;
-            let detailsHtml = '';
-            for (const [label, count] of Object.entries(counts)) {
-                if (count > 0) {
-                    total += count;
-                    detailsHtml += `<div class="notif-item"><span>${label}</span> <b>${count}</b></div>`;
-                }
-            }
-
+            let total = 0; let detailsHtml = '';
+            for (const [label, count] of Object.entries(counts)) { if (count > 0) { total += count; detailsHtml += `<div class="notif-item"><span>${label}</span> <b>${count}</b></div>`; } }
             const popup = document.getElementById('notificationPopup');
-            const totalBadge = document.getElementById('notifTotalCount');
-            const content = document.getElementById('notifContent');
-
-            if (total > 0) {
-                totalBadge.innerText = total;
-                content.innerHTML = detailsHtml;
-                popup.style.display = 'block';
-            } else {
-                popup.style.display = 'none';
-            }
+            if (total > 0) { document.getElementById('notifTotalCount').innerText = total; document.getElementById('notifContent').innerHTML = detailsHtml; popup.style.display = 'block'; } else { popup.style.display = 'none'; }
         }
+        window.closeNotification = () => { document.getElementById('notificationPopup').style.display = 'none'; }
 
-        window.closeNotification = () => {
-            document.getElementById('notificationPopup').style.display = 'none';
-        }
-        
-        // 🔥 Profile Upload Function
-        window.handleProfileUpload = async (input) => {
-            const file = input.files[0];
-            if (!file) return;
-
-            // เช็คขนาดไฟล์ (ไม่เกิน 2MB)
-            if (file.size > 2 * 1024 * 1024) {
-                Swal.fire('ไฟล์ใหญ่เกินไป', 'กรุณาอัปโหลดรูปขนาดไม่เกิน 2MB', 'warning');
-                return;
-            }
-
-            Swal.fire({
-                title: 'กำลังอัปโหลด...',
-                html: 'กรุณารอสักครู่',
-                allowOutsideClick: false,
-                didOpen: () => Swal.showLoading()
-            });
-
-            try {
-                const user = auth.currentUser;
-                // ตั้งชื่อไฟล์: profile_images/{uid}_{timestamp}
-                const storageRef = ref(storage, `profile_images/${user.uid}_${Date.now()}`);
-                
-                // อัปโหลด
-                const snapshot = await uploadBytes(storageRef, file);
-                const downloadURL = await getDownloadURL(snapshot.ref);
-
-                // อัปเดต Firestore
-                await updateDoc(doc(db, "users", user.uid), {
-                    profileImage: downloadURL
-                });
-
-                Swal.fire({ icon: 'success', title: 'อัปโหลดเรียบร้อย', showConfirmButton: false, timer: 1500 });
-                
-                // อัปเดต UI ทันที (จริงๆ onSnapshot จะจัดการให้ แต่เพื่อความชัวร์)
-                document.getElementById('userAvatar').src = downloadURL;
-                document.getElementById('userAvatar').classList.remove('d-none');
-                document.getElementById('userAvatarPlaceholder').classList.add('d-none');
-
-            } catch (error) {
-                console.error("Upload Error:", error);
-                Swal.fire('Error', 'อัปโหลดไม่สำเร็จ: ' + error.message, 'error');
-            }
-        };
-
-        // 🔥 Open My Profile Modal
-        window.openMyProfile = () => {
-            if(!currentUserData) return;
-            document.getElementById('myProfileImg').src = currentUserData.profileImage || 'https://via.placeholder.com/150';
-            document.getElementById('myNickname').value = currentUserData.nickname || '';
-            document.getElementById('myPhone').value = currentUserData.phoneNumber || '';
-            document.getElementById('myAddress').value = currentUserData.address || ''; // Field ใหม่
-            document.getElementById('myHealthInfo').value = currentUserData.healthInfo || ''; // Field ใหม่
-            
-            new bootstrap.Modal(document.getElementById('myProfileModal')).show();
-        }
-
-        // 🔥 Save My Profile
-        document.getElementById('myProfileForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            Swal.fire({title: 'บันทึก...', didOpen: ()=>Swal.showLoading()});
-            try {
-                await updateDoc(doc(db, "users", auth.currentUser.uid), {
-                    nickname: document.getElementById('myNickname').value,
-                    phoneNumber: document.getElementById('myPhone').value,
-                    address: document.getElementById('myAddress').value,
-                    healthInfo: document.getElementById('myHealthInfo').value
-                });
-                Swal.fire('สำเร็จ', 'บันทึกข้อมูลเรียบร้อย', 'success');
-                bootstrap.Modal.getInstance(document.getElementById('myProfileModal')).hide();
-            } catch(e) {
-                Swal.fire('Error', e.message, 'error');
-            }
-        });
-
-        onAuthStateChanged(auth, async (user) => {
-            const loadingScreen = document.getElementById('loadingScreen');
-            if (user) {
-                if (!user.emailVerified) {
-                    Swal.fire({
-                        icon: 'warning',
-                        title: 'เข้าใช้งานไม่ได้',
-                        html: `กรุณายืนยันอีเมล <b>${user.email}</b><br>ก่อนเข้าสู่ระบบ`,
-                        confirmButtonText: 'ตกลง'
-                    }).then(() => {
-                        signOut(auth).then(() => window.location.href = "index.html");
-                    });
-                    return;
-                }
-
-                try {
-                    document.getElementById('userEmail').innerText = user.email ? user.email.split('@')[0] : 'User';
-                    const userDocRef = doc(db, "users", user.uid);
-                    
-                    // ฟังการเปลี่ยนแปลงข้อมูล User แบบ Realtime (เช่น รูปโปรไฟล์, Role)
-                    onSnapshot(userDocRef, (docSnap) => {
-                        if (docSnap.exists()) {
-                            const userData = docSnap.data();
-                            currentUserData = userData; // เก็บลงตัวแปร Global
-                            currentUserRole = userData.role || 'guest';
-                            currentStudentClass = userData.studentClass || ""; // เก็บห้องเรียน
-
-                            // แสดงรูปโปรไฟล์
-                            if (userData.profileImage) {
-                                document.getElementById('userAvatar').src = userData.profileImage;
-                                document.getElementById('userAvatar').classList.remove('d-none');
-                                document.getElementById('userAvatarPlaceholder').classList.add('d-none');
-                            } else {
-                                document.getElementById('userAvatar').classList.add('d-none');
-                                document.getElementById('userAvatarPlaceholder').classList.remove('d-none');
-                            }
-                            
-                            if (currentUserRole === 'executive' && userData.approved === false) {
-                                Swal.fire({
-                                    icon: 'info',
-                                    title: 'รอการอนุมัติ',
-                                    text: 'บัญชีผู้บริหารของคุณต้องรอการตรวจสอบและอนุมัติจาก Admin ก่อนเข้าใช้งาน',
-                                    confirmButtonText: 'ตกลง'
-                                }).then(() => {
-                                    signOut(auth).then(() => window.location.href = "index.html");
-                                });
-                                return;
-                            }
-
-                            document.getElementById('userRoleBadge').innerText = getThaiRoleName(currentUserRole);
-                            hideAllSections();
-                            
-                            // *** START SECTION VISIBILITY LOGIC ***
-                            if (isTeacher(currentUserRole) || currentUserRole === 'admin' || currentUserRole === 'executive') {
-                                document.getElementById('academicSection').style.display = 'block';
-                            }
-                            
-                            if (currentUserRole === 'student') { 
-                                showSec(['news', 'student', 'health']); 
-                            }
-                            else if (isTeacher(currentUserRole)) showSec(['news', 'teacher', 'health']);
-                            else if (currentUserRole === 'staff') {
-                                showSec(['news', 'teacher', 'health']);
-                            }
-                            else if (currentUserRole === 'personnel') { showSec(['news', 'teacher', 'personnel', 'health']); loadQuickLeaves(); }
-                            else if (currentUserRole === 'technician') { showSec(['news', 'teacher', 'technician', 'health']); loadQuickRepairs(); }
-                            else if (currentUserRole === 'transport') { showSec(['news', 'teacher', 'transport', 'health']); loadQuickTransport(); }
-                            else if (currentUserRole === 'security_guard') { showSec(['news', 'teacher', 'security', 'health']); loadQuickOutside(); }
-                            else if (currentUserRole === 'admin' || currentUserRole === 'executive') { 
-                                showSec(['admin', 'teacher', 'news', 'personnel', 'technician', 'transport', 'security', 'student', 'health']); 
-                                loadQuickRepairs(); loadQuickLeaves(); loadQuickTransport(); loadQuickOutside();
-                                document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'table-cell');
-                                document.getElementById('btnAddEvent').classList.remove('d-none');
-                                document.getElementById('btnAddNews').classList.remove('d-none'); // 🔥 Show News Button
-                            } 
-                            else showSec(['news', 'teacher', 'health']);
-                            
-                            // *** END SECTION VISIBILITY LOGIC ***
-
-                            loadNews(); 
-                            loadEventsAndRender();
-                            listenToNotifications(); // Start listening for notifications
-                        }
-                    });
-                    
-                } catch (err) { console.error("Auth Error:", err); Swal.fire('Error', 'ไม่สามารถโหลดข้อมูลผู้ใช้ได้', 'error'); }
-            } else { window.location.href = "index.html"; }
-            if(loadingScreen) loadingScreen.classList.add('hidden');
-        });
-
-        // ฟังก์ชันล้างข้อมูล Users ใน Firestore (Admin Only)
-        window.resetAllUsersData = async () => {
-            // เช็คก่อนว่าเป็น Admin จริงไหม
-            if (currentUserRole !== 'admin') {
-                Swal.fire('ไม่ได้นะจ๊ะ', 'เฉพาะ Admin เท่านั้น', 'error');
-                return;
-            }
-
-            // ถามยืนยัน 2 รอบกันพลาด
-            const confirm1 = await Swal.fire({
-                title: 'เตือนภัยระดับสูงสุด! 🚨',
-                text: "คุณกำลังจะลบข้อมูล Users ทั้งหมดในฐานข้อมูล! (แต่ Login ยังอยู่นะ)",
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                confirmButtonText: 'ใช่, ลบให้เกลี้ยง!'
-            });
-
-            if (confirm1.isConfirmed) {
-                Swal.fire({ title: 'กำลังล้างบาง...', didOpen: () => Swal.showLoading() });
-                
-                try {
-                    // ดึงข้อมูล users ทั้งหมด
-                    const querySnapshot = await getDocs(collection(db, "users"));
-                    
-                    // วนลูปสั่งลบทีละคน
-                    const deletePromises = querySnapshot.docs.map(doc => deleteDoc(doc.ref));
-                    await Promise.all(deletePromises);
-
-                    Swal.fire('เรียบร้อย', 'ลบข้อมูล Users ใน Database หมดแล้ว (อย่าลืมไปลบใน Auth ต่อนะ)', 'success');
-                } catch (error) {
-                    console.error(error);
-                    Swal.fire('Error', error.message, 'error');
-                }
-            }
-        };
-
-        function isTeacher(role) { return role === 'teacher' || role === 'teacher_basic' || role === 'teacher_kindergarten'; }
-        function getThaiRoleName(role) {
-            const map = { 
-                'admin': 'ผู้ดูแลระบบ', 
-                'executive': 'ผู้บริหาร',
-                'teacher_basic': 'ครู (พื้นฐาน)', 
-                'teacher_kindergarten': 'ครู (อนุบาล)', 
-                'teacher': 'ครู/อาจารย์', 
-                'personnel': 'ฝ่ายบุคคล', 
-                'technician': 'ช่างอาคาร', 
-                'transport': 'งานรถ', 
-                'security_guard': 'รปภ.',
-                'student': 'นักเรียน/ผู้ปกครอง',
-                'staff': 'เจ้าหน้าที่' // 🔥 เพิ่มชื่อไทยตรงนี้
-            };
-            return map[role] || role?.toUpperCase() || 'ผู้ใช้ทั่วไป';
-        }
-
-        // 🔥 แก้ฟังก์ชันโหลดข่าว: เพิ่ม Error Handler
-        function loadNews() {
-            const newsList = document.getElementById('newsList');
-            if(!newsList) return;
-            
-            // ใช้ query แบบมี sort เพื่อให้ข่าวล่าสุดขึ้นก่อน
-            const q = query(collection(db, "news"), orderBy("created_at", "desc"), limit(5));
-            
-            onSnapshot(q, (snap) => {
-                newsList.innerHTML = "";
-                if (snap.empty) {
-                    newsList.innerHTML = "<li class='list-group-item text-center py-5 text-muted'>- ไม่มีข่าวประชาสัมพันธ์ -</li>";
-                    return;
-                }
-
-                let hasNews = false;
-                snap.forEach(d => {
-                    const data = d.data();
-                    const target = data.target || 'all';
-                    let isVisible = false;
-                    
-                    if (currentUserRole === 'admin' || currentUserRole === 'executive') isVisible = true;
-                    else if (target === 'all') isVisible = true;
-                    else if (target === currentUserRole) isVisible = true;
-                    else if (target === 'teacher_all' && isTeacher(currentUserRole)) isVisible = true;
-                    else if (target === 'student' && currentUserRole === 'student') isVisible = true; 
-                    else if (target === 'staff' && currentUserRole === 'staff') isVisible = true; // For staff
-
-                    if (isVisible) {
-                        hasNews = true;
-                        let adminBtn = (currentUserRole === 'admin' || currentUserRole === 'executive') ? `<button class="btn btn-action btn-light text-danger btn-sm" onclick="deleteItem('news', '${d.id}')" title="ลบประกาศ"><i class="fa-solid fa-trash"></i></button>` : "";
-                        let targetBadge = (currentUserRole === 'admin' || currentUserRole === 'executive') ? `<span class="target-badge ms-2" style="font-size: 0.65rem;">${target}</span>` : "";
-                        const dateStr = data.created_at?.seconds ? new Date(data.created_at.seconds*1000).toLocaleDateString('th-TH', { day: 'numeric', month: 'numeric', year: '2-digit' }) : '-';
-
-                        newsList.innerHTML += `<li class="list-group-item py-3"><div class="d-flex justify-content-between align-items-start"><div class="flex-grow-1 pe-2" style="min-width: 0;"><div class="d-flex align-items-center flex-wrap mb-1"><span class="fw-bold text-dark" style="font-size: 0.95rem;">${data.topic || 'ไม่มีหัวข้อ'}</span>${targetBadge}</div><p class="text-muted small mb-0" style="white-space: pre-line; line-height: 1.6; word-wrap: break-word; overflow-wrap: break-word; text-align: left;">${data.detail || '-'}</p></div><div class="d-flex flex-column align-items-end justify-content-start ps-1" style="min-width: 75px;"><small class="text-muted mb-2" style="font-size: 0.75rem; white-space: nowrap;">${dateStr}</small>${adminBtn}</div></div></li>`;
-                    }
-                });
-                
-                if (!hasNews) newsList.innerHTML = "<li class='list-group-item text-center py-5 text-muted'>- ไม่มีข่าวสำหรับคุณ -</li>";
-            }, (error) => {
-                console.error("News Load Error:", error);
-                let errorMsg = "ไม่สามารถโหลดข่าวได้";
-                if (error.code === 'permission-denied') errorMsg = "ไม่มีสิทธิ์เข้าถึงข้อมูลข่าว (Check Firestore Rules)";
-                if (error.code === 'failed-precondition') errorMsg = "ระบบต้องการ Index (กรุณาแจ้ง Admin)";
-                
-                newsList.innerHTML = `<li class='list-group-item text-center py-4 text-danger'><i class="fa-solid fa-triangle-exclamation mb-2"></i><br>${errorMsg}</li>`;
-            });
-        }
-
-        // 🔥🔥🔥 ฟังก์ชัน Update Status พร้อมระบบส่งเมลแบบมีรายละเอียด 🔥🔥🔥
+        // Status Update Logic
         window.updateStatus = async (collectionName, docId, currentStatus) => {
             let options = {};
             if(collectionName === 'repair_requests') options = { 'pending': 'รอรับงาน', 'in_progress': 'กำลังซ่อม', 'completed': 'ซ่อมเสร็จสิ้น', 'cancelled': 'ยกเลิก' };
@@ -1229,195 +856,69 @@
                 Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
                 try {
                     const docRef = doc(db, collectionName, docId);
-                    
-                    // 1. ดึงข้อมูลก่อนเพื่อเอาอีเมลคนแจ้ง และรายละเอียด
                     const docSnap = await getDoc(docRef);
                     if (!docSnap.exists()) throw new Error("ไม่พบเอกสาร");
                     const data = docSnap.data();
-                    
-                    // 2. อัปเดตสถานะ
                     await updateDoc(docRef, { status: newStatus });
                     
-                    // 3. ส่งเมลหาคนแจ้ง (แบบมีรายละเอียด)
                     const reporterEmail = data.reporterEmail || data.email || data.requester_email;
                     if (reporterEmail) {
                         let taskTitle = data.equipment || data.destination || data.topic || "งานบริการ";
                         let statusText = options[newStatus] || newStatus;
-                        
-                        let headerColor = '#6c757d'; 
-                        let iconEmoji = '🔔';
-                        
-                        if (['approved', 'completed', 'returned', 'success'].includes(newStatus)) {
-                            headerColor = '#198754'; iconEmoji = '✅';
-                        } else if (['rejected', 'cancelled'].includes(newStatus)) {
-                            headerColor = '#dc3545'; iconEmoji = '❌';
-                        } else if (['in_progress', 'ongoing'].includes(newStatus)) {
-                            headerColor = '#0dcaf0'; iconEmoji = '⏳';
-                        }
-
-                        // สร้างรายการรายละเอียดข้อมูล
-                        let detailsListHtml = '';
-                        const details = [];
-                        if (data.location) details.push(`<strong>📍 สถานที่:</strong> ${data.location}`);
-                        if (data.destination) details.push(`<strong>📍 ปลายทาง:</strong> ${data.destination}`);
-                        if (data.reason) details.push(`<strong>📝 เหตุผล/รายละเอียด:</strong> ${data.reason}`);
-                        if (data.detail) details.push(`<strong>📝 รายละเอียด:</strong> ${data.detail}`);
-                        if (data.use_date) details.push(`<strong>📅 วันที่ใช้:</strong> ${data.use_date}`);
-                        if (data.out_date) details.push(`<strong>📅 วันที่:</strong> ${data.out_date}`);
-                        if (data.start_date && data.end_date) details.push(`<strong>📅 วันที่:</strong> ${data.start_date} ถึง ${data.end_date}`);
-                        if (data.start_time && data.end_time) details.push(`<strong>⏰ เวลา:</strong> ${data.start_time} - ${data.end_time}`);
-                        if (data.leave_type) details.push(`<strong>📌 ประเภท:</strong> ${data.leave_type}`);
-                        
-                        if (details.length > 0) {
-                            detailsListHtml = `
-                                <div style="background-color: #f9f9f9; padding: 15px; border-radius: 8px; margin: 20px 0; border: 1px solid #eee;">
-                                    <p style="margin: 0 0 10px 0; font-weight: bold; color: #555; border-bottom: 1px solid #ddd; padding-bottom: 5px;">📋 ข้อมูลคำขอ</p>
-                                    <ul style="margin: 0; padding-left: 20px; color: #444; font-size: 14px; line-height: 1.6;">
-                                        ${details.map(d => `<li style="margin-bottom: 5px;">${d}</li>`).join('')}
-                                    </ul>
-                                </div>
-                            `;
-                        }
-
                         await addDoc(collection(db, "mail"), {
                             to: reporterEmail,
-                            message: {
-                                subject: `${iconEmoji} แจ้งอัปเดตสถานะ: ${taskTitle}`,
-                                html: `
-                                    <div style="font-family: 'Sarabun', sans-serif; max-width: 500px; margin: auto; border: 1px solid #e0e0e0; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
-                                        <div style="background-color: ${headerColor}; color: white; padding: 25px; text-align: center;">
-                                            <h2 style="margin: 0; font-size: 24px; font-weight: bold;">${iconEmoji} อัปเดตสถานะ</h2>
-                                        </div>
-                                        
-                                        <div style="padding: 30px; background-color: #ffffff;">
-                                            <p style="font-size: 16px; color: #333; margin-bottom: 20px;">เรียน <strong>${data.reporterName || 'ผู้ใช้บริการ'}</strong>,</p>
-                                            
-                                            <p style="font-size: 16px; color: #555; line-height: 1.6;">
-                                                รายการ <strong>"${taskTitle}"</strong> ของท่าน มีการเปลี่ยนแปลงสถานะล่าสุดดังนี้:
-                                            </p>
-                                            
-                                            ${detailsListHtml}
-                                            
-                                            <div style="background-color: #f8f9fa; border-left: 6px solid ${headerColor}; padding: 20px; margin: 25px 0; border-radius: 4px;">
-                                                <p style="margin: 0; font-size: 14px; color: #777;">สถานะปัจจุบัน</p>
-                                                <p style="margin: 5px 0 0 0; font-size: 20px; color: ${headerColor}; font-weight: bold;">
-                                                    ${statusText}
-                                                </p>
-                                            </div>
-
-                                            <p style="font-size: 14px; color: #777; text-align: center; margin-top: 30px;">
-                                                สามารถตรวจสอบรายละเอียดเพิ่มเติมได้ที่ระบบ School Hub
-                                            </p>
-                                            
-                                            <div style="text-align: center; margin-top: 20px;">
-                                                <a href="#" style="background-color: ${headerColor}; color: white; padding: 12px 30px; text-decoration: none; border-radius: 50px; font-weight: bold; font-size: 16px; display: inline-block; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">เข้าสู่ระบบ</a>
-                                            </div>
-                                        </div>
-                                        
-                                        <div style="background-color: #f1f3f5; padding: 15px; text-align: center; font-size: 12px; color: #999; border-top: 1px solid #eee;">
-                                            School Hub Management System © 2024
-                                        </div>
-                                    </div>
-                                `
-                            }
+                            message: { subject: `🔔 แจ้งอัปเดตสถานะ: ${taskTitle}`, html: `เรียนผู้ใช้บริการ,<br>รายการ <strong>"${taskTitle}"</strong> มีสถานะเป็น: <strong>${statusText}</strong>` }
                         });
                     }
-
-                    Swal.fire({ icon: 'success', title: 'เรียบร้อย', text: 'อัปเดตสถานะและแจ้งเตือนแล้ว', confirmButtonColor: '#0d6efd' });
-                } catch (e) { 
-                    console.error(e); 
-                    Swal.fire('Error', e.message, 'error'); 
-                }
+                    Swal.fire({ icon: 'success', title: 'เรียบร้อย', confirmButtonColor: '#0d6efd' });
+                } catch (e) { console.error(e); Swal.fire('Error', e.message, 'error'); }
             }
         };
 
-        window.openUserManagement = () => { let userModal = new bootstrap.Modal(document.getElementById('userManageModal')); userModal.show(); loadUsers(); };
-        function loadUsers() {
-            const tbody = document.getElementById('userTableBody');
-            onSnapshot(query(collection(db, "users"), orderBy("email")), (snapshot) => {
-                tbody.innerHTML = "";
-                if(snapshot.empty) { tbody.innerHTML = "<tr><td colspan='4' class='text-center py-4 text-muted'>ไม่พบข้อมูลผู้ใช้</td></tr>"; return; }
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    let approveBtn = "";
-                    if (data.role === 'executive' && data.approved === false) {
-                        approveBtn = `<button class="btn btn-action btn-light text-success me-1" onclick="approveUser('${doc.id}')" title="อนุมัติผู้บริหาร"><i class="fa-solid fa-check"></i></button>`;
-                    }
-                    // ปุ่มดูรายละเอียด (รูปตา)
-                    let viewBtn = `<button class="btn btn-action btn-light text-info me-1" onclick='viewUserDetails(${JSON.stringify(data)})' title="ดูข้อมูล"><i class="fa-solid fa-eye"></i></button>`;
-
-                    tbody.innerHTML += `<tr class="user-row"><td class="ps-4 fw-medium">${data.prefix || ''} ${data.firstName} ${data.nickname ? '('+data.nickname+')' : ''}</td><td class="text-muted small">${data.email}</td><td><span class="badge bg-light text-dark border">${getThaiRoleName(data.role)} ${data.role === 'executive' && !data.approved ? '<span class="text-danger">(รออนุมัติ)</span>' : ''}</span></td><td class="text-end pe-4">${viewBtn}${approveBtn}<button class="btn btn-action btn-light text-primary me-1" onclick="editUserRole('${doc.id}', '${data.role}', '${data.email}')"><i class="fa-solid fa-pen"></i></button><button class="btn btn-action btn-light text-danger" onclick="deleteUser('${doc.id}', '${data.email}')"><i class="fa-solid fa-trash"></i></button></td></tr>`;
-                });
-            });
-        }
-
-        window.viewUserDetails = (data) => {
-            document.getElementById('detailImg').src = data.profileImage || 'https://via.placeholder.com/80';
-            document.getElementById('detailName').innerText = `${data.prefix || ''} ${data.firstName} ${data.lastName || ''}`; 
-            document.getElementById('detailEmail').innerText = data.email;
-            document.getElementById('detailPhone').innerText = data.phoneNumber || '-';
-            document.getElementById('detailDob').innerText = data.dob || '-';
-            document.getElementById('detailNatId').innerText = data.nationalId || '-';
-            let extraHtml = '';
-            if (data.role === 'student') { extraHtml = `<small class="d-block"><b>รหัส:</b> ${data.studentId || '-'}</small><small class="d-block"><b>ชั้น/ห้อง:</b> ${data.studentClass || '-'}</small><small class="d-block"><b>ผู้ปกครอง:</b> ${data.parentName || '-'} (${data.parentPhone || '-'})</small>`; } 
-            else if (data.role.startsWith('teacher')) { extraHtml = `<small class="d-block"><b>รหัสครู:</b> ${data.teacherId || '-'}</small><small class="d-block"><b>ตำแหน่ง:</b> ${data.academicPosition || '-'}</small><small class="d-block"><b>หมวด:</b> ${data.department || '-'}</small>`; }
-            document.getElementById('detailExtra').innerHTML = extraHtml;
-            new bootstrap.Modal(document.getElementById('userDetailsModal')).show();
-        };
-
-        window.approveUser = async (uid) => {
-            try {
-                await updateDoc(doc(db, "users", uid), { approved: true });
-                Swal.fire('สำเร็จ', 'อนุมัติผู้ใช้งานเรียบร้อยแล้ว', 'success');
-            } catch (e) {
-                Swal.fire('Error', e.message, 'error');
-            }
-        };
-
-        window.editUserRole = async (uid, currentRole, email) => {
-            const { value: newRole } = await Swal.fire({
-                title: `แก้ไขตำแหน่ง`, html: `<p class="text-muted mb-3">สำหรับ: ${email}</p>`, input: 'select',
-                inputOptions: { 'teacher_basic': 'ครู (พื้นฐาน)', 'teacher_kindergarten': 'ครู (อนุบาล)', 'technician': 'ช่างเทคนิค', 'transport': 'ฝ่ายยานพาหนะ', 'personnel': 'ฝ่ายบุคคล', 'security_guard': 'รปภ.', 'student': 'นักเรียน/ผู้ปกครอง', 'staff': 'เจ้าหน้าที่', 'admin': 'Admin', 'executive': 'ผู้บริหาร' },
-                inputValue: currentRole, showCancelButton: true
-            });
-            if (newRole && newRole !== currentRole) { await updateDoc(doc(db, "users", uid), { role: newRole }); Swal.fire('สำเร็จ', 'อัปเดตเรียบร้อย', 'success'); }
-        };
-        window.deleteUser = async (uid, email) => { if(confirm(`ยืนยันการลบผู้ใช้ ${email}?`)) { try { await deleteDoc(doc(db, "users", uid)); Swal.fire('ลบแล้ว', '', 'success'); } catch(e) { Swal.fire('Error', e.message, 'error'); } } };
-        window.deleteItem = async (col, id) => { Swal.fire({ title: 'ยืนยันการลบ', icon: 'warning', showCancelButton: true, confirmButtonText: 'ลบเลย', confirmButtonColor: '#dc3545' }).then(async (result) => { if (result.isConfirmed) await deleteDoc(doc(db, col, id)); }); };
-        
-        function showSec(list) { list.forEach(id => { const el = document.getElementById(id + 'Section'); if(el) el.style.display = 'block'; }); }
-        function hideAllSections() { ['news', 'academic', 'teacher', 'technician', 'transport', 'personnel', 'admin', 'security', 'student', 'health'].forEach(s => { const el = document.getElementById(s + 'Section'); if(el) el.style.display = 'none'; }); }
-
-        function loadQuickRepairs() { loadGenericTable('repair_requests', 'quickRepairTable', d => `<td class="fw-medium ps-4">${d.equipment||'-'}</td><td class="small text-muted">${d.location||'-'}</td><td><span class="badge ${getStatusClass(d.status)} rounded-pill">${getStatusLabel(d.status)}</span></td>`); }
-        function loadQuickLeaves() { loadGenericTable('leave_requests', 'quickLeaveTable', d => `<td class="fw-medium ps-4">${d.leave_type||'-'}</td><td class="small text-muted">${d.requester_name||'-'}</td><td><span class="badge ${getStatusClass(d.status)} rounded-pill">${getStatusLabel(d.status)}</span></td>`); }
-        function loadQuickTransport() { loadGenericTable('vehicle_requests', 'quickTransportTable', d => { let driverHtml = '<span class="text-muted small">-</span>'; if(d.driver_name && d.driver_name !== '-') { driverHtml = `<span class="text-primary small fw-bold"><i class="fa-solid fa-id-card me-1"></i>${d.driver_name}</span>`; } return `<td class="fw-medium ps-4">${d.use_date||'-'}</td><td class="small text-muted">${d.destination||'-'}</td><td>${driverHtml}</td><td><span class="badge ${getStatusClass(d.status)} rounded-pill">${getStatusLabel(d.status)}</span></td>`; }); }
-        function loadQuickOutside() { loadGenericTable('outside_requests', 'quickOutsideTable', d => `<td class="fw-medium ps-4">${d.date||'-'}</td><td class="small text-muted">${d.requester_name||'-'}</td><td class="small">${d.start_time} - ${d.end_time}</td><td><span class="badge ${getStatusClass(d.status)} rounded-pill">${getStatusLabel(d.status)}</span></td>`); }
-
-        function loadGenericTable(col, elemId, rowHtml) {
-            const tbody = document.getElementById(elemId);
-            if(!tbody) return;
-            let q = (currentUserRole === 'admin' || currentUserRole === 'security_guard' || currentUserRole === 'executive') ? query(collection(db, col), orderBy("created_at", "desc"), limit(5)) : query(collection(db, col), where("status", "==", "pending"), limit(5));
+        function loadNews() {
+            const newsList = document.getElementById('newsList'); if(!newsList) return;
+            const q = query(collection(db, "news"), orderBy("created_at", "desc"), limit(5));
             onSnapshot(q, (snap) => {
-                tbody.innerHTML = snap.empty ? "<tr><td colspan='5' class='text-center py-4 text-muted small'>- ไม่มีรายการ -</td></tr>" : "";
+                newsList.innerHTML = "";
+                if (snap.empty) { newsList.innerHTML = "<li class='list-group-item text-center py-5 text-muted'>- ไม่มีข่าวประชาสัมพันธ์ -</li>"; return; }
+                let hasNews = false;
                 snap.forEach(d => {
                     const data = d.data();
-                    let canEdit = (currentUserRole === 'admin' || (currentUserRole === 'security_guard' && col === 'outside_requests') || currentUserRole === 'executive');
-                    let actionHtml = canEdit ? `<td class="text-end pe-4"><button class="btn btn-action btn-light text-primary" onclick="updateStatus('${col}', '${d.id}', '${data.status}')"><i class="fa-solid fa-pen"></i></button></td>` : "";
-                    tbody.innerHTML += `<tr>${rowHtml(data)}${actionHtml}</tr>`;
+                    const target = data.target || 'all';
+                    let isVisible = false;
+                    if (currentUserRole === 'admin' || currentUserRole === 'executive') isVisible = true;
+                    else if (target === 'all' || target === currentUserRole) isVisible = true;
+                    else if (target === 'teacher_all' && isTeacher(currentUserRole)) isVisible = true;
+                    if (isVisible) {
+                        hasNews = true;
+                        let adminBtn = (currentUserRole === 'admin' || currentUserRole === 'executive') ? `<button class="btn btn-action btn-light text-danger btn-sm" onclick="deleteItem('news', '${d.id}')"><i class="fa-solid fa-trash"></i></button>` : "";
+                        newsList.innerHTML += `<li class="list-group-item py-3"><div class="d-flex justify-content-between"><div><span class="fw-bold">${data.topic}</span><p class="text-muted small mb-0">${data.detail}</p></div>${adminBtn}</div></li>`;
+                    }
                 });
+                if (!hasNews) newsList.innerHTML = "<li class='list-group-item text-center py-5 text-muted'>- ไม่มีข่าวสำหรับคุณ -</li>";
             });
         }
-        function getStatusClass(status) { return { 'pending': 'bg-warning text-dark', 'approved': 'bg-success', 'in_progress': 'bg-info text-dark', 'completed': 'bg-primary', 'rejected': 'bg-danger' }[status] || 'bg-secondary'; }
-        function getStatusLabel(status) { return { 'pending': 'รอตรวจสอบ', 'approved': 'อนุมัติ', 'in_progress': 'กำลังดำเนินการ', 'completed': 'เสร็จสิ้น', 'rejected': 'ไม่อนุมัติ' }[status] || status; }
+        window.deleteItem = async (col, id) => { Swal.fire({ title: 'ยืนยันการลบ', icon: 'warning', showCancelButton: true, confirmButtonText: 'ลบเลย', confirmButtonColor: '#dc3545' }).then(async (result) => { if (result.isConfirmed) await deleteDoc(doc(db, col, id)); }); };
 
-        document.getElementById('btnLogout').addEventListener('click', () => {
-             Swal.fire({ title: 'ออกจากระบบ?', icon: 'question', showCancelButton: true, confirmButtonText: 'ใช่, ออกเลย', confirmButtonColor: '#dc3545' }).then((result) => { if (result.isConfirmed) signOut(auth).then(() => window.location.href = "index.html"); });
-        });
+        function loadQuickRepairs() { loadGenericTable('repair_requests', 'quickRepairTable', d=>`<td>${d.equipment}</td><td>${d.status}</td>`); }
+        function loadQuickLeaves() { loadGenericTable('leave_requests', 'quickLeaveTable', d=>`<td>${d.leave_type}</td><td>${d.status}</td>`); }
+        function loadQuickTransport() { loadGenericTable('vehicle_requests', 'quickTransportTable', d=>`<td>${d.destination}</td><td>${d.status}</td>`); }
+        function loadQuickOutside() { loadGenericTable('outside_requests', 'quickOutsideTable', d=>`<td>${d.requester_name}</td><td>${d.status}</td>`); }
+        function loadGenericTable(c,id,fn) { 
+            const tbody = document.getElementById(id); if(!tbody) return;
+            let q = (currentUserRole === 'admin' || currentUserRole === 'security_guard' || currentUserRole === 'executive') ? query(collection(db, c), orderBy("created_at", "desc"), limit(5)) : query(collection(db, c), where("status", "==", "pending"), limit(5));
+            onSnapshot(q, s=>{ 
+                tbody.innerHTML=""; 
+                s.forEach(d=>{ 
+                    const data=d.data(); 
+                    let canEdit = (currentUserRole === 'admin' || (currentUserRole === 'security_guard' && c === 'outside_requests') || currentUserRole === 'executive');
+                    let action = canEdit ? `<td class="text-end pe-4"><button class="btn btn-action btn-light text-primary" onclick="updateStatus('${c}', '${d.id}', '${data.status}')"><i class="fa-solid fa-pen"></i></button></td>` : "";
+                    tbody.innerHTML+=`<tr>${fn(data)}${action}</tr>`; 
+                }); 
+            }); 
+        }
 
-        document.getElementById('searchUser').addEventListener('keyup', function() {
-            const value = this.value.toLowerCase();
-            document.querySelectorAll('.user-row').forEach(row => { row.style.display = row.innerText.toLowerCase().includes(value) ? '' : 'none'; });
-        });
+        document.getElementById('btnLogout').addEventListener('click', () => signOut(auth).then(()=>window.location.href="index.html"));
     </script>
 </body>
 </html>

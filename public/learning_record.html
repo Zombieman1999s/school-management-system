@@ -3,276 +3,862 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>บันทึกการเรียนการสอน - School Hub</title>
+    <title>ระบบบันทึกการสอน & การบ้าน - School Hub</title>
     <link rel="icon" href="icon.png" type="image/png">
     
+    <!-- Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
-        :root { --primary-color: #0d6efd; --bg-color: #f0f2f5; }
-        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); }
-        .navbar-custom { background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-        .card { border-radius: 16px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .student-row { transition: 0.2s; }
-        .student-row:hover { background-color: #f8f9fa; }
-        .status-radio { display: none; }
-        .status-label {
-            cursor: pointer; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; border: 1px solid #dee2e6; color: #6c757d; transition: 0.2s;
+        :root {
+            --primary-color: #4f46e5;
+            --secondary-color: #818cf8;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --bg-color: #f8fafc;
+            --card-radius: 20px;
         }
-        .status-radio:checked + .status-label.present { background: #d1fae5; color: #047857; border-color: #10b981; font-weight: bold; }
-        .status-radio:checked + .status-label.late { background: #fef3c7; color: #b45309; border-color: #f59e0b; font-weight: bold; }
-        .status-radio:checked + .status-label.absent { background: #fee2e2; color: #b91c1c; border-color: #ef4444; font-weight: bold; }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--bg-color);
+            color: #1e293b;
+            padding-bottom: 80px;
+        }
+
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        }
+
+        /* Cards */
+        .main-card {
+            border: none; border-radius: var(--card-radius);
+            background: white; box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+            padding: 25px; transition: transform 0.2s; position: relative; overflow: hidden;
+        }
+
+        /* Status Badges */
+        .status-badge {
+            padding: 5px 12px; border-radius: 50px; font-size: 0.8rem; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 5px;
+        }
+        .status-pending { background: #fef3c7; color: #b45309; }
+        .status-submitted { background: #d1fae5; color: #047857; }
+        .status-late { background: #fee2e2; color: #b91c1c; }
+        .status-graded { background: #e0f2fe; color: #0369a1; }
+
+        /* Step Form */
+        .step-container { display: flex; justify-content: space-between; margin-bottom: 30px; position: relative; }
+        .step-container::before {
+            content: ''; position: absolute; top: 15px; left: 0; width: 100%; height: 2px;
+            background: #e2e8f0; z-index: 0;
+        }
+        .step-item {
+            width: 35px; height: 35px; border-radius: 50%; background: white;
+            border: 2px solid #e2e8f0; color: #94a3b8;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; position: relative; z-index: 1; cursor: pointer; transition: 0.2s;
+        }
+        .step-item.active { border-color: var(--primary-color); background: var(--primary-color); color: white; }
+        .step-item.completed { border-color: var(--success-color); background: var(--success-color); color: white; }
+
+        /* Tables */
+        .table-custom th { background: #f8fafc; color: #64748b; font-weight: 600; border-top: none; }
+        .table-custom td { vertical-align: middle; }
+        
+        /* Floating Button */
+        .fab-btn {
+            position: fixed; bottom: 30px; right: 30px;
+            width: 60px; height: 60px; border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary-color), #4338ca);
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-size: 24px; box-shadow: 0 10px 25px rgba(79, 70, 229, 0.4);
+            border: none; z-index: 1000; transition: transform 0.2s;
+        }
+        .fab-btn:hover { transform: scale(1.1); }
+
+        .form-section { display: none; animation: fadeIn 0.3s; }
+        .form-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .hidden { display: none !important; }
+        
+        /* Upload Area in Modal */
+        .upload-zone {
+            border: 2px dashed #cbd5e1; border-radius: 12px; padding: 20px;
+            text-align: center; background: #f8fafc; cursor: pointer; transition: 0.2s;
+        }
+        .upload-zone:hover { border-color: var(--primary-color); background: #eef2ff; }
     </style>
 </head>
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="dashboard.html"><i class="fa-solid fa-chevron-left me-2"></i> บันทึกการเรียน</a>
-            <span class="text-muted small" id="teacherName">...</span>
+            <a class="navbar-brand fw-bold text-primary" href="dashboard.html">
+                <i class="fa-solid fa-chevron-left me-2"></i> Dashboard
+            </a>
+            <span class="fw-bold text-dark"><i class="fa-solid fa-chalkboard-user text-warning me-2"></i>Teaching & HW</span>
         </div>
     </nav>
 
     <div class="container py-4">
-        
-        <!-- 1. ส่วนเลือกข้อมูล -->
-        <div class="card p-4">
-            <h5 class="fw-bold mb-3"><i class="fa-solid fa-filter me-2 text-primary"></i>ข้อมูลการสอน</h5>
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">วันที่</label>
-                    <input type="date" id="teachDate" class="form-control">
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">คาบเรียน (1-9)</label>
-                    <select id="period" class="form-select">
-                        <option value="1">คาบที่ 1 (08:30-09:20)</option>
-                        <option value="2">คาบที่ 2 (09:20-10:10)</option>
-                        <option value="3">คาบที่ 3 (10:10-11:00)</option>
-                        <option value="4">คาบที่ 4 (11:00-11:50)</option>
-                        <option value="5">คาบที่ 5 (11:50-12:40)</option>
-                        <option value="6">คาบที่ 6 (12:40-13:30)</option>
-                        <option value="7">คาบที่ 7 (13:30-14:20)</option>
-                        <option value="8">คาบที่ 8 (14:20-15:10)</option>
-                        <option value="9">คาบที่ 9 (15:10-16:00)</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">ระดับชั้น/ห้อง</label>
-                    <select id="classSelect" class="form-select" onchange="loadStudents()">
-                        <option value="" selected disabled>-- เลือกห้อง --</option>
-                        <!-- JS จะเติมห้องเรียนที่นี่ -->
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">วิชา</label>
-                    <input type="text" id="subject" class="form-control" placeholder="เช่น คณิตศาสตร์">
-                </div>
+
+        <!-- Role Toggle (For Demo/Testing) -->
+        <div class="d-flex justify-content-end mb-3">
+            <div class="btn-group shadow-sm">
+                <input type="radio" class="btn-check" name="role" id="roleTeacher" autocomplete="off" checked onclick="switchRole('teacher')">
+                <label class="btn btn-outline-primary btn-sm" for="roleTeacher">👩‍🏫 ครู</label>
+                <input type="radio" class="btn-check" name="role" id="roleStudent" autocomplete="off" onclick="switchRole('student')">
+                <label class="btn btn-outline-primary btn-sm" for="roleStudent">🧑‍🎓 นักเรียน</label>
             </div>
         </div>
 
-        <!-- 2. ส่วนเช็กชื่อ (จะแสดงเมื่อเลือกห้อง) -->
-        <div id="attendanceSection" class="card p-4 d-none">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h5 class="fw-bold m-0"><i class="fa-solid fa-user-check me-2 text-success"></i>เช็กชื่อนักเรียน</h5>
-                <span class="badge bg-light text-dark border">นักเรียนทั้งหมด: <span id="studentCount">0</span></span>
-            </div>
-            <div class="table-responsive">
-                <table class="table align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th width="50">#</th>
-                            <th>ชื่อ-นามสกุล</th>
-                            <th class="text-center" width="200">สถานะ</th>
-                        </tr>
-                    </thead>
-                    <tbody id="studentTableBody">
-                        <!-- รายชื่อนักเรียนจะมาที่นี่ -->
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- 3. ส่วนสั่งการบ้าน -->
-        <div id="homeworkSection" class="card p-4 d-none">
-            <h5 class="fw-bold mb-3"><i class="fa-solid fa-book-open-reader me-2 text-warning"></i>สั่งการบ้าน / ภาระงาน</h5>
-            <textarea id="homeworkDetail" class="form-control mb-3" rows="4" placeholder="รายละเอียดการบ้าน... (ถ้าไม่มีให้เว้นว่าง)"></textarea>
-            <div class="row align-items-center">
-                <div class="col-md-6">
-                     <label class="small text-muted">กำหนดส่ง:</label>
-                     <input type="date" id="homeworkDeadline" class="form-control d-inline-block w-auto ms-2">
+        <!-- 1. TEACHER VIEW -->
+        <div id="teacherView">
+            <!-- Dashboard Stats -->
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <div class="main-card py-3 px-4 h-100 border-start border-4 border-primary">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted text-uppercase fw-bold">คาบสอนวันนี้</small>
+                                <h3 class="fw-bold m-0 mt-1 text-dark" id="statTodayCount">-</h3>
+                            </div>
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-circle text-primary"><i class="fa-solid fa-clock"></i></div>
+                        </div>
+                    </div>
                 </div>
-                <div class="col-md-6 text-end mt-3 mt-md-0">
-                    <button class="btn btn-primary px-4 rounded-pill fw-bold shadow" onclick="saveRecord()">
-                        <i class="fa-solid fa-save me-2"></i> บันทึกและแจ้งเตือน
+                <div class="col-md-3">
+                    <div class="main-card py-3 px-4 h-100 border-start border-4 border-warning">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <small class="text-muted text-uppercase fw-bold">การบ้านที่สั่ง</small>
+                                <h3 class="fw-bold m-0 mt-1 text-warning" id="statHwCount">-</h3>
+                            </div>
+                            <div class="bg-warning bg-opacity-10 p-3 rounded-circle text-warning"><i class="fa-solid fa-clipboard-check"></i></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Logs Table -->
+            <div class="main-card mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold m-0"><i class="fa-solid fa-list-ul me-2 text-primary"></i>บันทึกการสอนล่าสุด</h5>
+                    <button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="loadTeachingLogs()">
+                        <i class="fa-solid fa-rotate me-1"></i> รีเฟรช
                     </button>
                 </div>
+                <div class="table-responsive">
+                    <table class="table table-custom table-hover align-middle">
+                        <thead>
+                            <tr>
+                                <th>วันที่/เวลา</th>
+                                <th>วิชา/ห้อง</th>
+                                <th>หัวข้อ</th>
+                                <th>การบ้าน</th>
+                                <th>สถานะ</th>
+                                <th>จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teachingLogTable">
+                            <tr><td colspan="6" class="text-center py-4 text-muted"><i class="fa-solid fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- FAB -->
+            <button class="fab-btn" onclick="openTeachingModal()" title="บันทึกการสอนใหม่">
+                <i class="fa-solid fa-plus"></i>
+            </button>
+        </div>
+
+        <!-- 2. STUDENT VIEW -->
+        <div id="studentView" class="hidden">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold m-0">📋 การบ้านของฉัน</h4>
+                <select id="studentClassFilter" class="form-select w-auto shadow-sm" onchange="loadStudentHomework()">
+                    <option value="" disabled>-- เลือกห้อง --</option>
+                    <optgroup label="ระดับประถมศึกษา">
+                        <option value="ป.1/1">ป.1/1</option><option value="ป.1/2">ป.1/2</option>
+                        <option value="ป.2/1">ป.2/1</option>
+                        <option value="ป.3/1">ป.3/1</option><option value="ป.3/2">ป.3/2</option><option value="ป.3/3">ป.3/3</option>
+                        <option value="ป.4/1">ป.4/1</option><option value="ป.4/2">ป.4/2</option><option value="ป.4/3">ป.4/3</option>
+                        <option value="ป.5/1">ป.5/1</option><option value="ป.5/2">ป.5/2</option><option value="ป.5/3">ป.5/3</option>
+                        <option value="ป.6/1">ป.6/1</option><option value="ป.6/2">ป.6/2</option>
+                    </optgroup>
+                    <optgroup label="ระดับมัธยมศึกษา">
+                        <option value="ม.1/1" selected>ม.1/1</option><option value="ม.1/2">ม.1/2</option>
+                        <option value="ม.2/1">ม.2/1</option><option value="ม.2/2">ม.2/2</option>
+                        <option value="ม.3/1">ม.3/1</option><option value="ม.3/2">ม.3/2</option>
+                        <option value="ม.4/1">ม.4/1</option><option value="ม.4/2">ม.4/2</option>
+                        <option value="ม.5/1">ม.5/1</option><option value="ม.5/2">ม.5/2</option>
+                        <option value="ม.6/1">ม.6/1</option><option value="ม.6/2">ม.6/2</option>
+                    </optgroup>
+                </select>
+            </div>
+            
+            <div class="row g-3" id="studentHomeworkList">
+                <!-- JS Inject -->
             </div>
         </div>
 
     </div>
 
+    <!-- Modal: Teaching Log Form (Teacher) -->
+    <div class="modal fade" id="teachingModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">📝 บันทึกการสอน & สั่งงาน</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    
+                    <!-- Steps -->
+                    <div class="step-container">
+                        <div class="step-item active" id="step1" onclick="showStep(1)">1</div>
+                        <div class="step-item" id="step2" onclick="showStep(2)">2</div>
+                        <div class="step-item" id="step3" onclick="showStep(3)">3</div>
+                    </div>
+
+                    <form id="teachingForm">
+                        <!-- Step 1: ข้อมูลพื้นฐาน -->
+                        <div id="formStep1" class="form-section active">
+                            <h6 class="fw-bold text-primary mb-3">1. ข้อมูลรายวิชา</h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted">วันที่สอน</label>
+                                    <input type="date" id="tDate" class="form-control" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted">คาบที่</label>
+                                    <select id="tPeriod" class="form-select">
+                                        <option value="1">1 (08:30-09:20)</option>
+                                        <option value="2">2 (09:20-10:10)</option>
+                                        <option value="3">3 (10:10-11:00)</option>
+                                        <option value="4">4 (11:00-11:50)</option>
+                                        <option value="5">5 (13:00-13:50)</option>
+                                        <option value="6">6 (13:50-14:40)</option>
+                                        <option value="7">7 (14:40-15:30)</option>
+                                        <option value="8">8 (15:30-16:20)</option>
+                                        <option value="9">9 (16:20-17:10)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted">วิชา</label>
+                                    <input type="text" id="tSubject" class="form-control" placeholder="เช่น คณิตศาสตร์" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label small text-muted">ชั้น/ห้อง</label>
+                                    <select id="tClass" class="form-select" onchange="loadStudentsForCheck()">
+                                        <option value="" disabled selected>-- เลือกห้อง --</option>
+                                        <optgroup label="ระดับประถมศึกษา">
+                                            <option value="ป.1/1">ป.1/1</option><option value="ป.1/2">ป.1/2</option>
+                                            <option value="ป.2/1">ป.2/1</option>
+                                            <option value="ป.3/1">ป.3/1</option><option value="ป.3/2">ป.3/2</option><option value="ป.3/3">ป.3/3</option>
+                                            <option value="ป.4/1">ป.4/1</option><option value="ป.4/2">ป.4/2</option><option value="ป.4/3">ป.4/3</option>
+                                            <option value="ป.5/1">ป.5/1</option><option value="ป.5/2">ป.5/2</option><option value="ป.5/3">ป.5/3</option>
+                                            <option value="ป.6/1">ป.6/1</option><option value="ป.6/2">ป.6/2</option>
+                                        </optgroup>
+                                        <optgroup label="ระดับมัธยมศึกษา">
+                                            <option value="ม.1/1">ม.1/1</option><option value="ม.1/2">ม.1/2</option>
+                                            <option value="ม.2/1">ม.2/1</option><option value="ม.2/2">ม.2/2</option>
+                                            <option value="ม.3/1">ม.3/1</option><option value="ม.3/2">ม.3/2</option>
+                                            <option value="ม.4/1">ม.4/1</option><option value="ม.4/2">ม.4/2</option>
+                                            <option value="ม.5/1">ม.5/1</option><option value="ม.5/2">ม.5/2</option>
+                                            <option value="ม.6/1">ม.6/1</option><option value="ม.6/2">ม.6/2</option>
+                                        </optgroup>
+                                    </select>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small text-muted">เรื่องที่สอน / มาตรฐานการเรียนรู้</label>
+                                    <textarea id="tTopic" class="form-control" rows="2" placeholder="ระบุเนื้อหาและจุดประสงค์..."></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label small text-muted">รูปแบบการสอน</label>
+                                    <div class="btn-group w-100" role="group">
+                                        <input type="radio" class="btn-check" name="tType" id="typeOnsite" value="Onsite" checked>
+                                        <label class="btn btn-outline-secondary" for="typeOnsite">Onsite</label>
+                                        <input type="radio" class="btn-check" name="tType" id="typeOnline" value="Online">
+                                        <label class="btn btn-outline-secondary" for="typeOnline">Online</label>
+                                        <input type="radio" class="btn-check" name="tType" id="typeHybrid" value="Hybrid">
+                                        <label class="btn btn-outline-secondary" for="typeHybrid">Hybrid</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-end mt-4">
+                                <button type="button" class="btn btn-primary rounded-pill px-4" onclick="nextStep(2)">ต่อไป <i class="fa-solid fa-arrow-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: เช็กชื่อ -->
+                        <div id="formStep2" class="form-section">
+                            <h6 class="fw-bold text-primary mb-3">2. เช็กชื่อนักเรียน (<span id="stdCount">0</span> คน)</h6>
+                            <div class="alert alert-info py-2 small"><i class="fa-solid fa-info-circle"></i> เลือกห้องในขั้นตอนที่ 1 เพื่อโหลดรายชื่อ</div>
+                            <div class="table-responsive border rounded-3" style="max-height: 300px; overflow-y: auto;">
+                                <table class="table table-sm table-hover mb-0">
+                                    <thead class="table-light sticky-top">
+                                        <tr>
+                                            <th>ชื่อ-สกุล</th>
+                                            <th class="text-center" style="width: 180px;">สถานะ</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="attendanceList">
+                                        <!-- JS Generate -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-light rounded-pill px-4" onclick="prevStep(1)">ย้อนกลับ</button>
+                                <button type="button" class="btn btn-primary rounded-pill px-4" onclick="nextStep(3)">ต่อไป <i class="fa-solid fa-arrow-right"></i></button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: การบ้าน & สรุป -->
+                        <div id="formStep3" class="form-section">
+                            <h6 class="fw-bold text-primary mb-3">3. สั่งการบ้าน & บันทึกหลังสอน</h6>
+                            
+                            <div class="form-check form-switch mb-3 p-3 bg-white border rounded-3">
+                                <input class="form-check-input" type="checkbox" id="hasHomework" onchange="toggleHomeworkSection()">
+                                <label class="form-check-label fw-bold ms-2" for="hasHomework">มีการบ้าน/ภาระงาน</label>
+                            </div>
+
+                            <div id="homeworkFields" class="p-3 bg-warning bg-opacity-10 rounded-3 border border-warning mb-3 hidden">
+                                <div class="row g-2">
+                                    <div class="col-12">
+                                        <label class="small text-muted">หัวข้อการบ้าน</label>
+                                        <input type="text" id="hwTitle" class="form-control fw-bold" placeholder="เช่น แบบฝึกหัดที่ 1.2">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="small text-muted">กำหนดส่ง</label>
+                                        <input type="datetime-local" id="hwDeadline" class="form-control">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="small text-muted">คะแนนเต็ม</label>
+                                        <input type="number" id="hwScore" class="form-control" value="10">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="small text-muted">คำสั่ง/รายละเอียด</label>
+                                        <textarea id="hwDesc" class="form-control" rows="2" placeholder="อธิบายเพิ่มเติม..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label small text-muted">บันทึกหลังสอน (Reflection)</label>
+                                <textarea id="tReflection" class="form-control" rows="2" placeholder="ผลการเรียนรู้ ปัญหาที่พบ..."></textarea>
+                            </div>
+
+                            <div class="d-flex justify-content-between mt-4">
+                                <button type="button" class="btn btn-light rounded-pill px-4" onclick="prevStep(2)">ย้อนกลับ</button>
+                                <button type="button" class="btn btn-success rounded-pill px-4 fw-bold shadow-sm" onclick="submitTeachingLog()">
+                                    <i class="fa-solid fa-save me-2"></i> บันทึกข้อมูล
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Submit Homework (Student) -->
+    <div class="modal fade" id="submitModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 bg-primary text-white">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-paper-plane me-2"></i>ส่งงาน</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <input type="hidden" id="submitDocId">
+                    <h6 class="fw-bold mb-3" id="submitHwTitle">...</h6>
+                    
+                    <div class="mb-3">
+                        <label class="form-label small text-muted">ข้อความถึงครู</label>
+                        <textarea id="submitMsg" class="form-control" rows="3" placeholder="แจ้งรายละเอียด..."></textarea>
+                    </div>
+
+                    <div class="upload-zone mb-3" onclick="document.getElementById('submitFile').click()">
+                        <i class="fa-solid fa-cloud-arrow-up fa-2x text-primary mb-2"></i>
+                        <p class="mb-0 text-muted small">แนบไฟล์งาน (รูปภาพ/PDF) <br> <span class="text-danger small">*ขนาดไม่เกิน 300KB</span></p>
+                        <input type="file" id="submitFile" class="d-none" accept="image/*,.pdf">
+                        <div id="fileName" class="small text-success mt-2"></div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button class="btn btn-success rounded-pill fw-bold" onclick="confirmSubmission()">ยืนยันการส่ง</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🔥 Modal: Grading Homework (Teacher) -->
+    <div class="modal fade" id="gradingModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 bg-warning text-dark">
+                    <h5 class="modal-title fw-bold"><i class="fa-solid fa-clipboard-check me-2"></i>ตรวจการบ้าน</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <h6 class="fw-bold mb-3" id="gradeHwTitle">...</h6>
+                    <input type="hidden" id="gradeDocId">
+                    <input type="hidden" id="gradeMaxScore">
+                    
+                    <div class="table-responsive border rounded-3" style="max-height: 400px; overflow-y: auto;">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th>นักเรียน</th>
+                                    <th>งานที่ส่ง</th>
+                                    <th>คะแนน</th>
+                                    <th>คอมเมนต์</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="gradingList">
+                                <!-- JS Inject -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: View Files List (Teacher) -->
+    <div class="modal fade" id="filesModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold">📂 ไฟล์แนบของนักเรียน</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="fileListContainer" class="d-grid gap-2">
+                        <!-- JS will inject buttons here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, query, where, getDocs, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, updateDoc, query, where, orderBy, limit, getDocs, serverTimestamp, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
-            apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
+            apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM", 
             authDomain: "school-management-system-10cbb.firebaseapp.com",
-            projectId: "school-management-system-10cbb",
-            storageBucket: "school-management-system-10cbb.firebasestorage.app",
-            messagingSenderId: "674779385916",
-            appId: "1:674779385916:web:9a26e4d25282dc23a6f339"
+            projectId: "school-management-system-10cbb"
         };
-
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        
         let currentUser = null;
-
-        // Class List
-        const classList = [
-            "ป.1/1", "ป.1/2", "ป.2/1", "ป.3/1", "ป.3/2", "ป.3/3",
-            "ป.4/1", "ป.4/2", "ป.4/3", "ป.5/1", "ป.5/2", "ป.5/3", "ป.6/1", "ป.6/2",
-            "ม.1/1", "ม.1/2", "ม.2/1", "ม.2/2", "ม.3/1", "ม.3/2",
-            "ม.4/1", "ม.4/2", "ม.5/1", "ม.5/2", "ม.6/1", "ม.6/2"
+        let mockStudents = [
+            {id: 's1', name: 'ด.ช. สมชาย ใจดี'}, {id: 's2', name: 'ด.ญ. สมหญิง รักเรียน'},
+            {id: 's3', name: 'ด.ช. เก่ง กล้าหาญ'}, {id: 's4', name: 'ด.ญ. มานี มีตา'}
         ];
 
-        // Init
-        document.getElementById('teachDate').valueAsDate = new Date();
-        const select = document.getElementById('classSelect');
-        classList.forEach(c => select.innerHTML += `<option value="${c}">${c}</option>`);
-
         onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUser = user;
-                document.getElementById('teacherName').innerText = user.displayName || user.email;
-            } else {
-                window.location.href = "index.html";
+            if (user) { 
+                currentUser = user; 
+                loadTeachingLogs(); 
+            } else { 
+                window.location.href = "index.html"; 
             }
         });
 
-        // Load Students
-        window.loadStudents = async () => {
-            const selectedClass = document.getElementById('classSelect').value;
-            if (!selectedClass) return;
+        // --- Helper: Preview File Global Function ---
+        window.previewFile = (url) => {
+            if (!url) {
+                Swal.fire('Error', 'ไม่พบข้อมูลไฟล์', 'error');
+                return;
+            }
+            // Check if URL (Firebase Storage) or Base64
+            if (url.startsWith('http')) {
+                window.open(url, '_blank');
+            } else {
+                // Base64 fallback
+                const win = window.open();
+                if (win) {
+                    win.document.write(`<iframe src="${url}" frameborder="0" style="border:0; top:0px; left:0px; bottom:0px; right:0px; width:100%; height:100%;" allowfullscreen></iframe>`);
+                    win.document.title = "Preview File";
+                } else {
+                    Swal.fire('Blocked', 'กรุณาอนุญาต Pop-up เพื่อดูไฟล์', 'warning');
+                }
+            }
+        };
 
-            Swal.fire({ title: 'กำลังโหลดรายชื่อ...', didOpen: () => Swal.showLoading() });
+        // --- Helper: Convert File to Base64 ---
+        const toBase64 = file => new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+
+        // --- UI Logic ---
+        window.switchRole = (role) => {
+            if(role === 'teacher') {
+                document.getElementById('teacherView').classList.remove('hidden');
+                document.getElementById('studentView').classList.add('hidden');
+            } else {
+                document.getElementById('teacherView').classList.add('hidden');
+                document.getElementById('studentView').classList.remove('hidden');
+                loadStudentHomework();
+            }
+        }
+
+        window.openTeachingModal = () => {
+            document.getElementById('teachingForm').reset();
+            document.getElementById('tDate').valueAsDate = new Date();
+            document.getElementById('attendanceList').innerHTML = '<tr><td colspan="2" class="text-center text-muted py-3">กรุณาเลือกห้องเรียนก่อน</td></tr>';
+            document.getElementById('stdCount').innerText = '0';
+            toggleHomeworkSection();
+            showStep(1);
+            new bootstrap.Modal(document.getElementById('teachingModal')).show();
+        };
+
+        window.showStep = (step) => {
+            document.querySelectorAll('.form-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(`formStep${step}`).classList.add('active');
+            for(let i=1; i<=3; i++) {
+                const el = document.getElementById(`step${i}`);
+                el.classList.remove('active', 'completed');
+                if(i < step) el.classList.add('completed');
+                if(i === step) el.classList.add('active');
+            }
+        };
+
+        window.nextStep = (step) => showStep(step);
+        window.prevStep = (step) => showStep(step);
+        window.toggleHomeworkSection = () => {
+            const chk = document.getElementById('hasHomework').checked;
+            const sec = document.getElementById('homeworkFields');
+            if(chk) sec.classList.remove('hidden'); else sec.classList.add('hidden');
+        };
+
+        window.loadStudentsForCheck = () => {
+            const cls = document.getElementById('tClass').value;
+            const tbody = document.getElementById('attendanceList');
+            tbody.innerHTML = '';
+            document.getElementById('stdCount').innerText = mockStudents.length;
+            mockStudents.forEach(s => {
+                tbody.innerHTML += `
+                    <tr><td>${s.name}</td><td class="text-center"><div class="btn-group btn-group-sm w-100"><input type="radio" class="btn-check" name="att_${s.id}" id="p_${s.id}" value="present" checked><label class="btn btn-outline-success" for="p_${s.id}">มา</label><input type="radio" class="btn-check" name="att_${s.id}" id="l_${s.id}" value="late"><label class="btn btn-outline-warning" for="l_${s.id}">สาย</label><input type="radio" class="btn-check" name="att_${s.id}" id="a_${s.id}" value="absent"><label class="btn btn-outline-danger" for="a_${s.id}">ขาด</label></div></td></tr>
+                `;
+            });
+        };
+
+        // --- Teacher Submit ---
+        window.submitTeachingLog = async () => {
+            const date = document.getElementById('tDate').value;
+            const subject = document.getElementById('tSubject').value;
+            const classroom = document.getElementById('tClass').value;
+            if(!date || !subject || !classroom) { Swal.fire('ข้อมูลไม่ครบ', 'กรุณากรอกข้อมูลรายวิชา', 'warning'); return; }
+
+            const formData = {
+                teacherId: currentUser.uid, teacherName: currentUser.displayName||"ครู", date: date, period: document.getElementById('tPeriod').value,
+                subject: subject, classroom: classroom, topic: document.getElementById('tTopic').value, type: document.querySelector('input[name="tType"]:checked').value,
+                reflection: document.getElementById('tReflection').value, hasHomework: document.getElementById('hasHomework').checked, timestamp: serverTimestamp()
+            };
+            
+            const attendance = {};
+            const rows = document.querySelectorAll('#attendanceList tr');
+            if(rows.length>0) mockStudents.forEach(s => { const el=document.querySelector(`input[name="att_${s.id}"]:checked`); if(el) attendance[s.id]=el.value; });
+            formData.attendance = attendance;
+
+            if(formData.hasHomework) {
+                formData.homework = {
+                    title: document.getElementById('hwTitle').value||"การบ้าน", deadline: document.getElementById('hwDeadline').value,
+                    score: document.getElementById('hwScore').value, description: document.getElementById('hwDesc').value,
+                    submissions: [] // Array to store student submissions
+                };
+            }
+
+            Swal.fire({ title:'กำลังบันทึก...', didOpen:()=>Swal.showLoading() });
+            try {
+                await addDoc(collection(db, "teaching_logs"), formData);
+                Swal.fire({ icon:'success', title:'บันทึกสำเร็จ', timer:1500, showConfirmButton:false });
+                bootstrap.Modal.getInstance(document.getElementById('teachingModal')).hide();
+                loadTeachingLogs();
+            } catch(e) { Swal.fire('Error', e.message, 'error'); }
+        };
+
+        window.loadTeachingLogs = async () => {
+            const tbody = document.getElementById('teachingLogTable');
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center py-3"><div class="spinner-border spinner-border-sm text-primary"></div> กำลังโหลด...</td></tr>';
+            const q = query(collection(db, "teaching_logs"), where("teacherId", "==", currentUser.uid), orderBy("timestamp", "desc"), limit(10));
+            try {
+                const snap = await getDocs(q);
+                tbody.innerHTML = '';
+                let todayCount = 0; let hwCount = 0;
+                const todayStr = new Date().toISOString().split('T')[0];
+                if(snap.empty) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted py-4">ยังไม่มีบันทึก</td></tr>'; return; }
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    const date = d.date ? new Date(d.date).toLocaleDateString('th-TH', {day:'numeric', month:'short', year:'2-digit'}) : '-';
+                    const hwBadge = d.hasHomework ? '<span class="badge bg-warning text-dark rounded-pill">มีการบ้าน</span>' : '<span class="badge bg-light text-muted border rounded-pill">ไม่มี</span>';
+                    if(d.date === todayStr) todayCount++;
+                    if(d.hasHomework) hwCount++;
+
+                    // 🔥 เพิ่มปุ่มตรวจงาน
+                    let actionBtn = `<button class="btn btn-sm btn-light text-primary" onclick="Swal.fire('รายละเอียด', '${d.topic || "ไม่มีรายละเอียด"}', 'info')"><i class="fa-solid fa-eye"></i></button>`;
+                    if(d.hasHomework) {
+                        actionBtn += ` <button class="btn btn-sm btn-warning text-dark ms-1" onclick="openGradingModal('${doc.id}')"><i class="fa-solid fa-check-double"></i> ตรวจ</button>`;
+                    }
+
+                    tbody.innerHTML += `<tr><td><div class="fw-bold">${date}</div><small class="text-muted">คาบ ${d.period}</small></td><td><div class="fw-bold text-primary">${d.subject}</div><small>${d.classroom}</small></td><td>${d.topic||'-'}</td><td>${hwBadge}</td><td><span class="status-badge status-submitted"><i class="fa-solid fa-check"></i> บันทึกแล้ว</span></td><td>${actionBtn}</td></tr>`;
+                });
+                document.getElementById('statTodayCount').innerText = todayCount;
+                document.getElementById('statHwCount').innerText = hwCount;
+            } catch(e) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-3">ต้องสร้าง Index ใน Firebase ก่อน หรือสิทธิ์ไม่ถูกต้อง</td></tr>'; }
+        }
+
+        // --- Teacher Grading Logic (UPDATED 🔥) ---
+        window.openGradingModal = async (docId) => {
+            const list = document.getElementById('gradingList');
+            list.innerHTML = '<tr><td colspan="5" class="text-center py-3">กำลังโหลดข้อมูลการส่ง...</td></tr>';
+            new bootstrap.Modal(document.getElementById('gradingModal')).show();
 
             try {
-                // ค้นหานักเรียนที่มี studentClass ตรงกับที่เลือก
-                const q = query(collection(db, "users"), where("studentClass", "==", selectedClass), where("role", "==", "student"));
-                const snapshot = await getDocs(q);
-                
-                const tbody = document.getElementById('studentTableBody');
-                tbody.innerHTML = "";
-                document.getElementById('studentCount').innerText = snapshot.size;
+                const docSnap = await getDoc(doc(db, "teaching_logs", docId));
+                if(docSnap.exists()) {
+                    const data = docSnap.data();
+                    const hw = data.homework || {};
+                    const submissions = hw.submissions || [];
+                    
+                    document.getElementById('gradeHwTitle').innerText = `งาน: ${hw.title} (เต็ม ${hw.score || 10})`;
+                    document.getElementById('gradeDocId').value = docId;
+                    document.getElementById('gradeMaxScore').value = hw.score || 10;
+                    
+                    if(submissions.length === 0) {
+                        list.innerHTML = '<tr><td colspan="5" class="text-center text-muted py-4">ยังไม่มีนักเรียนส่งงาน</td></tr>';
+                        return;
+                    }
 
-                if (snapshot.empty) {
-                    tbody.innerHTML = `<tr><td colspan="3" class="text-center py-4 text-muted">ไม่พบนักเรียนในห้อง ${selectedClass}</td></tr>`;
-                } else {
-                    let i = 1;
-                    snapshot.forEach(doc => {
-                        const s = doc.data();
-                        const uid = doc.id;
-                        tbody.innerHTML += `
-                            <tr class="student-row">
-                                <td>${i++}</td>
-                                <td>
-                                    <div class="d-flex align-items-center">
-                                        <div class="bg-secondary bg-opacity-25 rounded-circle me-2" style="width:30px;height:30px;"></div>
-                                        <div>${s.firstName}</div>
-                                    </div>
-                                </td>
-                                <td class="text-center">
-                                    <div class="d-flex justify-content-center gap-2">
-                                        <label>
-                                            <input type="radio" name="att_${uid}" value="present" class="status-radio" checked>
-                                            <span class="status-label present">มา</span>
-                                        </label>
-                                        <label>
-                                            <input type="radio" name="att_${uid}" value="late" class="status-radio">
-                                            <span class="status-label late">สาย</span>
-                                        </label>
-                                        <label>
-                                            <input type="radio" name="att_${uid}" value="absent" class="status-radio">
-                                            <span class="status-label absent">ขาด</span>
-                                        </label>
-                                    </div>
-                                </td>
+                    list.innerHTML = '';
+                    // Reset temp storage for files
+                    window.tempStudentFiles = {};
+
+                    submissions.forEach(sub => {
+                        const date = new Date(sub.submittedAt).toLocaleString('th-TH');
+                        const scoreVal = sub.score !== undefined ? sub.score : '';
+                        const feedbackVal = sub.feedback || '';
+                        
+                        // 🔥 Logic แสดงปุ่มดูไฟล์
+                        let fileDisplay = '-';
+                        
+                        if (sub.attachments && sub.attachments.length > 0) {
+                            // กรณีมีหลายไฟล์ (หรือไฟล์เดียวแบบใหม่)
+                            window.tempStudentFiles[sub.studentId] = sub.attachments;
+                            fileDisplay = `<button class="btn btn-sm btn-outline-info text-dark" onclick="viewStudentFiles('${sub.studentId}')">
+                                <i class="fa-solid fa-folder-open"></i> ไฟล์ (${sub.attachments.length})
+                            </button>`;
+                        } else if (sub.fileData) {
+                             // กรณีไฟล์เดียว (แบบเก่า Base64)
+                             fileDisplay = `<button class="btn btn-sm btn-outline-info text-dark" onclick="previewFile('${sub.fileData}')"><i class="fa-solid fa-file-invoice"></i> ดูไฟล์</button>`;
+                        } else if (sub.hasFile) {
+                             fileDisplay = '<span class="badge bg-secondary">ไฟล์เก่า (เปิดไม่ได้)</span>';
+                        }
+
+                        list.innerHTML += `
+                            <tr>
+                                <td><div class="fw-bold">${sub.studentName}</div><small class="text-muted">${date}</small></td>
+                                <td>${sub.message || '-'} <br>${fileDisplay}</td>
+                                <td style="width:100px"><input type="number" class="form-control form-control-sm" id="score_${sub.studentId}" value="${scoreVal}" max="${hw.score}"></td>
+                                <td><input type="text" class="form-control form-control-sm" id="feedback_${sub.studentId}" value="${feedbackVal}" placeholder="คอมเมนต์..."></td>
+                                <td><button class="btn btn-sm btn-success" onclick="saveGrade('${docId}', '${sub.studentId}')"><i class="fa-solid fa-save"></i></button></td>
                             </tr>
                         `;
                     });
                 }
-                
-                document.getElementById('attendanceSection').classList.remove('d-none');
-                document.getElementById('homeworkSection').classList.remove('d-none');
-                Swal.close();
-
-            } catch (error) {
-                console.error(error);
-                Swal.fire('Error', 'โหลดข้อมูลไม่สำเร็จ', 'error');
-            }
+            } catch(e) { console.error(e); }
         };
 
-        // Save Record
-        window.saveRecord = async () => {
-            const date = document.getElementById('teachDate').value;
-            const period = document.getElementById('period').value;
-            const className = document.getElementById('classSelect').value;
-            const subject = document.getElementById('subject').value;
-            const homework = document.getElementById('homeworkDetail').value;
-            const deadline = document.getElementById('homeworkDeadline').value;
+        // Function to view student files in modal
+        window.viewStudentFiles = (studentId) => {
+            const files = window.tempStudentFiles[studentId] || [];
+            const container = document.getElementById('fileListContainer');
+            container.innerHTML = '';
 
-            if (!className || !subject) {
-                Swal.fire('ข้อมูลไม่ครบ', 'กรุณาเลือกห้องและระบุวิชา', 'warning');
-                return;
-            }
+            files.forEach(file => {
+                const fileUrl = file.url || file.data;
+                // Escape simple quotes
+                const safeUrl = fileUrl ? fileUrl.replace(/'/g, "\\'") : '';
 
-            // Collect Attendance Data
-            const attendanceData = {};
-            const radios = document.querySelectorAll('input[type="radio"]:checked');
-            radios.forEach(r => {
-                const uid = r.name.replace('att_', '');
-                attendanceData[uid] = r.value;
+                container.innerHTML += `
+                    <button class="btn btn-light border text-start p-3 d-flex justify-content-between align-items-center" onclick="previewFile('${safeUrl}')">
+                        <div class="text-truncate" style="max-width: 300px;">
+                            <i class="fa-solid fa-file-lines text-primary me-2"></i>
+                            <span class="fw-bold text-dark">${file.name}</span>
+                        </div>
+                        <i class="fa-solid fa-arrow-up-right-from-square text-muted"></i>
+                    </button>
+                `;
             });
 
-            Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+            new bootstrap.Modal(document.getElementById('filesModal')).show();
+        };
+
+        window.saveGrade = async (docId, studentId) => {
+            const score = document.getElementById(`score_${studentId}`).value;
+            const feedback = document.getElementById(`feedback_${studentId}`).value;
+            
+            try {
+                const docRef = doc(db, "teaching_logs", docId);
+                const docSnap = await getDoc(docRef);
+                const data = docSnap.data();
+                const submissions = data.homework.submissions;
+
+                // Find and update specific submission
+                const updatedSubmissions = submissions.map(sub => {
+                    if(sub.studentId === studentId) {
+                        return { ...sub, score: score, feedback: feedback, gradedAt: new Date().toISOString() };
+                    }
+                    return sub;
+                });
+
+                await updateDoc(docRef, { "homework.submissions": updatedSubmissions });
+                Swal.fire({ icon:'success', title:'บันทึกคะแนนแล้ว', toast:true, position:'top-end', showConfirmButton:false, timer:1500 });
+            } catch(e) { Swal.fire('Error', e.message, 'error'); }
+        };
+
+        // --- Student View & Submission ---
+        window.loadStudentHomework = async () => {
+            const container = document.getElementById('studentHomeworkList');
+            const selectedClass = document.getElementById('studentClassFilter').value;
+            container.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div></div>';
+            try {
+                const q = query(collection(db, "teaching_logs"), where("classroom", "==", selectedClass), where("hasHomework", "==", true), orderBy("timestamp", "desc"), limit(10));
+                const snap = await getDocs(q);
+                container.innerHTML = '';
+                if(snap.empty) { container.innerHTML = `<div class="col-12 text-center text-muted py-5"><i class="fa-solid fa-check-circle fa-3x mb-3 text-success opacity-50"></i><p>เย้! ไม่มีการบ้านสำหรับห้อง ${selectedClass}</p></div>`; return; }
+                
+                snap.forEach(doc => {
+                    const d = doc.data();
+                    const hw = d.homework || {};
+                    const deadline = hw.deadline ? new Date(hw.deadline).toLocaleString('th-TH', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'}) : 'ไม่กำหนด';
+                    
+                    // Check submission status
+                    const mySub = hw.submissions ? hw.submissions.find(sub => sub.studentId === currentUser.uid) : null;
+                    const isSubmitted = !!mySub;
+                    const isGraded = mySub && mySub.score !== undefined;
+                    
+                    let statusBadge = '<span class="badge bg-warning text-dark">รอส่ง</span>';
+                    let btnAction = `<button class="btn btn-sm btn-primary rounded-pill px-3" onclick="openSubmitModal('${doc.id}', '${hw.title}')">ส่งงาน</button>`;
+                    let gradeInfo = '';
+
+                    if(isSubmitted) {
+                        statusBadge = '<span class="badge bg-success">ส่งแล้ว</span>';
+                        btnAction = `<button class="btn btn-sm btn-outline-success rounded-pill px-3" disabled><i class="fa-solid fa-check"></i> ส่งแล้ว</button>`;
+                        if(isGraded) {
+                            statusBadge = '<span class="badge bg-info text-dark">ตรวจแล้ว</span>';
+                            gradeInfo = `<div class="mt-2 p-2 bg-light rounded border text-start small"><strong class="text-primary">คะแนน: ${mySub.score}/${hw.score}</strong><br><span class="text-muted">ครู: ${mySub.feedback || '-'}</span></div>`;
+                        }
+                    }
+
+                    container.innerHTML += `
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100 border-start border-4 ${isSubmitted ? 'border-success' : 'border-warning'} shadow-sm hover-shadow transition">
+                                <div class="card-body p-4">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        ${statusBadge}
+                                        <small class="text-muted fw-bold">${d.subject}</small>
+                                    </div>
+                                    <h6 class="fw-bold mb-2">${hw.title}</h6>
+                                    <p class="text-muted small mb-3 text-truncate-2">${hw.description || '-'}</p>
+                                    ${gradeInfo}
+                                    <div class="d-flex justify-content-between align-items-center mt-auto pt-3 border-top">
+                                        <small class="text-danger"><i class="fa-regular fa-clock me-1"></i>${deadline}</small>
+                                        ${btnAction}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            } catch(e) { console.error(e); container.innerHTML = '<div class="col-12 text-center text-danger">Index Missing?</div>'; }
+        }
+
+        // --- Submission Modal Logic ---
+        window.openSubmitModal = (docId, title) => {
+            document.getElementById('submitDocId').value = docId;
+            document.getElementById('submitHwTitle').innerText = title;
+            document.getElementById('submitMsg').value = '';
+            document.getElementById('submitFile').value = '';
+            document.getElementById('fileName').innerText = '';
+            new bootstrap.Modal(document.getElementById('submitModal')).show();
+        };
+
+        document.getElementById('submitFile').addEventListener('change', function(){
+            const file = this.files[0];
+            if(file) {
+                // Check size < 300KB
+                if(file.size > 300 * 1024) {
+                    Swal.fire('ไฟล์ใหญ่เกินไป', 'ระบบทดลองรองรับไฟล์ไม่เกิน 300KB ครับ', 'warning');
+                    this.value = ''; // Reset
+                    document.getElementById('fileName').innerText = '';
+                    return;
+                }
+                document.getElementById('fileName').innerText = `ไฟล์: ${file.name}`;
+            }
+        });
+
+        // 🔥 Submit with File Upload Logic
+        window.confirmSubmission = async () => {
+            const docId = document.getElementById('submitDocId').value;
+            const message = document.getElementById('submitMsg').value;
+            const fileInput = document.getElementById('submitFile');
+            const file = fileInput.files[0];
+
+            Swal.fire({ title:'กำลังส่งงาน...', text: 'กำลังอัปโหลดไฟล์...', didOpen:()=>Swal.showLoading() });
 
             try {
-                // Save to Firestore
-                await addDoc(collection(db, "learning_records"), {
-                    teacherId: currentUser.uid,
-                    teacherName: currentUser.displayName || "ครู",
-                    date: date,
-                    period: parseInt(period),
-                    className: className,
-                    subject: subject,
-                    homework: homework,
-                    homeworkDeadline: deadline,
-                    attendance: attendanceData,
-                    created_at: serverTimestamp()
-                });
+                let fileBase64 = null;
+                if(file) {
+                    fileBase64 = await toBase64(file);
+                }
 
-                Swal.fire({
-                    icon: 'success',
-                    title: 'บันทึกสำเร็จ!',
-                    text: homework ? `สั่งการบ้านให้นักเรียนห้อง ${className} เรียบร้อยแล้ว` : 'บันทึกการสอนเรียบร้อย',
-                    confirmButtonText: 'ตกลง'
-                }).then(() => {
-                    // Reset or Redirect
-                    window.location.href = "dashboard.html";
-                });
+                const submissionData = {
+                    studentId: currentUser.uid,
+                    studentName: currentUser.displayName || 'นักเรียน',
+                    submittedAt: new Date().toISOString(),
+                    message: message,
+                    hasFile: !!fileBase64,
+                    fileName: file ? file.name : null,
+                    fileData: fileBase64 // Store base64 string
+                };
 
-            } catch (e) {
+                const docRef = doc(db, "teaching_logs", docId);
+                await updateDoc(docRef, { "homework.submissions": arrayUnion(submissionData) });
+                Swal.fire({ icon:'success', title:'ส่งงานเรียบร้อย!', timer:1500, showConfirmButton:false });
+                bootstrap.Modal.getInstance(document.getElementById('submitModal')).hide();
+                loadStudentHomework();
+            } catch(e) {
                 console.error(e);
-                Swal.fire('Error', e.message, 'error');
+                Swal.fire('Error', 'ส่งงานไม่สำเร็จ: ' + e.message, 'error');
             }
         };
+
     </script>
 </body>
 </html>

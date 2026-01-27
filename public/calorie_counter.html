@@ -2,245 +2,793 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Calorie Counter - School Hub</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ระบบติดตามสุขภาพและแคลอรี่อัจฉริยะ - School Hub</title>
     <link rel="icon" href="icon.png" type="image/png">
     
+    <!-- Libraries -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
-        :root { --primary-color: #0d6efd; --bg-color: #f0f2f5; }
-        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); }
-        .navbar-custom { background: white; box-shadow: 0 4px 20px rgba(0,0,0,0.05); }
-        .card { border-radius: 16px; border: none; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        .upload-zone {
-            border: 2px dashed #cbd5e1; border-radius: 12px; padding: 30px;
-            text-align: center; background: white; cursor: pointer; transition: 0.2s;
+        :root {
+            /* Premium Palette */
+            --primary-color: #4f46e5;
+            --primary-light: #eef2ff;
+            --success-color: #10b981;
+            --success-light: #ecfdf5;
+            --warning-color: #f59e0b;
+            --warning-light: #fffbeb;
+            --danger-color: #ef4444;
+            --danger-light: #fef2f2;
+            --text-dark: #1e293b;
+            --text-gray: #64748b;
+            --card-bg: #ffffff;
+            --bg-body: #f8fafc;
+            
+            --shadow-sm: 0 2px 4px rgba(148, 163, 184, 0.1);
+            --shadow-md: 0 10px 30px -10px rgba(148, 163, 184, 0.2);
+            --shadow-lg: 0 20px 40px -10px rgba(148, 163, 184, 0.3);
+            --radius-xl: 24px;
+            --radius-lg: 16px;
         }
-        .upload-zone:hover { border-color: var(--primary-color); background: #f8f9fa; }
-        .preview-img { max-width: 100%; max-height: 300px; border-radius: 12px; margin-top: 20px; display: none; }
-        .result-box { background: white; border-radius: 12px; padding: 20px; margin-top: 20px; display: none; }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--bg-body);
+            color: var(--text-dark);
+            padding-bottom: 120px;
+            /* Subtle Background Pattern */
+            background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Navbar */
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(15px);
+            border-bottom: 1px solid rgba(226, 232, 240, 0.6);
+            padding: 1rem 0;
+        }
+        .navbar-brand { font-size: 1.25rem; letter-spacing: -0.5px; }
+
+        /* General Card */
+        .main-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-xl);
+            border: 1px solid rgba(255,255,255,0.8);
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+        .main-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+
+        /* KPI Cards */
+        .kpi-card {
+            background: var(--card-bg);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            height: 100%;
+            border: 1px solid #f1f5f9;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .kpi-card::before {
+            content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--primary-color);
+        }
+        .kpi-title { font-size: 0.85rem; color: var(--text-gray); font-weight: 600; text-transform: uppercase; margin-bottom: 8px; }
+        .kpi-value { font-size: 1.75rem; font-weight: 800; color: var(--text-dark); letter-spacing: -1px; }
+        .kpi-desc { font-size: 0.8rem; color: #94a3b8; margin-top: 4px; display: flex; align-items: center; gap: 4px; }
+
+        /* Progress Circle */
+        .progress-ring-container { position: relative; width: 160px; height: 160px; margin: 0 auto; }
+        .circular-chart { display: block; margin: 0 auto; max-width: 100%; max-height: 250px; }
+        .circle-bg { fill: none; stroke: #f1f5f9; stroke-width: 2; }
+        .circle { fill: none; stroke-width: 2; stroke-linecap: round; transition: stroke-dashoffset 1s ease-in-out; filter: drop-shadow(0 0 4px rgba(79, 70, 229, 0.4)); }
+        
+        /* Macro Bars (Premium Look) */
+        .macro-label { font-size: 0.8rem; font-weight: 600; display: flex; justify-content: space-between; margin-bottom: 6px; color: var(--text-gray); }
+        .progress-custom { height: 10px; border-radius: 5px; background-color: #f1f5f9; margin-bottom: 16px; box-shadow: inset 0 1px 2px rgba(0,0,0,0.05); }
+        .progress-bar-custom { height: 100%; border-radius: 5px; transition: width 1s ease; }
+        
+        .bg-gradient-protein { background: linear-gradient(90deg, #a78bfa, #8b5cf6); }
+        .bg-gradient-carb { background: linear-gradient(90deg, #60a5fa, #3b82f6); }
+        .bg-gradient-fat { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+
+        /* Meal & Activity Items */
+        .list-item {
+            background: var(--card-bg); border-radius: var(--radius-lg);
+            padding: 16px; margin-bottom: 12px;
+            display: flex; align-items: center; justify-content: space-between;
+            box-shadow: var(--shadow-sm);
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .list-item:hover { border-color: var(--primary-color); transform: translateX(4px); }
+        
+        .item-icon { 
+            width: 48px; height: 48px; border-radius: 14px; 
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.25rem; margin-right: 16px; flex-shrink: 0;
+        }
+        .item-food { background: var(--primary-light); color: var(--primary-color); }
+        .item-act { background: var(--danger-light); color: var(--danger-color); }
+
+        /* AI Box */
+        .ai-insight-box {
+            background: linear-gradient(145deg, #ffffff, #f8fafc);
+            border-radius: var(--radius-xl); padding: 24px;
+            border: 1px solid #e2e8f0; position: relative;
+            box-shadow: inset 0 0 20px rgba(255,255,255,0.8), var(--shadow-sm);
+        }
+        .ai-badge {
+            background: linear-gradient(135deg, #6366f1, #a855f7); color: white;
+            font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; font-weight: 700;
+            margin-bottom: 10px; display: inline-block;
+        }
+
+        /* FAB */
+        .fab-container { position: fixed; bottom: 30px; right: 30px; z-index: 1000; display: flex; flex-direction: column; gap: 16px; align-items: flex-end; }
+        .fab-btn {
+            width: 64px; height: 64px; border-radius: 24px;
+            color: white; display: flex; align-items: center; justify-content: center;
+            font-size: 26px; box-shadow: 0 12px 30px -8px rgba(79, 70, 229, 0.5);
+            border: none; transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer;
+        }
+        .fab-btn.main { background: linear-gradient(135deg, var(--primary-color), #4338ca); }
+        .fab-btn.sub { width: 50px; height: 50px; font-size: 20px; background: white; color: var(--text-gray); box-shadow: var(--shadow-md); border-radius: 18px; }
+        .fab-btn:hover { transform: scale(1.1) translateY(-2px); }
+        .fab-label {
+            background: white; color: var(--text-dark); padding: 6px 14px; border-radius: 10px;
+            font-size: 0.85rem; font-weight: 600; margin-right: 12px;
+            box-shadow: var(--shadow-sm); opacity: 0; transition: 0.2s; pointer-events: none;
+        }
+        .fab-group:hover .fab-label { opacity: 1; transform: translateX(-5px); }
+
+        /* Tab Design */
+        .nav-pills .nav-link {
+            border-radius: 50px; padding: 10px 24px; font-weight: 600; color: var(--text-gray);
+            background: white; border: 1px solid #f1f5f9; margin-right: 8px;
+            transition: all 0.2s;
+        }
+        .nav-pills .nav-link.active {
+            background: var(--text-dark); color: white; border-color: var(--text-dark);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        /* Utilities */
+        .text-gradient { background: linear-gradient(to right, #4f46e5, #9333ea); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-badge { font-size: 0.75rem; padding: 4px 10px; border-radius: 8px; background: #f1f5f9; color: var(--text-gray); font-weight: 600; }
+        
+        .upload-zone { border: 2px dashed #cbd5e1; border-radius: 20px; padding: 40px; text-align: center; background: #f8fafc; cursor: pointer; transition: 0.2s; }
+        .upload-zone:hover { border-color: var(--primary-color); background: #eef2ff; }
+        .scanner-line { height: 3px; width: 100%; background: var(--success-color); position: absolute; top: 0; left: 0; animation: scan 2s infinite linear; display: none; box-shadow: 0 0 10px var(--success-color); }
+        @keyframes scan { 0% {top: 0%; opacity: 0;} 50% {opacity:1;} 100% {top: 100%; opacity: 0;} }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
         <div class="container">
-            <a class="navbar-brand fw-bold text-primary" href="dashboard.html">
-                <i class="fa-solid fa-chevron-left me-2"></i> นับแคลอรี่ (AI)
+            <a class="navbar-brand fw-bold" href="dashboard.html">
+                <i class="fa-solid fa-chevron-left me-2 text-muted" style="font-size: 0.9rem;"></i> 
+                <span class="text-gradient">สุขภาพอัจฉริยะ</span>
             </a>
+            <div class="d-flex align-items-center">
+                <div class="dropdown">
+                    <button class="btn btn-white rounded-circle shadow-sm border p-0" style="width: 40px; height: 40px;" type="button" data-bs-toggle="dropdown">
+                        <i class="fa-solid fa-ellipsis-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-4 mt-2 p-2">
+                        <li><h6 class="dropdown-header small text-uppercase fw-bold text-muted">จัดการข้อมูล</h6></li>
+                        <li><a class="dropdown-item rounded-3" href="#" onclick="exportData()"><i class="fa-solid fa-file-export me-2 text-muted"></i>ส่งออก JSON</a></li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li><a class="dropdown-item rounded-3 text-danger" href="#" onclick="deleteData()"><i class="fa-solid fa-trash-can me-2"></i>รีเซ็ตข้อมูล</a></li>
+                    </ul>
+                </div>
+            </div>
         </div>
     </nav>
 
     <div class="container py-4">
-        <div class="row justify-content-center">
-            <div class="col-md-8 col-lg-6">
-                
-                <div class="card p-4">
-                    <h5 class="fw-bold text-center mb-4">📸 ถ่ายรูปอาหารเพื่อคำนวณแคลอรี่</h5>
-                    
-                    <input type="file" id="foodImageInput" accept="image/*" class="d-none" onchange="previewImage(this)">
-                    <div class="upload-zone" onclick="document.getElementById('foodImageInput').click()">
-                        <i class="fa-solid fa-camera fa-3x text-muted mb-3"></i>
-                        <p class="mb-0 text-muted">คลิกเพื่อถ่ายรูป หรือเลือกรูปภาพ</p>
+        
+        <!-- 1. KPI Dashboard (Premium Look) -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="kpi-card" style="border-left: 4px solid #3b82f6;">
+                    <div class="kpi-title">แคลอรี่เฉลี่ย</div>
+                    <div class="kpi-value" id="kpiAvgCal">0</div>
+                    <div class="kpi-desc text-primary"><i class="fa-solid fa-chart-line me-1"></i> แนวโน้ม 7 วัน</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="kpi-card" style="border-left: 4px solid #10b981;">
+                    <div class="kpi-title">ตามเป้าหมาย</div>
+                    <div class="kpi-value text-success" id="kpiOnTarget">0 <span class="fs-6 text-muted fw-normal">วัน</span></div>
+                    <div class="kpi-desc"><i class="fa-solid fa-check-circle me-1 text-success"></i> ยอดเยี่ยม!</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="kpi-card" style="border-left: 4px solid #f59e0b;">
+                    <div class="kpi-title">เกินกำหนด</div>
+                    <div class="kpi-value text-warning" id="kpiOverTarget">0 <span class="fs-6 text-muted fw-normal">วัน</span></div>
+                    <div class="kpi-desc">พยายามต่อไป</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="kpi-card" style="border-left: 4px solid #ef4444;">
+                    <div class="kpi-title">เผาผลาญรวม</div>
+                    <div class="kpi-value text-danger" id="kpiBurned">0</div>
+                    <div class="kpi-desc"><i class="fa-solid fa-fire me-1 text-danger"></i> กิโลแคล</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Main Energy Balance & AI -->
+        <div class="row g-4 mb-4">
+            <!-- Energy Balance -->
+            <div class="col-lg-5">
+                <div class="main-card p-4 h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold m-0 text-dark">สมดุลพลังงาน</h5>
+                        <button class="btn btn-sm btn-light rounded-pill px-3 border shadow-sm" onclick="openGoalSettings()">
+                            <i class="fa-solid fa-sliders me-1"></i> ตั้งเป้าหมาย
+                        </button>
                     </div>
 
-                    <img id="imagePreview" class="preview-img shadow-sm mx-auto d-block">
+                    <div class="text-center position-relative mb-4">
+                        <div class="progress-ring-container">
+                            <svg viewBox="0 0 36 36" class="circular-chart">
+                                <!-- Background Circle -->
+                                <path class="circle-bg" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                <!-- Progress Circle -->
+                                <path id="progressCircle" class="circle" stroke="#4f46e5" stroke-dasharray="0, 100" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                            </svg>
+                            <div class="position-absolute top-50 start-50 translate-middle">
+                                <div class="text-muted" style="font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase;">แคลอรี่สุทธิ</div>
+                                <div class="fw-bold text-dark lh-1 my-1" style="font-size: 2.2rem;" id="netCalories">0</div>
+                                <div class="text-muted" style="font-size: 0.8rem;">กิโลแคล (เหลือ)</div>
+                            </div>
+                        </div>
+                    </div>
 
-                    <div id="statusText" class="text-center mt-3 text-muted small" style="display: none;">Waiting...</div>
-
-                    <button id="btnAnalyze" class="btn btn-primary w-100 mt-3 py-2 rounded-pill fw-bold" onclick="analyzeFood()" style="display: none;">
-                        <i class="fa-solid fa-wand-magic-sparkles me-2"></i> วิเคราะห์โภชนาการ
-                    </button>
+                    <div class="d-flex justify-content-center gap-3 mt-2">
+                        <div class="text-center px-3 py-2 rounded-4 bg-light border">
+                            <div class="small text-muted mb-1"><i class="fa-solid fa-utensils text-primary me-1"></i> รับเข้า</div>
+                            <div class="fw-bold text-dark" id="valFood">0</div>
+                        </div>
+                        <div class="text-center px-3 py-2 rounded-4 bg-light border">
+                            <div class="small text-muted mb-1"><i class="fa-solid fa-fire text-danger me-1"></i> เผาผลาญ</div>
+                            <div class="fw-bold text-dark" id="valBurn">0</div>
+                        </div>
+                    </div>
                 </div>
+            </div>
 
-                <div id="resultSection" class="result-box shadow-sm">
-                    <h5 class="fw-bold text-success"><i class="fa-solid fa-check-circle me-2"></i>ผลการวิเคราะห์</h5>
-                    <div id="aiResultContent" class="mt-3"></div>
+            <!-- AI Coach & Macros -->
+            <div class="col-lg-7">
+                <div class="main-card p-4 h-100 d-flex flex-column">
+                    <div class="mb-4">
+                        <h5 class="fw-bold mb-3 text-dark">สัดส่วนโภชนาการ</h5>
+                        <div class="row g-3">
+                            <div class="col-12">
+                                <div class="macro-label"><span>โปรตีน</span> <span id="macroProteinText">0/0g</span></div>
+                                <div class="progress-custom"><div id="barProtein" class="progress-bar-custom bg-gradient-protein" style="width: 0%"></div></div>
+                            </div>
+                            <div class="col-12">
+                                <div class="macro-label"><span>คาร์โบไฮเดรต</span> <span id="macroCarbText">0/0g</span></div>
+                                <div class="progress-custom"><div id="barCarb" class="progress-bar-custom bg-gradient-carb" style="width: 0%"></div></div>
+                            </div>
+                            <div class="col-12">
+                                <div class="macro-label"><span>ไขมัน</span> <span id="macroFatText">0/0g</span></div>
+                                <div class="progress-custom"><div id="barFat" class="progress-bar-custom bg-gradient-fat" style="width: 0%"></div></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AI Section -->
+                    <div class="ai-insight-box flex-grow-1 d-flex flex-column justify-content-center">
+                        <span class="ai-badge"><i class="fa-solid fa-wand-magic-sparkles me-1"></i> AI วิเคราะห์</span>
+                        <div class="d-flex align-items-start mt-2">
+                            <div class="flex-grow-1">
+                                <p id="aiAdviceText" class="text-secondary mb-3" style="font-size: 0.95rem; line-height: 1.6;">
+                                    กดปุ่มด้านล่างเพื่อให้ AI วิเคราะห์พฤติกรรมการกินของคุณ...
+                                </p>
+                                <button class="btn btn-dark rounded-pill px-4 fw-bold shadow-sm" onclick="generateAIInsight()">
+                                    <i class="fa-regular fa-lightbulb me-2"></i> วิเคราะห์เลย
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
+        </div>
 
+        <!-- 3. Logs Tab -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <ul class="nav nav-pills" id="logTabs">
+                <li class="nav-item">
+                    <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#foodTab">รายการอาหาร</button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#activityTab">กิจกรรม</button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="tab-content">
+            <!-- Food List -->
+            <div class="tab-pane fade show active" id="foodTab">
+                <div id="foodListContainer"></div>
+            </div>
+            
+            <!-- Activity List -->
+            <div class="tab-pane fade" id="activityTab">
+                <div id="activityListContainer"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- FAB Menu -->
+    <div class="fab-container">
+        <div class="d-flex align-items-center fab-group">
+            <span class="fab-label">บันทึกกิจกรรม</span>
+            <button class="fab-btn sub" onclick="openActivityModal()"><i class="fa-solid fa-person-running text-gradient"></i></button>
+        </div>
+        <div class="d-flex align-items-center fab-group">
+            <span class="fab-label">สแกนอาหาร</span>
+            <button class="fab-btn main" onclick="openFoodModal()"><i class="fa-solid fa-camera"></i></button>
+        </div>
+    </div>
+
+    <!-- Modals (Still using clean Bootstrap modals) -->
+    <!-- Modal: Food Upload -->
+    <div class="modal fade" id="foodModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">📸 สแกนอาหาร</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div id="uploadSection">
+                        <input type="file" id="foodImageInput" accept="image/*" class="d-none" onchange="handleImageSelect(this)">
+                        <div class="upload-zone" onclick="document.getElementById('foodImageInput').click()">
+                            <i class="fa-solid fa-camera fa-2x text-muted mb-3"></i>
+                            <p class="mb-0 text-muted fw-bold">แตะเพื่อถ่ายรูปหรืออัปโหลด</p>
+                            <small class="text-muted">รองรับ JPG, PNG</small>
+                        </div>
+                    </div>
+                    <div id="previewSection" class="hidden text-center position-relative">
+                        <div class="position-relative d-inline-block w-100 overflow-hidden rounded-4">
+                            <img id="imagePreview" class="w-100 rounded-4">
+                            <div id="scannerLine" class="scanner-line"></div>
+                        </div>
+                        <div id="analysisStatus" class="mt-3 text-primary small fw-bold hidden">
+                            <i class="fa-solid fa-circle-notch fa-spin me-2"></i> กำลังวิเคราะห์อาหาร...
+                        </div>
+                        <div id="aiResultContent" class="mt-3"></div>
+                        <div class="d-grid gap-2 mt-3">
+                            <button id="btnAnalyze" class="btn btn-dark rounded-pill py-2 fw-bold" onclick="analyzeFood()">วิเคราะห์</button>
+                            <button id="btnSaveFood" class="btn btn-success rounded-pill py-2 fw-bold hidden" onclick="saveFood()">บันทึกมื้ออาหาร</button>
+                            <button class="btn btn-light text-muted rounded-pill" onclick="resetFoodModal()">ยกเลิก</button>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        
-        const firebaseConfig = {
-            apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM",
-            authDomain: "school-management-system-10cbb.firebaseapp.com",
-            projectId: "school-management-system-10cbb",
-            storageBucket: "school-management-system-10cbb.firebasestorage.app",
-            messagingSenderId: "674779385916",
-            appId: "1:674779385916:web:9a26e4d25282dc23a6f339"
-        };
+    <!-- Modal: Activity -->
+    <div class="modal fade" id="activityModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">🔥 บันทึกกิจกรรม</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold uppercase">ประเภทกิจกรรม</label>
+                        <select id="actType" class="form-select form-select-lg rounded-3" onchange="calcBurn()">
+                            <option value="walk">🚶 เดิน</option>
+                            <option value="run">🏃 วิ่ง</option>
+                            <option value="weight">🏋️ เวทเทรนนิ่ง</option>
+                            <option value="yoga">🧘 โยคะ</option>
+                            <option value="cardio">🚴 คาร์ดิโอ/ปั่นจักรยาน</option>
+                            <option value="custom">🔹 กำหนดเอง</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold uppercase">ระยะเวลา (นาที)</label>
+                        <input type="number" id="actDuration" class="form-control form-control-lg rounded-3" value="30" onchange="calcBurn()">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold uppercase">การเผาผลาญโดยประมาณ (กิโลแคล)</label>
+                        <input type="number" id="actBurn" class="form-control form-control-lg rounded-3 fw-bold text-danger">
+                    </div>
+                    <div class="d-grid">
+                        <button class="btn btn-danger rounded-pill py-2 fw-bold" onclick="saveActivity()">บันทึกกิจกรรม</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
+    <!-- Modal: Goal Settings -->
+    <div class="modal fade" id="goalModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title fw-bold">🎯 ตั้งเป้าหมายของคุณ</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="d-grid gap-2 mb-3">
+                        <button class="btn btn-outline-primary text-start p-3 rounded-4" onclick="setMode('loss')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>🏃‍♂️ ลดไขมัน</span><span class="badge bg-primary-subtle text-primary">โปรตีนสูง</span>
+                            </div>
+                        </button>
+                        <button class="btn btn-outline-success text-start p-3 rounded-4" onclick="setMode('maintain')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>🧘 รักษาสภาพ</span><span class="badge bg-success-subtle text-success">สมดุล</span>
+                            </div>
+                        </button>
+                        <button class="btn btn-outline-danger text-start p-3 rounded-4" onclick="setMode('gain')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span>💪 สร้างกล้ามเนื้อ</span><span class="badge bg-danger-subtle text-danger">เพิ่มปริมาณ</span>
+                            </div>
+                        </button>
+                    </div>
+                    <hr class="text-muted">
+                    <div class="input-group">
+                        <span class="input-group-text bg-light border-0">กำหนดเอง</span>
+                        <input type="number" id="customGoalInput" class="form-control border-light bg-light" placeholder="เช่น 2200">
+                        <button class="btn btn-dark px-4" onclick="saveCustomGoal()">บันทึก</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        // 🔥 ใส่ API Key ที่นี่ (ถ้ายัง Error 404 อีก แสดงว่า Key นี้ใช้ไม่ได้จริงๆ ครับ)
-        const GEMINI_API_KEY = "AIzaSyB9hNjZ6wG88cKITg9IA5d7UMiP9v-Cj5I"; 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // --- 1. CONFIG & STATE ---
+        const GEMINI_API_KEY = "AIzaSyBPdWK_BNfCXt_SXXGD-MKbG5qfAJlb5C8";
         
-        onAuthStateChanged(auth, (user) => {
-            if (!user) window.location.href = "index.html";
+        let userGoal = JSON.parse(localStorage.getItem('userGoal')) || { mode: 'maintain', calories: 2000, protein: 150, carbs: 225, fat: 66 };
+        let currentImageBase64 = null;
+        let currentFoodData = null;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateDashboard();
         });
 
-        let base64Image = null;
-        let mimeType = "image/jpeg";
+        // --- 2. DATA MANAGEMENT ---
+        function getMeals() { return JSON.parse(localStorage.getItem('meals') || '[]'); }
+        function getActivities() { return JSON.parse(localStorage.getItem('activities') || '[]'); }
+        
+        function saveMealToStorage(meal) {
+            const meals = getMeals(); meals.push(meal);
+            localStorage.setItem('meals', JSON.stringify(meals));
+            updateDashboard();
+        }
+        function saveActivityToStorage(act) {
+            const acts = getActivities(); acts.push(act);
+            localStorage.setItem('activities', JSON.stringify(acts));
+            updateDashboard();
+        }
 
-        window.previewImage = (input) => {
-            const file = input.files[0];
-            if (file) {
-                // Limit size 5MB
-                if (file.size > 5 * 1024 * 1024) {
-                    Swal.fire('ไฟล์ใหญ่เกินไป', 'กรุณาใช้รูปขนาดไม่เกิน 5MB', 'warning');
-                    input.value = '';
-                    return;
-                }
+        // --- 3. DASHBOARD LOGIC ---
+        function updateDashboard() {
+            const today = new Date().toISOString().split('T')[0];
+            const meals = getMeals();
+            const activities = getActivities();
+            
+            const todayMeals = meals.filter(m => m.date === today);
+            const todayActs = activities.filter(a => a.date === today);
 
-                mimeType = file.type;
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    document.getElementById('imagePreview').src = e.target.result;
-                    document.getElementById('imagePreview').style.display = 'block';
-                    document.getElementById('btnAnalyze').style.display = 'block';
-                    base64Image = e.target.result.split(',')[1];
-                    document.getElementById('resultSection').style.display = 'none';
-                };
-                reader.readAsDataURL(file);
+            const sumFood = todayMeals.reduce((s, m) => s + (m.calories || 0), 0);
+            const sumBurn = todayActs.reduce((s, a) => s + (a.calories || 0), 0);
+            const sumMacros = todayMeals.reduce((acc, m) => {
+                acc.p += m.protein||0; acc.c += m.carbs||0; acc.f += m.fat||0; return acc;
+            }, {p:0, c:0, f:0});
+
+            const netCalories = sumFood - sumBurn;
+            const remaining = userGoal.calories - netCalories;
+
+            // UI Elements
+            document.getElementById('valFood').innerText = sumFood.toLocaleString();
+            document.getElementById('valBurn').innerText = sumBurn.toLocaleString();
+            // document.getElementById('valGoal').innerText = userGoal.calories.toLocaleString();
+            document.getElementById('netCalories').innerText = netCalories.toLocaleString();
+            
+            // Circle Chart
+            const pct = Math.min((netCalories / userGoal.calories) * 100, 100);
+            const circle = document.getElementById('progressCircle');
+            const circumference = 2 * Math.PI * 15.9155;
+            circle.style.strokeDashoffset = circumference - (pct/100)*circumference;
+            circle.style.stroke = remaining < 0 ? '#ef4444' : '#4f46e5';
+
+            // Macros
+            updateMacroBar('Protein', sumMacros.p, userGoal.protein);
+            updateMacroBar('Carb', sumMacros.c, userGoal.carbs);
+            updateMacroBar('Fat', sumMacros.f, userGoal.fat);
+
+            // Lists
+            renderFoodList(todayMeals);
+            renderActivityList(todayActs);
+
+            // KPI
+            calculateKPI(meals, activities);
+        }
+
+        function updateMacroBar(type, val, max) {
+            const pct = Math.min((val/max)*100, 100);
+            document.getElementById(`bar${type}`).style.width = `${pct}%`;
+            document.getElementById(`macro${type}Text`).innerText = `${Math.round(val)}/${max}g`;
+        }
+
+        function calculateKPI(meals, acts) {
+            const days = {};
+            meals.forEach(m => { if(!days[m.date]) days[m.date] = 0; days[m.date] += m.calories; });
+            acts.forEach(a => { if(days[a.date]) days[a.date] -= a.calories; });
+
+            const dates = Object.keys(days);
+            if(dates.length === 0) return;
+
+            const totalNet = Object.values(days).reduce((a,b)=>a+b, 0);
+            const avg = Math.round(totalNet / dates.length);
+            
+            let onTarget = 0, overTarget = 0;
+            dates.forEach(d => {
+                const net = days[d];
+                if(net > userGoal.calories + 100) overTarget++; else onTarget++;
+            });
+
+            const totalBurn = acts.reduce((s,a)=>s+a.calories, 0);
+
+            document.getElementById('kpiAvgCal').innerText = avg.toLocaleString();
+            document.getElementById('kpiOnTarget').innerHTML = `${onTarget} <span class="fs-6 fw-normal text-muted">วัน</span>`;
+            document.getElementById('kpiOverTarget').innerHTML = `${overTarget} <span class="fs-6 fw-normal text-muted">วัน</span>`;
+            document.getElementById('kpiBurned').innerText = totalBurn.toLocaleString();
+        }
+
+        // --- 4. LIST RENDERING ---
+        function renderFoodList(list) {
+            const el = document.getElementById('foodListContainer');
+            if(list.length === 0) { el.innerHTML = '<div class="text-center text-muted py-5"><i class="fa-solid fa-utensils mb-2 fs-3 opacity-25"></i><br><small>ไม่มีรายการอาหารวันนี้</small></div>'; return; }
+            el.innerHTML = list.map((m, i) => `
+                <div class="list-item">
+                    <div class="d-flex align-items-center">
+                        <div class="item-icon item-food"><i class="fa-solid fa-burger"></i></div>
+                        <div>
+                            <div class="fw-bold text-dark">${m.name}</div>
+                            <div class="small text-muted" style="font-size:0.75rem;">P:${m.protein} C:${m.carbs} F:${m.fat}</div>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-bold text-dark">${m.calories} กิโลแคล</div>
+                        <div class="small text-danger cursor-pointer fw-bold" onclick="deleteItem('meals', ${i})" style="font-size:0.7rem;">ลบ</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderActivityList(list) {
+            const el = document.getElementById('activityListContainer');
+            if(list.length === 0) { el.innerHTML = '<div class="text-center text-muted py-5"><i class="fa-solid fa-person-walking mb-2 fs-3 opacity-25"></i><br><small>ยังไม่มีกิจกรรม</small></div>'; return; }
+            el.innerHTML = list.map((a, i) => `
+                <div class="list-item">
+                    <div class="d-flex align-items-center">
+                        <div class="item-icon item-act"><i class="fa-solid fa-fire"></i></div>
+                        <div>
+                            <div class="fw-bold text-dark">${a.name}</div>
+                            <div class="small text-muted" style="font-size:0.75rem;">${a.duration} นาที</div>
+                        </div>
+                    </div>
+                    <div class="text-end">
+                        <div class="fw-bold text-danger">-${a.calories}</div>
+                        <div class="small text-muted cursor-pointer fw-bold" onclick="deleteItem('activities', ${i})" style="font-size:0.7rem;">ลบ</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        window.deleteItem = (type, index) => {
+            const today = new Date().toISOString().split('T')[0];
+            let all = JSON.parse(localStorage.getItem(type) || '[]');
+            const todayItems = all.filter(x => x.date === today);
+            const target = todayItems[index];
+            const realIndex = all.findIndex(x => x.date === target.date && x.name === target.name && x.calories === target.calories);
+            if(realIndex > -1) {
+                all.splice(realIndex, 1);
+                localStorage.setItem(type, JSON.stringify(all));
+                updateDashboard();
             }
         };
 
-        // 🔥 Helper function for API calls
-        async function callGeminiAPI(modelName, payload) {
-            console.log("Trying Model:", modelName);
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${GEMINI_API_KEY}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({}));
-                throw new Error(errorData.error?.message || response.statusText);
-            }
-
-            const data = await response.json();
-            // ตรวจสอบโครงสร้างข้อมูลตอบกลับ
-            if (!data.candidates || !data.candidates[0] || !data.candidates[0].content) {
-                if (data.promptFeedback) throw new Error("AI ปฏิเสธการตอบ (รูปภาพอาจไม่เหมาะสม)");
-                throw new Error("Invalid API Response");
-            }
-            return data.candidates[0].content.parts[0].text;
-        }
-
-        window.analyzeFood = async () => {
-            if (!base64Image) return;
-
+        // --- 5. AI LOGIC ---
+        async function analyzeFood() {
+            if(!currentImageBase64) return;
             const btn = document.getElementById('btnAnalyze');
-            const resultBox = document.getElementById('resultSection');
-            const resultContent = document.getElementById('aiResultContent');
-            const statusText = document.getElementById('statusText');
+            const status = document.getElementById('analysisStatus');
+            const scanner = document.getElementById('scannerLine');
+            btn.classList.add('hidden'); status.classList.remove('hidden'); scanner.style.display='block';
 
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> กำลังวิเคราะห์...';
-            statusText.style.display = 'block';
-            statusText.innerText = "กำลังเชื่อมต่อ AI...";
-            
             try {
-                // 🔥 Payload Format (v1beta)
                 const payload = {
                     contents: [{
                         parts: [
-                            { text: "วิเคราะห์รูปภาพอาหารนี้ บอกชื่อเมนู (ภาษาไทย), ปริมาณแคลอรี่โดยประมาณ (kcal), และข้อมูลโภชนาการ (โปรตีน, คาร์บ, ไขมัน) แบบสั้นๆ เป็นกันเอง ถ้าไม่ใช่รูปอาหารให้บอกว่าดูไม่ออก" },
-                            { 
-                                inlineData: {
-                                    mimeType: mimeType,
-                                    data: base64Image 
-                                } 
-                            }
+                            { text: "Analyze food image. Return JSON: { \"name\": \"Food Name in Thai\", \"calories\": Number, \"protein\": Number, \"carbs\": Number, \"fat\": Number }. Estimate 1 serving." },
+                            { inline_data: { mime_type: "image/jpeg", data: currentImageBase64 } }
                         ]
                     }]
                 };
-
-                // 🔥 เพิ่มรายชื่อโมเดลให้ครอบคลุมที่สุด (รวม 2.0 และ 1.5-002)
-                const CANDIDATE_MODELS = [
-                    "gemini-1.5-flash",
-                    "gemini-1.5-flash-latest",
-                    "gemini-1.5-flash-001",
-                    "gemini-1.5-flash-002",
-                    "gemini-1.5-pro",
-                    "gemini-1.5-pro-001",
-                    "gemini-1.5-pro-002",
-                    "gemini-2.0-flash-exp", // เผื่อฟลุ๊คได้ใช้ตัวใหม่
-                    "gemini-pro-vision"     // ตัวเก่าสุด
-                ];
-
-                let aiText = "";
-                let success = false;
-                let lastError = "";
-
-                // วนลูปหาโมเดลที่ใช้ได้
-                for (const model of CANDIDATE_MODELS) {
-                    try {
-                        statusText.innerText = `Trying: ${model}...`;
-                        aiText = await callGeminiAPI(model, payload);
-                        success = true;
-                        console.log("Success with model:", model);
-                        break; 
-                    } catch (err) {
-                        console.warn(`Model ${model} failed:`, err.message);
-                        lastError = err.message;
-                    }
-                }
-
-                if (!success) {
-                    throw new Error(lastError);
-                }
+                const res = await callGemini(payload);
+                const jsonStr = res.replace(/```json/g, '').replace(/```/g, '').trim();
+                currentFoodData = JSON.parse(jsonStr);
                 
-                statusText.style.display = 'none';
-                resultBox.style.display = 'block';
-                resultContent.innerHTML = marked.parse(aiText);
-
-            } catch (error) {
-                console.error("Final Error:", error);
-                statusText.style.display = 'none';
-                let msg = error.message;
-                
-                // แจ้งเตือนสาเหตุที่แท้จริง
-                if (msg.includes('404') || msg.includes('not found') || msg.includes('permission')) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'API Key มีปัญหา (404)',
-                        html: `
-                            <div class="text-start small">
-                                <p class="mb-2">ระบบลองเชื่อมต่อทุกโมเดลแล้วแต่ไม่สำเร็จ สาเหตุคือ:</p>
-                                <ul class="mb-3">
-                                    <li><b>API Key นี้ไม่มีสิทธิ์เข้าถึง</b> Generative Language API</li>
-                                    <li>หรือ Key นี้ถูกสร้างใน Google Cloud Console แต่ยังไม่ได้ Enable API</li>
-                                </ul>
-                                <div class="d-grid">
-                                    <a href="https://aistudio.google.com/app/apikey" target="_blank" class="btn btn-outline-primary btn-sm">
-                                        <i class="fa-solid fa-key me-1"></i> สร้าง API Key ใหม่ฟรีที่ Google AI Studio
-                                    </a>
-                                </div>
-                            </div>
-                        `
-                    });
-                } else {
-                    Swal.fire('เกิดข้อผิดพลาด', msg, 'error');
-                }
-
+                document.getElementById('aiResultContent').innerHTML = `
+                    <div class="alert alert-light border shadow-sm d-flex justify-content-between align-items-center rounded-3">
+                        <div>
+                            <h6 class="m-0 fw-bold text-dark">${currentFoodData.name}</h6>
+                            <small class="text-muted" style="font-size:0.75rem;">P:${currentFoodData.protein} C:${currentFoodData.carbs} F:${currentFoodData.fat}</small>
+                        </div>
+                        <span class="badge bg-dark rounded-pill">${currentFoodData.calories} กิโลแคล</span>
+                    </div>
+                `;
+                document.getElementById('btnSaveFood').classList.remove('hidden');
+            } catch(e) {
+                Swal.fire('เกิดข้อผิดพลาด', 'AI วิเคราะห์ล้มเหลว โปรดลองอีกครั้ง', 'error');
+                btn.classList.remove('hidden');
             } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles me-2"></i> วิเคราะห์โภชนาการ';
+                status.classList.add('hidden'); scanner.style.display='none';
             }
+        }
+
+        async function generateAIInsight() {
+            const btn = document.querySelector('.ai-insight-box button');
+            const txt = document.getElementById('aiAdviceText');
+            btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> กำลังวิเคราะห์...';
+
+            const meals = getMeals().slice(-20);
+            const summary = JSON.stringify(meals.map(m => ({n: m.name, c: m.calories, p: m.protein, d: m.date})));
+            const prompt = `User eating history: ${summary}. Goal: ${userGoal.mode}. 
+            Role: Expert Health Coach. 
+            Output: 1. Analyze 1 key pattern. 2. Suggest specific next meal. 
+            Tone: Professional, Encouraging, Thai Language. Short paragraph.`;
+
+            try {
+                const payload = { contents: [{ parts: [{ text: prompt }] }] };
+                const res = await callGemini(payload);
+                txt.innerHTML = marked.parse(res);
+            } catch(e) {
+                txt.innerText = "บริการ AI ไม่พร้อมใช้งาน";
+            } finally {
+                btn.disabled = false; btn.innerHTML = '<i class="fa-regular fa-lightbulb me-2"></i> วิเคราะห์เลย';
+            }
+        }
+
+        async function callGemini(payload) {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${GEMINI_API_KEY}`, {
+                method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload)
+            });
+            const data = await response.json();
+            if(!response.ok) throw new Error(data.error?.message);
+            return data.candidates[0].content.parts[0].text;
+        }
+
+        // --- 6. UI ACTIONS ---
+        function openFoodModal() { resetFoodModal(); new bootstrap.Modal(document.getElementById('foodModal')).show(); }
+        function openActivityModal() { new bootstrap.Modal(document.getElementById('activityModal')).show(); }
+        function openGoalSettings() { new bootstrap.Modal(document.getElementById('goalModal')).show(); }
+        
+        function handleImageSelect(input) {
+            const file = input.files[0];
+            if(file) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    document.getElementById('imagePreview').src = e.target.result;
+                    currentImageBase64 = e.target.result.split(',')[1];
+                    document.getElementById('uploadSection').classList.add('hidden');
+                    document.getElementById('previewSection').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function calcBurn() {
+            const type = document.getElementById('actType').value;
+            const min = parseInt(document.getElementById('actDuration').value) || 0;
+            const met = { 'walk': 3.5, 'run': 8, 'weight': 4, 'yoga': 2.5, 'cardio': 7, 'custom': 1 };
+            let burn = Math.round(met[type] * min * 1.2);
+            if(type === 'custom') burn = 0; 
+            document.getElementById('actBurn').value = burn;
+        }
+
+        function saveFood() {
+            if(!currentFoodData) return;
+            const meal = { date: new Date().toISOString().split('T')[0], time: new Date().toLocaleTimeString(), ...currentFoodData };
+            saveMealToStorage(meal);
+            bootstrap.Modal.getInstance(document.getElementById('foodModal')).hide();
+            Swal.fire({icon:'success', title:'บันทึกแล้ว', toast:true, position:'top-end', showConfirmButton:false, timer:1500});
+        }
+
+        function saveActivity() {
+            const type = document.getElementById('actType').value;
+            const act = {
+                date: new Date().toISOString().split('T')[0],
+                name: type.charAt(0).toUpperCase() + type.slice(1),
+                duration: document.getElementById('actDuration').value,
+                calories: parseInt(document.getElementById('actBurn').value) || 0
+            };
+            saveActivityToStorage(act);
+            bootstrap.Modal.getInstance(document.getElementById('activityModal')).hide();
+            Swal.fire({icon:'success', title:'บันทึกการเผาผลาญ!', toast:true, position:'top-end', showConfirmButton:false, timer:1500});
+        }
+
+        function resetFoodModal() {
+            document.getElementById('foodImageInput').value = '';
+            document.getElementById('uploadSection').classList.remove('hidden');
+            document.getElementById('previewSection').classList.add('hidden');
+            document.getElementById('aiResultContent').innerHTML = '';
+            document.getElementById('btnAnalyze').classList.remove('hidden');
+            document.getElementById('btnSaveFood').classList.add('hidden');
+            currentImageBase64 = null;
+        }
+
+        function setMode(mode) {
+            if (mode === 'loss') userGoal = { mode: 'loss', calories: 1600, protein: 160, carbs: 120, fat: 53 };
+            else if (mode === 'maintain') userGoal = { mode: 'maintain', calories: 2000, protein: 150, carbs: 200, fat: 66 };
+            else if (mode === 'gain') userGoal = { mode: 'gain', calories: 2500, protein: 180, carbs: 310, fat: 55 };
+            saveGoal();
+        }
+        function saveCustomGoal() {
+            const val = parseInt(document.getElementById('customGoalInput').value);
+            if(val) {
+                userGoal.calories = val; userGoal.mode = 'custom';
+                userGoal.protein = Math.round((val*0.3)/4); userGoal.carbs = Math.round((val*0.4)/4); userGoal.fat = Math.round((val*0.3)/9);
+                saveGoal();
+            }
+        }
+        function saveGoal() {
+            localStorage.setItem('userGoal', JSON.stringify(userGoal));
+            bootstrap.Modal.getInstance(document.getElementById('goalModal')).hide();
+            updateDashboard();
+        }
+
+        // --- 7. DATA PRIVACY ---
+        window.exportData = () => {
+            const data = { meals: getMeals(), activities: getActivities(), goal: userGoal };
+            const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a'); a.href = url; a.download = 'health_data.json';
+            a.click();
         };
+        window.deleteData = () => {
+            Swal.fire({
+                title: 'ยืนยันการลบ?', text: "ข้อมูลทั้งหมดในเครื่องจะหายไป", icon: 'warning', showCancelButton: true, confirmButtonColor: '#ef4444', confirmButtonText: 'ใช่, ลบเลย'
+            }).then((r) => {
+                if(r.isConfirmed) {
+                    localStorage.removeItem('meals'); localStorage.removeItem('activities');
+                    updateDashboard();
+                    Swal.fire('ลบเรียบร้อย', '', 'success');
+                }
+            });
+        };
+
     </script>
 </body>
 </html>

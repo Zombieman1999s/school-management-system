@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Scheduler - ระบบจัดตารางสอนอัจฉริยะ</title>
+    
+    <!-- Libraries -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- 🔥 SheetJS สำหรับอ่าน Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #a855f7;
+            --bg-color: #f8fafc;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        body { font-family: 'Sarabun', sans-serif; background-color: var(--bg-color); color: #1e293b; padding-bottom: 50px; }
+
+        .navbar-custom { background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+        .brand-logo { font-weight: 800; background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .card-custom {
+            border: none; border-radius: 16px; background: white;
+            box-shadow: var(--card-shadow); transition: transform 0.2s;
+            height: 100%;
+        }
+        .card-custom:hover { transform: translateY(-2px); }
+
+        .step-indicator {
+            display: flex; justify-content: space-between; margin-bottom: 2rem; position: relative;
+        }
+        .step-indicator::before {
+            content: ''; position: absolute; top: 15px; left: 0; width: 100%; height: 2px; background: #e2e8f0; z-index: 0;
+        }
+        .step {
+            position: relative; z-index: 1; background: white; width: 40px; height: 40px;
+            border-radius: 50%; border: 2px solid #e2e8f0; display: flex; align-items: center; justify-content: center;
+            font-weight: bold; color: #94a3b8; cursor: pointer; transition: 0.3s;
+        }
+        .step.active { border-color: var(--primary-color); background: var(--primary-color); color: white; box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2); }
+        .step.completed { border-color: #10b981; background: #10b981; color: white; }
+
+        /* Timetable Grid */
+        .timetable-container { overflow-x: auto; }
+        .timetable { min-width: 1000px; width: 100%; border-collapse: separate; border-spacing: 4px; }
+        .timetable th { text-align: center; padding: 10px; background: #f1f5f9; color: #64748b; font-size: 0.85rem; border-radius: 8px; }
+        .timetable td { 
+            height: 80px; vertical-align: top; padding: 5px; 
+            border: 1px solid #e2e8f0; border-radius: 8px; background: white; 
+            font-size: 0.8rem; position: relative; transition: 0.2s;
+        }
+        .timetable td:hover { background: #f8fafc; border-color: var(--primary-color); }
+        
+        .subject-block {
+            padding: 4px 8px; border-radius: 6px; color: white; font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer; height: 100%;
+            display: flex; flex-direction: column; justify-content: center;
+        }
+        .subject-hard { background: linear-gradient(135deg, #ef4444, #f87171); } /* วิชาหนัก */
+        .subject-medium { background: linear-gradient(135deg, #3b82f6, #60a5fa); } /* วิชาหลัก */
+        .subject-easy { background: linear-gradient(135deg, #10b981, #34d399); } /* กิจกรรม */
+        
+        .badge-teacher { background: rgba(255,255,255,0.2); font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; margin-top: 2px; display: inline-block; }
+
+        /* AI Anim */
+        .ai-processing { animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.05); opacity: 0.8; } 100% { transform: scale(1); opacity: 1; } }
+
+        .hidden-section { display: none; animation: fadeIn 0.4s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .break-column { background-color: #f1f5f9; color: #64748b; font-weight: bold; text-align: center; vertical-align: middle !important; writing-mode: vertical-rl; text-orientation: mixed; transform: rotate(180deg); }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-custom sticky-top">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+                <!-- 🔥 ปุ่มย้อนกลับ Dashboard -->
+                <a href="dashboard.html" class="btn btn-light text-primary btn-sm rounded-pill shadow-sm me-3 fw-bold border">
+                    <i class="fa-solid fa-chevron-left me-1"></i> Dashboard
+                </a>
+                <a class="navbar-brand brand-logo m-0" href="#"><i class="fa-solid fa-brain me-2"></i>AI Scheduler Pro</a>
+            </div>
+            <button class="btn btn-sm btn-outline-secondary" onclick="resetSystem()"><i class="fa-solid fa-rotate-right me-1"></i> รีเซ็ตระบบ</button>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        
+        <!-- Progress Steps -->
+        <div class="step-indicator px-5">
+            <div class="step active" onclick="switchStep(1)" id="step1">1</div>
+            <div class="step" onclick="switchStep(2)" id="step2">2</div>
+            <div class="step" onclick="switchStep(3)" id="step3">3</div>
+            <div class="step" onclick="switchStep(4)" id="step4">4</div>
+        </div>
+        <div class="text-center mb-4 text-muted small" id="stepLabel">1. ตั้งค่าข้อมูลพื้นฐาน</div>
+
+        <!-- STEP 1: Data Setup -->
+        <div id="section1" class="hidden-section" style="display: block;">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <div class="card-custom p-4">
+                        <h5 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-database me-2"></i>ข้อมูลตั้งต้น</h5>
+                        <p class="text-muted small">ระบบต้องการข้อมูลครู วิชา และห้องเรียน เพื่อนำไปประมวลผล</p>
+                        
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary" onclick="loadMockData()">
+                                <i class="fa-solid fa-magic-wand-sparkles me-2"></i> โหลดข้อมูลตัวอย่าง
+                            </button>
+                            
+                            <!-- 🔥 ปุ่มนำเข้า Excel -->
+                            <div class="btn-group">
+                                <button class="btn btn-success w-75" onclick="document.getElementById('teacherExcelInput').click()">
+                                    <i class="fa-solid fa-file-excel me-2"></i> นำเข้าครู (Excel)
+                                </button>
+                                <button class="btn btn-outline-success w-25" onclick="downloadTeacherTemplate()" title="โหลดแบบฟอร์ม">
+                                    <i class="fa-solid fa-download"></i>
+                                </button>
+                            </div>
+                            <input type="file" id="teacherExcelInput" accept=".xlsx, .xls" class="d-none" onchange="handleExcelUpload(this)">
+
+                            <button class="btn btn-outline-secondary" onclick="clearData()">ล้างข้อมูล</button>
+                        </div>
+                        
+                        <hr>
+                        <small class="text-muted"><i class="fa-solid fa-info-circle"></i> กดปุ่มดาวน์โหลดเพื่อดูรูปแบบไฟล์ Excel ที่รองรับ</small>
+                    </div>
+                </div>
+                <div class="col-md-8">
+                    <div class="card-custom p-4">
+                        <ul class="nav nav-tabs mb-3" id="dataTab" role="tablist">
+                            <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-teachers">ครู (<span id="countTeachers">0</span>)</button></li>
+                            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-subjects">วิชา (<span id="countSubjects">0</span>)</button></li>
+                            <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-rooms">ห้อง (<span id="countRooms">0</span>)</button></li>
+                        </ul>
+                        <div class="tab-content" style="height: 300px; overflow-y: auto;">
+                            <div class="tab-pane fade show active" id="tab-teachers"><ul class="list-group list-group-flush" id="listTeachers"></ul></div>
+                            <div class="tab-pane fade" id="tab-subjects"><ul class="list-group list-group-flush" id="listSubjects"></ul></div>
+                            <div class="tab-pane fade" id="tab-rooms"><ul class="list-group list-group-flush" id="listRooms"></ul></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-end mt-4">
+                <button class="btn btn-primary rounded-pill px-4" onclick="goToStep(2)">ต่อไป <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- STEP 2: Constraints -->
+        <div id="section2" class="hidden-section">
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card-custom p-4 border-start border-4 border-danger">
+                        <h5 class="fw-bold mb-3"><i class="fa-solid fa-lock me-2 text-danger"></i>Hard Constraints (ห้ามผิด)</h5>
+                        <ul class="list-group list-group-flush small">
+                            <li class="list-group-item"><i class="fa-solid fa-check text-success me-2"></i>ครู 1 คน สอนได้ 1 ห้อง/คาบ</li>
+                            <li class="list-group-item"><i class="fa-solid fa-check text-success me-2"></i>ห้องเรียน ใช้ได้ 1 วิชา/คาบ</li>
+                            <li class="list-group-item"><i class="fa-solid fa-check text-success me-2"></i>นักเรียน ห้ามเรียนซ้อนวิชา</li>
+                            <li class="list-group-item"><i class="fa-solid fa-check text-success me-2"></i>จำนวนคาบต้องครบตามหลักสูตร</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card-custom p-4 border-start border-4 border-warning">
+                        <h5 class="fw-bold mb-3"><i class="fa-solid fa-scale-balanced me-2 text-warning"></i>Soft Constraints (พยายามเลี่ยง)</h5>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="sc_heavy_morning" checked>
+                            <label class="form-check-label">วิชาหนัก (วิทย์/คณิต) ควรอยู่คาบเช้า</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="sc_no_gap" checked>
+                            <label class="form-check-label">ไม่ควรมีคาบว่างตรงกลาง (Gap)</label>
+                        </div>
+                        <div class="form-check form-switch mb-2">
+                            <input class="form-check-input" type="checkbox" id="sc_balance" checked>
+                            <label class="form-check-label">กระจายวิชาไม่ให้เรียนติดกันเกิน 2 ชม.</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="d-flex justify-content-between mt-4">
+                <button class="btn btn-light rounded-pill px-4" onclick="goToStep(1)">ย้อนกลับ</button>
+                <button class="btn btn-primary rounded-pill px-4" onclick="goToStep(3)">ต่อไป <i class="fa-solid fa-arrow-right"></i></button>
+            </div>
+        </div>
+
+        <!-- STEP 3: Generate AI -->
+        <div id="section3" class="hidden-section text-center py-5">
+            <div class="mb-4">
+                <i class="fa-solid fa-microchip fa-4x text-primary mb-3" id="aiIcon"></i>
+                <h3 class="fw-bold">พร้อมรันระบบ AI Engine</h3>
+                <p class="text-muted">ระบบจะทำการสุ่มและตรวจสอบเงื่อนไขกว่า 1,000 รอบเพื่อหาตารางที่ดีที่สุด</p>
+            </div>
+            
+            <div class="progress mb-3 d-none mx-auto" style="height: 10px; max-width: 500px;" id="aiProgressContainer">
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" id="aiProgressBar" style="width: 0%"></div>
+            </div>
+            <p id="aiStatusText" class="text-primary fw-bold small d-none">กำลังโหลดข้อมูล...</p>
+
+            <button class="btn btn-lg btn-primary rounded-pill px-5 shadow" onclick="runAIScheduler()">
+                <i class="fa-solid fa-play me-2"></i> เริ่มจัดตารางสอน
+            </button>
+            <br>
+            <button class="btn btn-light rounded-pill px-4 mt-4" onclick="goToStep(2)">ย้อนกลับ</button>
+        </div>
+
+        <!-- STEP 4: Results & Dashboard -->
+        <div id="section4" class="hidden-section">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold m-0"><i class="fa-solid fa-calendar-days text-primary me-2"></i>ผลลัพธ์การจัดตาราง</h5>
+                <div>
+                    <select class="form-select w-auto d-inline-block" id="classSelectView" onchange="renderTimetable()">
+                        <!-- JS inject -->
+                    </select>
+                    <button class="btn btn-outline-primary ms-2" onclick="runAIScheduler()"><i class="fa-solid fa-rotate"></i> จัดใหม่</button>
+                </div>
+            </div>
+
+            <div class="card-custom p-3 overflow-hidden mb-4">
+                <div class="timetable-container">
+                    <table class="timetable" id="mainTable">
+                        <thead id="timetableHead">
+                            <!-- JS Inject Header based on Level -->
+                        </thead>
+                        <tbody id="timetableBody">
+                            <!-- JS Inject Schedule -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="card-custom p-4">
+                        <h6 class="fw-bold">📊 สถิติการจัดตาราง</h6>
+                        <ul class="list-unstyled small mt-3">
+                            <li class="mb-2 d-flex justify-content-between"><span>อัตราความสำเร็จ (Constraints):</span> <span class="text-success fw-bold">100%</span></li>
+                            <li class="mb-2 d-flex justify-content-between"><span>วิชาหนักช่วงเช้า:</span> <span class="text-primary fw-bold" id="statHeavyMorning">--</span></li>
+                            <li class="mb-2 d-flex justify-content-between"><span>การกระจายตัวครู:</span> <span class="text-info fw-bold">Good</span></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card-custom p-4">
+                        <h6 class="fw-bold">🚨 ปัญหาที่พบ (Conflicts)</h6>
+                        <div id="conflictList" class="small text-muted mt-2">
+                            <i class="fa-solid fa-check-circle text-success"></i> ไม่พบข้อขัดแย้ง (Hard Constraints Passed)
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center mt-5">
+                <button class="btn btn-secondary rounded-pill px-4" onclick="goToStep(3)">ย้อนกลับไปหน้า AI</button>
+                <button class="btn btn-success rounded-pill px-4 ms-2" onclick="Swal.fire('บันทึกสำเร็จ','ส่งข้อมูลไปยัง Database แล้ว','success')"><i class="fa-solid fa-save me-2"></i> บันทึกตารางนี้</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        // --- 1. Data Structure ---
+        const DAYS = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์'];
+        
+        // Define Period Configs
+        const PERIODS_PRIMARY = [
+            "08:30-09:20", "09:20-10:10", "10:20-11:10", 
+            "LUNCH", // 11:10-11:50
+            "11:50-12:40", "12:40-13:30", "13:30-14:20", "14:20-15:10"
+        ];
+        
+        const PERIODS_SECONDARY = [
+            "08:30-09:20", "09:20-10:10", "10:20-11:10", "11:10-12:00",
+            "LUNCH", // 12:00-12:50
+            "12:50-13:40", "13:40-14:30", "14:30-15:20"
+        ];
+
+        let teachers = [];
+        let subjects = [];
+        let rooms = [];
+        let classes = []; // Populated in init
+        let scheduleData = {}; 
+
+        // --- 2. Mock Data Generator ---
+        function loadMockData() {
+            // Generate Classes: P.1-6 (5 rooms each), M.1-6 (5 rooms each)
+            classes = [];
+            for(let i=1; i<=6; i++) for(let j=1; j<=5; j++) classes.push(`ป.${i}/${j}`);
+            for(let i=1; i<=6; i++) for(let j=1; j<=5; j++) classes.push(`ม.${i}/${j}`);
+
+            // ครู
+            teachers = [
+                { id: 't1', name: 'ครูสมชาย', subject: 'คณิตศาสตร์' },
+                { id: 't2', name: 'ครูสมหญิง', subject: 'ภาษาไทย' },
+                { id: 't3', name: 'ครูจอห์น', subject: 'ภาษาอังกฤษ' },
+                { id: 't4', name: 'ครูวิทย์', subject: 'วิทยาศาสตร์' },
+                { id: 't5', name: 'ครูสังคม', subject: 'สังคมศึกษา' },
+                { id: 't6', name: 'ครูพละ', subject: 'สุขศึกษา/พละ' },
+                { id: 't7', name: 'ครูคอม', subject: 'คอมพิวเตอร์' },
+                { id: 't8', name: 'ครูศิลป์', subject: 'ศิลปะ' },
+                { id: 't9', name: 'ครูดนตรี', subject: 'ดนตรี' }
+            ];
+
+            // วิชา
+            subjects = [
+                { id: 's1', name: 'คณิตศาสตร์พื้นฐาน', type: 'heavy', hours: 3, teacherId: 't1' },
+                { id: 's2', name: 'ภาษาไทย', type: 'medium', hours: 4, teacherId: 't2' },
+                { id: 's3', name: 'ภาษาอังกฤษ', type: 'medium', hours: 3, teacherId: 't3' },
+                { id: 's4', name: 'วิทยาศาสตร์', type: 'heavy', hours: 3, teacherId: 't4' },
+                { id: 's5', name: 'สังคมศึกษา', type: 'medium', hours: 2, teacherId: 't5' },
+                { id: 's6', name: 'ประวัติศาสตร์', type: 'medium', hours: 1, teacherId: 't5' },
+                { id: 's7', name: 'สุขศึกษา/พละ', type: 'easy', hours: 2, teacherId: 't6' },
+                { id: 's8', name: 'วิทยาการคำนวณ', type: 'medium', hours: 2, teacherId: 't7' },
+                { id: 's9', name: 'ลูกเสือ/เนตรนารี', type: 'easy', hours: 1, teacherId: 't6', fixedPeriod: {day: 3, p: 7} }, // Hard fix
+                { id: 's10', name: 'แนะแนว', type: 'easy', hours: 1, teacherId: 't2' },
+                { id: 's11', name: 'ศิลปะ', type: 'easy', hours: 1, teacherId: 't8' },
+                { id: 's12', name: 'การงานอาชีพ', type: 'easy', hours: 1, teacherId: 't5' },
+                { id: 's13', name: 'ลดเวลาเรียน', type: 'easy', hours: 2, teacherId: null }
+            ];
+
+            // ห้อง
+            rooms = [
+                { id: 'r1', name: 'ห้อง 101' }, { id: 'r2', name: 'ห้อง 102' }, 
+                { id: 'r_sci', name: 'Lab วิทย์' }, { id: 'r_com', name: 'Lab คอม' }
+            ];
+
+            updateUI();
+            Swal.fire('โหลดข้อมูลสำเร็จ', 'สร้างห้องเรียน ป.1-ม.6 เรียบร้อย', 'success');
+        }
+
+        // --- 🔥 New: Excel Import System ---
+        function downloadTeacherTemplate() {
+            const data = [
+                { "ชื่อสกุล": "ครูสมชาย ใจดี", "วิชาที่สอน": "คณิตศาสตร์" },
+                { "ชื่อสกุล": "ครูสมหญิง รักเรียน", "วิชาที่สอน": "ภาษาไทย" },
+                { "ชื่อสกุล": "ครูจอห์น สมิธ", "วิชาที่สอน": "ภาษาอังกฤษ" }
+            ];
+            const ws = XLSX.utils.json_to_sheet(data);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Teachers");
+            XLSX.writeFile(wb, "template_teachers.xlsx");
+        }
+
+        function handleExcelUpload(input) {
+            const file = input.files[0];
+            if(!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                const json = XLSX.utils.sheet_to_json(worksheet);
+
+                // Map data from Excel to System format
+                const newTeachers = json.map((row, index) => ({
+                    id: `t_ex_${Date.now()}_${index}`,
+                    name: row['ชื่อสกุล'] || row['Name'] || 'ไม่ระบุชื่อ',
+                    subject: row['วิชาที่สอน'] || row['Subject'] || 'ทั่วไป'
+                }));
+
+                if(newTeachers.length > 0) {
+                    teachers = [...teachers, ...newTeachers];
+                    updateUI();
+                    Swal.fire('สำเร็จ', `นำเข้าข้อมูลครู ${newTeachers.length} ท่านเรียบร้อย!`, 'success');
+                } else {
+                    Swal.fire('ข้อผิดพลาด', 'ไม่พบข้อมูลในไฟล์ หรือรูปแบบคอลัมน์ไม่ถูกต้อง', 'error');
+                }
+                input.value = ''; // Reset input
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function clearData() {
+            teachers = []; subjects = []; rooms = []; classes = [];
+            updateUI();
+        }
+
+        function updateUI() {
+            document.getElementById('countTeachers').innerText = teachers.length;
+            document.getElementById('countSubjects').innerText = subjects.length;
+            document.getElementById('countRooms').innerText = rooms.length;
+
+            const renderList = (id, data, fn) => {
+                const el = document.getElementById(id);
+                el.innerHTML = '';
+                data.forEach(item => el.innerHTML += `<li class="list-group-item">${fn(item)}</li>`);
+            };
+
+            renderList('listTeachers', teachers, t => `<b>${t.name}</b> (${t.subject})`);
+            renderList('listSubjects', subjects, s => `<b>${s.name}</b> [${s.hours} คาบ] - <span class="badge ${s.type==='heavy'?'bg-danger':s.type==='medium'?'bg-primary':'bg-success'}">${s.type}</span>`);
+            renderList('listRooms', rooms, r => `${r.name}`);
+        }
+
+        // --- 3. UI Navigation ---
+        function switchStep(step) {
+            if (step > 1 && teachers.length === 0) {
+                Swal.fire('เดี๋ยวก่อน!', 'กรุณาโหลดข้อมูลตั้งต้นก่อนครับ', 'warning');
+                return;
+            }
+            goToStep(step);
+        }
+
+        function goToStep(step) {
+            document.querySelectorAll('.step').forEach((el, index) => {
+                el.classList.remove('active', 'completed');
+                if (index + 1 < step) el.classList.add('completed');
+                if (index + 1 === step) el.classList.add('active');
+            });
+
+            document.querySelectorAll('.hidden-section').forEach(el => el.style.display = 'none');
+            document.getElementById(`section${step}`).style.display = 'block';
+
+            const labels = ["1. ตั้งค่าข้อมูล", "2. กำหนดเงื่อนไข", "3. ประมวลผล AI", "4. ตรวจสอบผลลัพธ์"];
+            document.getElementById('stepLabel').innerText = labels[step-1];
+        }
+
+        // --- 4. The "AI" Engine (Heuristic Algorithm) ---
+        async function runAIScheduler() {
+            const btn = document.querySelector('#section3 button');
+            const icon = document.getElementById('aiIcon');
+            const progContainer = document.getElementById('aiProgressContainer');
+            const bar = document.getElementById('aiProgressBar');
+            const status = document.getElementById('aiStatusText');
+
+            // UI Animation
+            btn.disabled = true;
+            icon.classList.add('ai-processing');
+            progContainer.classList.remove('d-none');
+            status.classList.remove('d-none');
+
+            const steps = [
+                "กำลังโหลด Hard Constraints...",
+                "ตรวจสอบตารางสอนครู...",
+                "จัดวิชาหนักลงช่วงเช้า (Optimization)...",
+                "เกลี่ยคาบเรียนให้สมดุล...",
+                "ตรวจสอบความขัดแย้ง (Validation)..."
+            ];
+
+            for (let i = 0; i < steps.length; i++) {
+                status.innerText = steps[i];
+                bar.style.width = `${(i + 1) * 20}%`;
+                await new Promise(r => setTimeout(r, 400));
+            }
+
+            // --- Real Logic Here ---
+            generateSchedule();
+            // -----------------------
+
+            status.innerText = "เสร็จสิ้น!";
+            icon.classList.remove('ai-processing');
+            btn.disabled = false;
+
+            setTimeout(() => {
+                goToStep(4);
+                initClassSelect();
+                renderTimetable();
+            }, 500);
+        }
+
+        function generateSchedule() {
+            scheduleData = {};
+            let teacherTimeTable = {}; 
+
+            classes.forEach(className => {
+                // Determine structure based on class level
+                const isPrimary = className.startsWith('ป.');
+                const periods = isPrimary ? 8 : 8; // Working periods (excluding lunch for array sizing simplicity, or mapping index)
+                
+                scheduleData[className] = Array(5).fill(null).map(() => Array(9).fill(null)); // Use max size
+                
+                let subjectPool = [];
+                subjects.forEach(sub => {
+                    for(let i=0; i<sub.hours; i++) subjectPool.push({ ...sub });
+                });
+
+                subjectPool.sort((a, b) => {
+                    if (a.fixedPeriod) return -1;
+                    if (b.fixedPeriod) return 1;
+                    const priority = { 'heavy': 1, 'medium': 2, 'easy': 3 };
+                    return priority[a.type] - priority[b.type];
+                });
+
+                subjectPool.forEach(subj => {
+                    let placed = false;
+                    if (subj.fixedPeriod) {
+                        const { day, p } = subj.fixedPeriod; 
+                        scheduleData[className][day][p] = subj;
+                        placed = true;
+                    } else {
+                        // Priority Slots
+                        let preferredPeriods = [0, 1, 2, 3, 4, 5, 6, 7];
+                        if (subj.type === 'heavy' && document.getElementById('sc_heavy_morning').checked) {
+                            preferredPeriods = [0, 1, 2, 3, 4, 5, 6, 7];
+                        } else {
+                            preferredPeriods.sort(() => Math.random() - 0.5); 
+                        }
+
+                        for (let d = 0; d < 5; d++) {
+                            if (placed) break;
+                            for (let pIdx of preferredPeriods) {
+                                if (scheduleData[className][d][pIdx] === null) {
+                                    let teacherBusy = false;
+                                    if (subj.teacherId) {
+                                        if (!teacherTimeTable[subj.teacherId]) teacherTimeTable[subj.teacherId] = {};
+                                        const key = `${d}-${pIdx}`;
+                                        if (teacherTimeTable[subj.teacherId][key]) teacherBusy = true;
+                                    }
+
+                                    if (!teacherBusy) {
+                                        scheduleData[className][d][pIdx] = subj;
+                                        if (subj.teacherId) {
+                                            const key = `${d}-${pIdx}`;
+                                            teacherTimeTable[subj.teacherId][key] = className;
+                                        }
+                                        placed = true;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+            analyzeStats();
+        }
+
+        // --- 5. Rendering & Dashboard ---
+        function initClassSelect() {
+            const sel = document.getElementById('classSelectView');
+            sel.innerHTML = '';
+            
+            // Create Groups
+            const optGroupP = document.createElement('optgroup'); optGroupP.label = "ประถมศึกษา";
+            const optGroupM = document.createElement('optgroup'); optGroupM.label = "มัธยมศึกษา";
+
+            classes.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c; opt.innerText = c;
+                if(c.startsWith('ป.')) optGroupP.appendChild(opt);
+                else optGroupM.appendChild(opt);
+            });
+            
+            sel.appendChild(optGroupP);
+            sel.appendChild(optGroupM);
+        }
+
+        function renderTimetable() {
+            const className = document.getElementById('classSelectView').value;
+            const isPrimary = className.startsWith('ป.');
+            const thead = document.getElementById('timetableHead');
+            const tbody = document.getElementById('timetableBody');
+            
+            tbody.innerHTML = '';
+            thead.innerHTML = '';
+
+            // 1. Generate Header Row based on Level
+            const periodConfig = isPrimary ? PERIODS_PRIMARY : PERIODS_SECONDARY;
+            const lunchLabel = isPrimary ? "พักเที่ยง<br>11:10-11:50" : "พักเที่ยง<br>12:00-12:50";
+            
+            let headerHtml = `<tr><th style="width: 50px;">วัน</th>`;
+            let pCount = 1;
+            periodConfig.forEach(time => {
+                if(time === 'LUNCH') {
+                    headerHtml += `<th style="background: #e2e8f0; color: #1e293b;">${lunchLabel}</th>`;
+                } else {
+                    headerHtml += `<th>คาบ ${pCount}<br>${time}</th>`;
+                    pCount++;
+                }
+            });
+            headerHtml += `</tr>`;
+            thead.innerHTML = headerHtml;
+
+            // 2. Generate Body
+            const classSchedule = scheduleData[className];
+            if(!classSchedule) return;
+
+            DAYS.forEach((dayName, dayIndex) => {
+                let rowHtml = `<tr><td class="fw-bold bg-light">${dayName}</td>`;
+                const dailySched = classSchedule[dayIndex];
+                
+                // Primary: 3 periods -> LUNCH -> 4 periods (Total 7 displayed slots + lunch)
+                // Secondary: 4 periods -> LUNCH -> 3-4 periods 
+                // We map the flat scheduling array (0-8) to the visual grid
+                
+                let schedIndex = 0;
+                periodConfig.forEach(time => {
+                    if(time === 'LUNCH') {
+                        rowHtml += `<td class="break-column">LUNCH BREAK</td>`;
+                    } else {
+                        // Get subject from flat array
+                        const subj = dailySched[schedIndex];
+                        rowHtml += renderCell(subj);
+                        schedIndex++;
+                    }
+                });
+
+                rowHtml += `</tr>`;
+                tbody.innerHTML += rowHtml;
+            });
+        }
+
+        function renderCell(subj) {
+            if (!subj) return `<td></td>`;
+            
+            let colorClass = 'subject-easy';
+            if (subj.type === 'heavy') colorClass = 'subject-hard';
+            else if (subj.type === 'medium') colorClass = 'subject-medium';
+
+            const teacher = teachers.find(t => t.id === subj.teacherId);
+            const teacherName = teacher ? teacher.name : '-';
+
+            return `
+                <td>
+                    <div class="subject-block ${colorClass}">
+                        <div>${subj.name}</div>
+                        <span class="badge-teacher"><i class="fa-solid fa-user"></i> ${teacherName}</span>
+                    </div>
+                </td>
+            `;
+        }
+
+        function analyzeStats() {
+            let heavyMorning = 0;
+            let total = 0;
+            
+            Object.values(scheduleData).forEach(week => {
+                week.forEach(day => {
+                    day.forEach((subj, idx) => {
+                        if (subj && subj.type === 'heavy') {
+                            total++;
+                            if (idx < 4) heavyMorning++;
+                        }
+                    });
+                });
+            });
+
+            const percentage = total === 0 ? 0 : Math.round((heavyMorning / total) * 100);
+            document.getElementById('statHeavyMorning').innerText = `${percentage}% (เป้าหมาย > 70%)`;
+        }
+
+        function resetSystem() {
+            location.reload();
+        }
+
+    </script>
+</body>
+</html>

@@ -60,7 +60,8 @@
 
             <div class="divider"><span>หรือเข้าสู่ระบบด้วย</span></div>
             <div class="d-grid">
-                <button id="googleLoginBtn" class="btn btn-google">
+                <!-- 🔥 เปลี่ยน type="button" เพื่อกัน refresh -->
+                <button id="googleLoginBtn" type="button" class="btn btn-google">
                     <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="20" class="me-2"> Google Account
                 </button>
             </div>
@@ -132,8 +133,25 @@
                             </div>
                         </div>
 
-                        <!-- 3. ข้อมูลบทบาท -->
-                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">3. บทบาทและหน้าที่ (Role)</h6>
+                        <!-- 3. ข้อมูลสุขภาพ (เพิ่มใหม่) -->
+                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">3. ข้อมูลสุขภาพ (สำหรับระบบ AI)</h6>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label">น้ำหนัก (kg)</label>
+                                <input type="number" id="regWeight" class="form-control" placeholder="0" min="0" step="0.1">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">ส่วนสูง (cm)</label>
+                                <input type="number" id="regHeight" class="form-control" placeholder="0" min="0">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">โรคประจำตัว / แพ้อาหาร</label>
+                                <input type="text" id="regHealthInfo" class="form-control" placeholder="เช่น หอบหืด, แพ้นมวัว (ถ้าไม่มีให้เว้นว่าง)">
+                            </div>
+                        </div>
+
+                        <!-- 4. ข้อมูลบทบาท -->
+                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">4. บทบาทและหน้าที่ (Role)</h6>
                         <div class="mb-3">
                             <label class="form-label">ตำแหน่งของคุณ <span class="text-danger">*</span></label>
                             <select id="regRole" class="form-select" onchange="toggleRoleFields('reg')" required>
@@ -243,7 +261,7 @@
         </div>
     </div>
 
-    <!-- Modal Google Register (แก้ไขใหม่ เพิ่มช่องให้ครบทุก Role) -->
+    <!-- Modal Google Register (แก้ไขใหม่ เพิ่มช่องสุขภาพและอื่นๆ) -->
     <div class="modal fade" id="googleRegisterModal" data-bs-backdrop="static" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-lg">
             <div class="modal-content">
@@ -278,8 +296,25 @@
                             </div>
                         </div>
 
+                        <!-- ข้อมูลสุขภาพ (เพิ่มใหม่) -->
+                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">2. ข้อมูลสุขภาพ (Optional)</h6>
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-4">
+                                <label class="form-label">น้ำหนัก (kg)</label>
+                                <input type="number" id="gRegWeight" class="form-control" placeholder="0" min="0" step="0.1">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">ส่วนสูง (cm)</label>
+                                <input type="number" id="gRegHeight" class="form-control" placeholder="0" min="0">
+                            </div>
+                             <div class="col-md-4">
+                                <label class="form-label">โรคประจำตัว</label>
+                                <input type="text" id="gRegHealthInfo" class="form-control" placeholder="ถ้ามี">
+                            </div>
+                        </div>
+
                         <!-- บทบาท -->
-                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">2. บทบาทและหน้าที่</h6>
+                        <h6 class="text-primary fw-bold mb-3 border-bottom pb-2">3. บทบาทและหน้าที่</h6>
                         <div class="mb-3">
                             <select id="gRegRole" class="form-select" onchange="toggleRoleFields('google')" required>
                                 <option value="" selected disabled>-- เลือกตำแหน่ง --</option>
@@ -382,8 +417,21 @@
 
         let pendingGoogleUser = null;
 
-        // Populate Classes
-        const classList = ["ป.1/1", "ป.1/2", "ป.2/1", "ป.3/1", "ป.4/1", "ป.5/1", "ป.6/1", "ม.1/1", "ม.2/1", "ม.3/1", "ม.4/1", "ม.5/1", "ม.6/1"];
+        // Populate Classes (Updated list)
+        const classList = [
+            "ป.1/1", "ป.1/2", 
+            "ป.2/1", 
+            "ป.3/1", "ป.3/2", "ป.3/3", 
+            "ป.4/1", "ป.4/2", "ป.4/3", 
+            "ป.5/1", "ป.5/2", "ป.5/3", 
+            "ป.6/1", "ป.6/2", 
+            "ม.1/1", "ม.1/2", 
+            "ม.2/1", "ม.2/2", 
+            "ม.3/1", "ม.3/2", 
+            "ม.4/1", "ม.4/2", 
+            "ม.5/1", "ม.5/2", 
+            "ม.6/1", "ม.6/2"
+        ];
         function populateClasses() {
             const opts = classList.map(c => `<option value="${c}">${c}</option>`).join('');
             document.getElementById('regStudentClass').innerHTML += opts;
@@ -459,6 +507,11 @@
                 dob: commonData.dob,
                 nationalId: commonData.nationalId,
                 phoneNumber: commonData.phone,
+                // ข้อมูลสุขภาพ (Health Data)
+                weight: commonData.weight || '',
+                height: commonData.height || '',
+                healthInfo: commonData.healthInfo || '',
+                
                 role: commonData.role,
                 approved: commonData.role !== 'executive', // Executive ต้องรอ
                 emailVerified: true, 
@@ -485,6 +538,11 @@
                 dob: document.getElementById('regDob').value,
                 nationalId: document.getElementById('regNationalId').value,
                 phone: document.getElementById('regPhone').value,
+                // รับข้อมูลสุขภาพ
+                weight: document.getElementById('regWeight').value,
+                height: document.getElementById('regHeight').value,
+                healthInfo: document.getElementById('regHealthInfo').value,
+                
                 role: role
             };
 
@@ -533,6 +591,11 @@
                 name: document.getElementById('gRegName').value,
                 prefix: document.getElementById('gRegPrefix').value,
                 phone: document.getElementById('gRegPhone').value,
+                // รับข้อมูลสุขภาพ Google Form
+                weight: document.getElementById('gRegWeight').value,
+                height: document.getElementById('gRegHeight').value,
+                healthInfo: document.getElementById('gRegHealthInfo').value,
+                
                 role: role,
                 nickname: '', dob: '', nationalId: '' 
             };

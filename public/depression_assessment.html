@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ประเมินภาวะซึมเศร้า & ดูแลใจ - School Hub</title>
+    <link rel="icon" href="icon.png" type="image/png">
+    
+    <!-- Libraries -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #6366f1; /* Indigo */
+            --secondary-color: #a5b4fc;
+            --bg-color: #f8fafc;
+            --card-radius: 24px;
+        }
+
+        body {
+            font-family: 'Sarabun', sans-serif;
+            background-color: var(--bg-color);
+            color: #1e293b;
+            padding-bottom: 100px;
+        }
+
+        /* Navbar */
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03);
+        }
+
+        /* Cards */
+        .main-card {
+            border: none; border-radius: var(--card-radius);
+            background: white; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.05);
+            padding: 30px; position: relative; overflow: hidden;
+            transition: transform 0.2s;
+        }
+
+        /* --- Mood Slider (Fixed) --- */
+        .mood-container {
+            position: relative;
+            height: 60px; /* ความสูงรวมของส่วน slider */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        
+        /* รางสีๆ */
+        .mood-track {
+            position: absolute;
+            width: 100%;
+            height: 12px;
+            background: linear-gradient(to right, #ef4444, #f59e0b, #10b981);
+            border-radius: 20px;
+            top: 50%; transform: translateY(-50%);
+            box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
+            z-index: 1;
+        }
+
+        /* Input ตัวจริง (ซ่อนแต่กดได้) */
+        #moodRange {
+            position: absolute;
+            width: 100%;
+            height: 100%; /* เต็มพื้นที่ container */
+            top: 0; left: 0;
+            opacity: 0; /* ซ่อน */
+            z-index: 10; /* อยู่บนสุดต้องกดโดนแน่นอน */
+            cursor: pointer;
+            margin: 0;
+        }
+
+        /* ปุ่มเลื่อน (Visual Only) */
+        .mood-thumb {
+            width: 35px; height: 35px; background: white; border: 5px solid var(--primary-color);
+            border-radius: 50%; position: absolute; top: 50%; 
+            transform: translate(-50%, -50%); /* จัดกึ่งกลางเป๊ะๆ */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3); 
+            transition: left 0.1s ease-out; /* เลื่อนนุ่มๆ */
+            display: flex; align-items: center; justify-content: center;
+            z-index: 2; /* อยู่เหนือราง */
+            pointer-events: none; /* ให้คลิกทะลุไปโดน input */
+        }
+        .mood-thumb::after { content: ''; width: 10px; height: 10px; background: var(--primary-color); border-radius: 50%; }
+        
+        .mood-emoji { 
+            font-size: 4rem; text-align: center; display: block; 
+            margin-bottom: 5px; transition: transform 0.2s; 
+            animation: float 3s infinite ease-in-out;
+        }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        /* --- PHQ-9 Question --- */
+        .phq-item {
+            background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
+            padding: 20px; margin-bottom: 15px; transition: 0.2s;
+        }
+        .phq-item:hover { border-color: var(--primary-color); box-shadow: 0 4px 15px rgba(99, 102, 241, 0.1); }
+        .phq-options .btn-check:checked + .btn-outline-primary {
+            background-color: var(--primary-color); border-color: var(--primary-color); color: white;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        /* --- Self Care Cards --- */
+        .care-card {
+            background: white; border-radius: 16px; padding: 20px; text-align: center;
+            border: 1px solid #f1f5f9; cursor: pointer; transition: 0.2s; height: 100%;
+        }
+        .care-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+
+        /* --- AI Coach Box --- */
+        .ai-coach-box {
+            background: linear-gradient(135deg, #eef2ff, #ffffff);
+            border-radius: 20px; padding: 25px; border: 1px solid #c7d2fe; position: relative;
+        }
+        
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar navbar-expand-lg navbar-custom sticky-top">
+        <div class="container">
+            <a class="navbar-brand fw-bold text-primary" href="dashboard.html">
+                <i class="fa-solid fa-chevron-left me-2"></i> Dashboard
+            </a>
+            <span class="fw-bold text-dark"><i class="fa-solid fa-cloud-moon text-primary me-2"></i>Depression Check</span>
+        </div>
+    </nav>
+
+    <div class="container py-4">
+        
+        <!-- 1. Header & Quick Check -->
+        <div class="row g-4 mb-4">
+            <div class="col-lg-8">
+                <div class="main-card">
+                    <div class="d-flex justify-content-between align-items-start mb-4">
+                        <div>
+                            <h3 class="fw-bold mb-1">สวัสดีครับ, <span id="userNameDisplay">...</span> 💙</h3>
+                            <p class="text-muted small">พื้นที่ปลอดภัยสำหรับเช็คสุขภาพใจของคุณ (ข้อมูลเป็นความลับ)</p>
+                        </div>
+                        <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="startPHQ9()">
+                            <i class="fa-solid fa-clipboard-list me-2"></i> แบบประเมิน PHQ-9
+                        </button>
+                    </div>
+
+                    <!-- 🔥 Quick Check Updated (Slider Fix) 🔥 -->
+                    <div class="bg-light rounded-4 p-4 border text-center position-relative overflow-hidden">
+                        <div class="position-absolute top-0 start-0 w-100 h-100 bg-white opacity-50" style="z-index:0;"></div>
+                        <div style="position: relative; z-index: 1;">
+                            <h6 class="fw-bold text-secondary mb-3"><i class="fa-solid fa-bolt me-2 text-warning"></i>Quick Check: วันนี้คุณรู้สึกอย่างไร?</h6>
+                            
+                            <div id="moodEmoji" class="mood-emoji">😐</div>
+                            <h5 id="moodText" class="fw-bold text-primary mb-2">เฉยๆ</h5>
+                            
+                            <!-- Container Slider -->
+                            <div class="mood-container">
+                                <div class="mood-track"></div>
+                                <div id="moodThumb" class="mood-thumb" style="left: 50%;"></div>
+                                <input type="range" id="moodRange" min="0" max="10" value="5" step="1" oninput="updateMoodUI(this.value)">
+                            </div>
+
+                            <div class="d-flex justify-content-between text-muted small px-1 mb-3">
+                                <span>😔 เศร้ามาก</span>
+                                <span>😐 เฉยๆ</span>
+                                <span>😄 มีความสุข</span>
+                            </div>
+
+                            <button class="btn btn-dark rounded-pill px-4 shadow-sm" onclick="saveQuickMood()">
+                                <i class="fa-regular fa-floppy-disk me-2"></i> บันทึกอารมณ์วันนี้
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Last Result Summary -->
+            <div class="col-lg-4">
+                <div class="main-card h-100 d-flex flex-column justify-content-center align-items-center text-center">
+                    <h6 class="text-muted mb-3">ผลประเมินล่าสุด (PHQ-9)</h6>
+                    <div style="width: 160px; height: 160px; position: relative;">
+                        <canvas id="scoreGauge"></canvas>
+                        <div class="position-absolute top-50 start-50 translate-middle mt-2">
+                            <h2 class="fw-bold m-0" id="lastScore">-</h2>
+                            <small class="text-muted" id="lastLevel">ไม่มีข้อมูล</small>
+                        </div>
+                    </div>
+                    <small class="text-muted mt-3" id="lastDate">ยังไม่เคยประเมิน</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- 2. Trend & Context Analysis -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="card border-0 shadow-sm p-4 rounded-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h5 class="fw-bold text-dark m-0"><i class="fa-solid fa-chart-line me-2 text-info"></i>แนวโน้มความรู้สึก</h5>
+                        <span class="badge bg-primary bg-opacity-10 text-primary">7 วันล่าสุด</span>
+                    </div>
+                    <div style="height: 300px;">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Self Care & Help -->
+        <h5 class="fw-bold mb-3 px-2"><i class="fa-solid fa-heart-circle-check me-2 text-danger"></i>ดูแลใจตัวเอง (Self-Care)</h5>
+        <div class="row g-3 mb-5">
+            <div class="col-6 col-md-3">
+                <div class="care-card" onclick="openJournal()">
+                    <i class="fa-solid fa-book-journal-whills fs-1 text-primary mb-2"></i>
+                    <h6 class="fw-bold">เขียนระบาย</h6>
+                    <small class="text-muted">Journaling</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="care-card" onclick="window.location.href='stress_assessment.html'">
+                    <i class="fa-solid fa-wind fs-1 text-success mb-2"></i>
+                    <h6 class="fw-bold">ฝึกหายใจ</h6>
+                    <small class="text-muted">ผ่อนคลายทันที</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="care-card" onclick="openGratitude()">
+                    <i class="fa-solid fa-sun fs-1 text-warning mb-2"></i>
+                    <h6 class="fw-bold">ขอบคุณสิ่งดีๆ</h6>
+                    <small class="text-muted">Gratitude Jar</small>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="care-card border-danger bg-danger bg-opacity-10" onclick="showHelpline(true)">
+                    <i class="fa-solid fa-phone-volume fs-1 text-danger mb-2"></i>
+                    <h6 class="fw-bold text-danger">สายด่วนใจ</h6>
+                    <small class="text-danger">1323 (24 ชม.)</small>
+                </div>
+            </div>
+        </div>
+        
+        <div class="text-center mt-5 pt-4 border-top">
+             <button class="btn btn-link btn-sm text-secondary" onclick="deleteMyData()">ลบประวัติการประเมิน (PDPA)</button>
+        </div>
+
+    </div>
+
+    <!-- PHQ-9 Modal -->
+    <div class="modal fade" id="phqModal" tabindex="-1" data-bs-backdrop="static">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0 pb-0">
+                    <div>
+                        <h5 class="modal-title fw-bold">📝 แบบประเมิน PHQ-9</h5>
+                        <p class="text-muted small mb-0">ใน 2 สัปดาห์ที่ผ่านมา รวมวันนี้ ท่านมีอาการเหล่านี้บ่อยแค่ไหน?</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="mb-4 p-3 bg-light rounded-3 border">
+                        <label class="form-label fw-bold"><i class="fa-solid fa-bed text-primary me-2"></i>ช่วงนี้โดยเฉลี่ยนอนวันละกี่ชั่วโมง?</label>
+                        <input type="number" id="phqSleep" class="form-control" placeholder="เช่น 6">
+                    </div>
+                    <form id="phqForm"><div id="phqQuestions"></div></form>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold w-100" onclick="submitPHQ9()">ประมวลผล</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div class="modal fade" id="resultModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-body p-5">
+                    <div class="text-center mb-4">
+                        <div class="display-1 mb-2" id="resEmoji">😐</div>
+                        <h3 class="fw-bold" id="resTitle">ระดับปานกลาง</h3>
+                        <p class="text-muted" id="resDesc">...</p>
+                    </div>
+                    <div class="ai-coach-box mb-4">
+                        <div class="d-flex">
+                            <div class="ai-coach-avatar">🤖</div>
+                            <div class="flex-grow-1">
+                                <h6 class="fw-bold text-primary mb-2">AI Care Coach</h6>
+                                <div id="aiLoading" class="text-muted"><i class="fa-solid fa-spinner fa-spin"></i> กำลังวิเคราะห์...</div>
+                                <div id="aiAdvice" class="small text-dark" style="line-height: 1.7;"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-grid gap-2" id="resActions"></div>
+                </div>
+                <div class="modal-footer border-0 justify-content-center">
+                    <button type="button" class="btn btn-secondary rounded-pill px-4" data-bs-dismiss="modal" onclick="location.reload()">ปิด</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Journal Modal -->
+    <div class="modal fade" id="journalModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <div class="modal-header border-0"><h5 class="modal-title fw-bold">📓 บันทึกความรู้สึก (Journal)</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+                <div class="modal-body"><textarea class="form-control" rows="5" placeholder="วันนี้เจออะไรมาบ้าง? ระบายได้เต็มที่เลยนะ..."></textarea></div>
+                <div class="modal-footer border-0"><button class="btn btn-primary rounded-pill px-4" onclick="Swal.fire('บันทึกแล้ว','เก่งมากที่ได้ระบายออกมานะ','success')">บันทึกเก็บไว้</button></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, query, where, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // 🔥 KEY ที่ถูกต้อง (ใช้ของ App ไม่ใช่ของ AI)
+        const firebaseConfig = {
+            apiKey: "AIzaSyDYqVJFyuge_4PcObIBMB9h5oIT3fYWuHM", 
+            authDomain: "school-management-system-10cbb.firebaseapp.com",
+            projectId: "school-management-system-10cbb",
+            storageBucket: "school-management-system-10cbb.firebasestorage.app",
+            messagingSenderId: "674779385916",
+            appId: "1:674779385916:web:9a26e4d25282dc23a6f339"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        
+        // 🔥 Key สำหรับ Gemini (แยกต่างหาก)
+        const GEMINI_API_KEY = "AIzaSyBPdWK_BNfCXt_SXXGD-MKbG5qfAJlb5C8"; 
+
+        const phqQuestions = [
+            "เบื่อ ไม่สนใจอยากทำอะไร", "ไม่สบายใจ ซึมเศร้า หรือท้อแท้", "หลับยาก หรือหลับๆ ตื่นๆ หรือหลับมากไป",
+            "เหนื่อยง่าย หรือ ไม่ค่อยมีแรง", "เบื่ออาหาร หรือ กินมากเกินไป", "รู้สึกไม่ดีกับตัวเอง คิดว่าล้มเหลว",
+            "สมาธิไม่ดีเวลาทำอะไร", "พูดช้า หรือกระวนกระวายจนอยู่นิ่งไม่ได้", "คิดทำร้ายตนเอง"
+        ];
+        let currentUser = null;
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('userNameDisplay').innerText = user.displayName || 'เพื่อน';
+                loadDashboard();
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+
+        // --- 1. QUICK CHECK LOGIC ---
+        window.updateMoodUI = (val) => {
+            const thumb = document.getElementById('moodThumb');
+            const emoji = document.getElementById('moodEmoji');
+            const text = document.getElementById('moodText');
+            const pct = (val / 10) * 100;
+            
+            // Adjust position for visual alignment
+            thumb.style.left = `${pct}%`; 
+            
+            if(val < 3) { emoji.innerText = "😢"; text.innerText = "เศร้าจัง"; text.className = "fw-bold text-danger mb-2"; }
+            else if(val < 5) { emoji.innerText = "😕"; text.innerText = "ไม่ค่อยโอเค"; text.className = "fw-bold text-warning mb-2"; }
+            else if(val < 7) { emoji.innerText = "😐"; text.innerText = "เฉยๆ"; text.className = "fw-bold text-secondary mb-2"; }
+            else if(val < 9) { emoji.innerText = "🙂"; text.innerText = "โอเคดี"; text.className = "fw-bold text-info mb-2"; }
+            else { emoji.innerText = "😁"; text.innerText = "มีความสุข!"; text.className = "fw-bold text-success mb-2"; }
+        }
+
+        window.saveQuickMood = async () => {
+            if(!currentUser) return;
+            const val = document.getElementById('moodRange').value;
+            
+            Swal.fire({ title: 'กำลังบันทึก...', didOpen: () => Swal.showLoading() });
+            
+            try {
+                await addDoc(collection(db, "mood_logs"), {
+                    userId: currentUser.uid,
+                    moodScore: parseInt(val),
+                    timestamp: serverTimestamp()
+                });
+                
+                Swal.fire({
+                    icon: 'success', 
+                    title: 'บันทึกแล้ว', 
+                    text: 'ขอบคุณที่สำรวจความรู้สึกตัวเองนะครับ 💙',
+                    timer: 1500, showConfirmButton: false
+                });
+                
+                loadDashboard(); // Refresh charts
+            } catch (e) {
+                console.error(e);
+                Swal.fire('Error', 'บันทึกไม่สำเร็จ', 'error');
+            }
+        };
+
+        // --- 2. DASHBOARD ---
+        async function loadDashboard() {
+            // Load Last PHQ-9
+            const q = query(collection(db, "depression_assessments"), where("userId", "==", currentUser.uid), orderBy("timestamp", "desc"), limit(1));
+            const snap = await getDocs(q);
+            if(!snap.empty) {
+                const d = snap.docs[0].data();
+                updateGauge(d.score);
+                document.getElementById('lastScore').innerText = d.score + "/27";
+                document.getElementById('lastDate').innerText = "ล่าสุด: " + new Date(d.timestamp.seconds*1000).toLocaleDateString('th-TH');
+                
+                let lvl = "ปกติ";
+                if(d.score >= 5) lvl = "เล็กน้อย";
+                if(d.score >= 10) lvl = "ปานกลาง";
+                if(d.score >= 15) lvl = "ค่อนข้างสูง";
+                if(d.score >= 20) lvl = "สูงมาก";
+                document.getElementById('lastLevel').innerText = lvl;
+            }
+
+            // Load Trend (Mix PHQ & Mood Logs)
+            loadTrendChart();
+        }
+
+        function updateGauge(score) {
+            const ctx = document.getElementById('scoreGauge').getContext('2d');
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Score', 'Remaining'],
+                    datasets: [{
+                        data: [score, 27 - score],
+                        backgroundColor: [score < 5 ? '#10b981' : (score < 10 ? '#f59e0b' : '#ef4444'), '#f1f5f9'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { cutout: '80%', plugins: { legend: { display: false }, tooltip: { enabled: false } } }
+            });
+        }
+
+        async function loadTrendChart() {
+            // Fetch PHQ History
+            const qPHQ = query(collection(db, "depression_assessments"), where("userId", "==", currentUser.uid), orderBy("timestamp", "asc"), limit(7));
+            const snapPHQ = await getDocs(qPHQ);
+            
+            const labels = [];
+            const scores = [];
+
+            snapPHQ.forEach(doc => {
+                const d = doc.data();
+                labels.push(new Date(d.timestamp.seconds*1000).toLocaleDateString('th-TH', {day:'numeric', month:'short'}));
+                scores.push(d.score);
+            });
+
+            const ctx = document.getElementById('trendChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'คะแนนความเสี่ยง (PHQ-9)',
+                        data: scores,
+                        borderColor: '#6366f1',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, max: 27 } }
+                }
+            });
+        }
+
+        // --- 3. PHQ-9 & AI ---
+        window.startPHQ9 = () => {
+            document.getElementById('phqQuestions').innerHTML = phqQuestions.map((q, i) => `
+                <div class="phq-item"><p class="fw-bold mb-2">${i+1}. ${q}</p><div class="phq-options btn-group w-100"><input type="radio" class="btn-check" name="phq${i}" id="phq${i}_0" value="0" required><label class="btn btn-outline-primary" for="phq${i}_0">ไม่เลย</label><input type="radio" class="btn-check" name="phq${i}" id="phq${i}_1" value="1"><label class="btn btn-outline-primary" for="phq${i}_1">มีบ้าง</label><input type="radio" class="btn-check" name="phq${i}" id="phq${i}_2" value="2"><label class="btn btn-outline-primary" for="phq${i}_2">บ่อย</label><input type="radio" class="btn-check" name="phq${i}" id="phq${i}_3" value="3"><label class="btn btn-outline-primary" for="phq${i}_3">ทุกวัน</label></div></div>
+            `).join('');
+            new bootstrap.Modal(document.getElementById('phqModal')).show();
+        };
+
+        window.submitPHQ9 = async () => {
+            let score = 0, answered = 0, answers = [];
+            phqQuestions.forEach((q, i) => { const el = document.querySelector(`input[name="phq${i}"]:checked`); if(el) { score += parseInt(el.value); answered++; answers.push(parseInt(el.value)); } });
+            const sleep = document.getElementById('phqSleep').value;
+            if(answered < 9 || !sleep) { Swal.fire('ข้อมูลไม่ครบ', 'กรุณาตอบให้ครบทุกข้อและระบุเวลานอน', 'warning'); return; }
+            
+            bootstrap.Modal.getInstance(document.getElementById('phqModal')).hide();
+            
+            try { await addDoc(collection(db, "depression_assessments"), { userId: currentUser.uid, score: score, sleep: parseFloat(sleep), answers: answers, timestamp: serverTimestamp() }); } catch(e) {}
+            
+            showResult(score, sleep);
+        };
+
+        async function showResult(score, sleep) {
+            new bootstrap.Modal(document.getElementById('resultModal')).show();
+            let title="", desc="", color="", emoji="";
+            if(score <= 4) { title="ปกติ"; desc="สุขภาพจิตดีเยี่ยม!"; color="text-success"; emoji="😊"; }
+            else if(score <= 9) { title="เสี่ยงเล็กน้อย"; desc="มีความขุ่นมัวบ้าง พักผ่อนหน่อยนะ"; color="text-warning"; emoji="😐"; }
+            else if(score <= 14) { title="ปานกลาง"; desc="มีความกดดันสะสม หาคนระบายบ้างนะ"; color="text-warning"; emoji="😟"; }
+            else if(score <= 19) { title="ค่อนข้างสูง"; desc="แบกรับเยอะเกินไปแล้ว ปรึกษาผู้เชี่ยวชาญนะ"; color="text-danger"; emoji="🌧️"; }
+            else { title="สูงมาก"; desc="ระดับความเสี่ยงสูง ดูแลตัวเองด่วนครับ"; color="text-danger"; emoji="⛈️"; }
+
+            document.getElementById('resEmoji').innerText = emoji;
+            document.getElementById('resTitle').innerText = title;
+            document.getElementById('resTitle').className = `fw-bold ${color}`;
+            document.getElementById('resDesc').innerText = desc;
+            
+            askAICoach(score, sleep, title);
+            
+            const ad = document.getElementById('resActions');
+            if(score >= 15) ad.innerHTML = `<button class="btn btn-danger py-3" onclick="showHelpline(true)">🆘 ขอความช่วยเหลือด่วน</button>`;
+            else ad.innerHTML = `<button class="btn btn-primary py-2" onclick="openJournal()">📓 เขียนระบาย (Journal)</button>`;
+        }
+
+        async function askAICoach(score, sleep, level) {
+            const prompt = `Context: User took PHQ-9. Score: ${score}/27 (${level}). Sleep: ${sleep}hrs. Role: Empathetic AI Friend. Task: 1. Analyze sleep/mood. 2. Give warm advice. Tone: Gentle Thai.`;
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${GEMINI_API_KEY}`, { method: "POST", headers: {"Content-Type": "application/json"}, body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] }) });
+                const d = await res.json();
+                document.getElementById('aiAdvice').innerHTML = marked.parse(d.candidates[0].content.parts[0].text);
+            } catch(e) { document.getElementById('aiAdvice').innerText = "วันนี้พักผ่อนเยอะๆ นะครับ เป็นกำลังใจให้เสมอ"; }
+            document.getElementById('aiLoading').classList.add('d-none');
+        }
+
+        // Helpers
+        window.openJournal = () => new bootstrap.Modal(document.getElementById('journalModal')).show();
+        window.openGratitude = () => Swal.fire({ title:'3 สิ่งดีๆ วันนี้', input:'textarea', confirmButtonText:'บันทึก' });
+        window.showHelpline = (u) => { Swal.fire({ icon: 'info', title: 'สายด่วนสุขภาพจิต', html: '<h3>📞 1323</h3>', confirmButtonText: 'โทรออก' }).then(r => { if(r.isConfirmed) window.location.href="tel:1323"; }); };
+        window.deleteMyData = () => { Swal.fire({ title:'ลบข้อมูล?', icon:'warning', showCancelButton:true, confirmButtonColor:'#ef4444' }).then(r=>{ if(r.isConfirmed) location.reload(); }); }
+    </script>
+</body>
+</html>
